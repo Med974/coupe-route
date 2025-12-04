@@ -9,7 +9,6 @@
 const SHEETDB_API_ID = 'hiydnpj4xuxdz'; 
 
 // Mappage des catégories vers leurs NOMS DE FEUILLES EXACTS dans Google Sheets.
-// Utilisez les noms renommés SANS caractères spéciaux.
 const CATEGORY_MAP = {
     'open': { name: 'OPEN', sheetName: 'Open' },
     'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
@@ -22,6 +21,10 @@ const navContainer = document.getElementById('nav-categories');
 
 // --- 2. Fonctions Utilitaires ---
 
+/**
+ * Extrait le paramètre 'cat' de l'URL pour déterminer la catégorie à afficher.
+ * @returns {string} La clé de la catégorie demandée.
+ */
 function getCategoryFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('cat') || DEFAULT_CATEGORY;
@@ -29,6 +32,8 @@ function getCategoryFromURL() {
 
 /**
  * Construit l'URL complète pour la récupération des données JSON via SheetDB.
+ * @param {string} categoryKey - La clé de la catégorie (ex: 'open').
+ * @returns {string | null} L'URL JSON de SheetDB.
  */
 function buildJsonUrl(categoryKey) {
     const categoryInfo = CATEGORY_MAP[categoryKey];
@@ -36,12 +41,16 @@ function buildJsonUrl(categoryKey) {
         return null;
     }
     
-    // Utilisation du format simple ?sheet=
+    // Utilisation du format ?sheet=
     const sheetParam = encodeURIComponent(categoryInfo.sheetName);
     
+    // Endpoint de base + paramètre de feuille
     return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}?sheet=${sheetParam}`;
 }
 
+/**
+ * Crée les boutons de navigation en haut de page.
+ */
 function createNavBar() {
     const currentCategory = getCategoryFromURL();
     let navHtml = '';
@@ -59,6 +68,11 @@ function createNavBar() {
 
 // --- 3. Fonctions de Récupération et de Traitement des Données ---
 
+/**
+ * Récupère les données JSON via l'API SheetDB.
+ * @param {string} url - L'URL JSON de la feuille de classement.
+ * @returns {Promise<Array<Object>>} - Tableau de coureurs.
+ */
 async function fetchClassementData(url) {
     try {
         console.log("Tentative de récupération de l'URL JSON :", url);
@@ -70,9 +84,9 @@ async function fetchClassementData(url) {
             throw new Error(`Erreur HTTP: ${response.status}. Vérifiez les noms de feuilles dans SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
         }
         
+        // Les données sont au format JSON !
         const data = await response.json(); 
         
-        // La seule complexité que SheetDB peut renvoyer, c'est un message d'erreur JSON ou un tableau de données.
         if (data && data.error) {
              throw new Error(`Erreur API: ${data.error}`);
         }
@@ -86,9 +100,13 @@ async function fetchClassementData(url) {
     }
 }
 
+/**
+ * Génère le tableau HTML de classement.
+ * @param {Array<Object>} data - Le tableau de coureurs filtré.
+ */
 function renderTable(data) {
     if (data.length === 0 || typeof data[0] !== 'object') {
-        container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez les données ou la configuration de l\'API.</p>';
+        container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez les données.</p>';
         return;
     }
 
@@ -98,6 +116,7 @@ function renderTable(data) {
 
     html += '<thead><tr>';
     headers.forEach(header => {
+        // Remplacement pour affichage (adapté aux clés sans espaces de la QUERY)
         const displayHeader = header.replace('PointsTotal', 'Total Pts').replace('NbCourses', 'Nb Courses').replace('SousCategorie', 'Sous Catégorie');
         html += `<th>${displayHeader}</th>`;
     });
@@ -129,12 +148,16 @@ async function init() {
     const jsonUrl = buildJsonUrl(currentCategoryKey); 
 
     const categoryName = CATEGORY_MAP[currentCategoryKey] ? CATEGORY_MAP[currentCategoryKey].name : currentCategoryKey.toUpperCase();
-    document.title = `Classement ${categoryName} - Route 2026`; 
+    
+    // CORRECTION DE L'ANNÉE ICI
+    document.title = `Classement ${categoryName} - Route 2025`; 
 
     createNavBar();
     
     const h1 = document.querySelector('h1');
-    if (h1) h1.textContent = `Classement ${categoryName}`;
+    // Le <h1> affiche "COUPE DE LA RÉUNION ROUTE" (fixe)
+    const h2 = document.querySelector('h2');
+    if (h2) h2.textContent = `Classement ${categoryName}`; // Le <h2> affiche la catégorie sélectionnée
 
     if (jsonUrl) {
         container.innerHTML = '<p>Chargement des données...</p>';
