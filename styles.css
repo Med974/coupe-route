@@ -1,5 +1,5 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne)
+FICHIER : styles.css (Design Réunionnais Moderne - Structure corrigée)
 ======================================================================= */
 
 /* Couleurs Clés */
@@ -54,24 +54,28 @@ main {
 }
 
 /* --- Style de la Navigation Saisons/Catégories --- */
+
+/* FORCING STRUCTURE : Les conteneurs NAV prennent toute la largeur (display: block) pour se superposer */
 #nav-seasons {
-    /* Style spécifique pour les saisons (peut être différent des catégories) */
     margin: 20px auto 10px;
-    display: inline-block;
-    background-color: rgba(255, 255, 255, 0.2); /* Fond plus clair */
-    border-radius: 6px;
-    padding: 3px;
+    display: block; /* Force la prise de ligne */
+    background-color: transparent; 
+    border-radius: 0;
+    padding: 0;
+    /* Ajout d'une ligne de séparation visuelle au-dessus des catégories */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
 }
 
 #nav-categories {
     margin: 10px auto 0;
-    display: inline-block;
-    background-color: rgba(255, 255, 255, 0.1); 
+    display: block; /* Force la prise de ligne */
+    background-color: transparent; 
     border-radius: 8px;
     padding: 3px;
     max-width: 90%;
 }
 
+/* Style des liens A à l'intérieur des NAV */
 #nav-seasons a, #nav-categories a {
     color: var(--color-light);
     text-decoration: none;
@@ -81,6 +85,8 @@ main {
     border-radius: 6px;
     transition: background-color 0.3s, color 0.3s;
     font-size: 0.95em;
+    /* Fond pour les boutons */
+    background-color: rgba(255, 255, 255, 0.1); 
 }
 
 #nav-seasons a:hover, #nav-categories a:hover {
@@ -89,7 +95,7 @@ main {
 
 #nav-seasons a.active, #nav-categories a.active {
     background-color: var(--color-light);
-    color: var(--color-lagon); /* Texte lagon sur fond blanc */
+    color: var(--color-lagon); 
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
