@@ -1,12 +1,12 @@
 /* =======================================================================
-FICHIER : styles.css (FINAL - Correction de la vue Détails)
+FICHIER : styles.css (Design Réunionnais Moderne - FINAL)
 ======================================================================= */
 
 /* Couleurs Clés */
 :root {
-    --color-lagon: #00A7BB;      
-    --color-volcan: #D94F00;     
-    --color-background: #F8F8F8; 
+    --color-lagon: #00A7BB;      /* Bleu Lagon/Océan */
+    --color-volcan: #D94F00;     /* Rouge-Orange (pour l'emphase) */
+    --color-background: #F8F8F8; /* Fond Tropical très clair */
     --color-text: #2c3e50;
     --color-light: #ffffff;
 }
@@ -20,26 +20,26 @@ body {
 }
 
 header {
-    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%);
+    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%); /* Dégradé Profond */
     color: var(--color-light);
     padding: 30px 20px;
     text-align: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-h1 { 
+h1 { /* Coupe de la Réunion Route */
     margin: 0 0 5px 0;
     font-size: 2.5em;
     letter-spacing: 1px;
 }
 
-h2 { 
+h2 { /* Catégorie dynamique */
     margin: 0 0 15px 0;
     font-size: 1.5em;
     font-weight: 300;
 }
 
-p { 
+p { /* Saison 2025/2026 */
     margin-top: 10px;
     font-size: 1.1em;
 }
@@ -53,7 +53,8 @@ main {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style des Conteneurs de Navigation (inchangé) --- */
+/* --- Style des Conteneurs de Navigation --- */
+
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
     display: block; 
@@ -80,6 +81,9 @@ main {
     margin-bottom: 20px;
 }
 
+
+/* --- Style des Boutons (Tuiles) --- */
+
 #nav-seasons a, #nav-categories a, #nav-masters a {
     color: var(--color-light);
     text-decoration: none;
@@ -90,6 +94,7 @@ main {
     transition: background-color 0.3s, color 0.3s;
     font-size: 0.95em;
     background-color: rgba(255, 255, 255, 0.1); 
+    
     margin-right: 10px; 
     margin-bottom: 5px; 
 }
@@ -106,7 +111,6 @@ main {
 
 /* --- Style du Tableau Général ET DÉTAILS --- */
 
-/* Applique le style au tableau général ET au nouveau tableau de détails */
 .classement-table, .details-table { 
     width: 100%;
     border-collapse: separate; 
@@ -167,4 +171,65 @@ button {
 
 button:hover {
     background-color: #a83d00;
+}
+
+/* --- Style du lien cliquable du coureur (Corrigé) --- */
+a.coureur-link {
+    color: var(--color-text); /* Couleur du texte par défaut */
+    text-decoration: none; /* Retrait du soulignement 'année 90' */
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+a.coureur-link:hover {
+    color: var(--color-volcan); /* Couleur rouge/orange au survol */
+}
+
+/* Conteneur pour le défilement horizontal du tableau */
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+    
+    /* --- Ajustements Généraux Mobile --- */
+    
+    header {
+        padding: 20px 10px;
+    }
+    
+    h1 {
+        font-size: 1.8em;
+    }
+
+    main {
+        padding: 10px;
+        margin: 10px auto;
+        border-radius: 0;
+    }
+
+    /* --- Navigation et Boutons Mobile --- */
+
+    #nav-seasons, #nav-categories, #nav-masters {
+        text-align: center;
+        padding: 0 5px; 
+    }
+
+    /* Les boutons s'étendent pour prendre la moitié de la largeur (deux par ligne) */
+    #nav-seasons a, #nav-categories a, #nav-masters a {
+        display: inline-block; 
+        width: calc(50% - 15px); 
+        margin: 5px 5px; 
+        padding: 8px 5px;
+        font-size: 0.85em;
+    }
+    
+    /* --- Tableau de Classement (Scrolling Horizontal) --- */
+    
+    .classement-table, .details-table {
+        margin-top: 15px; 
+        min-width: 700px; 
+    }
 }
