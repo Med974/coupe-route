@@ -112,7 +112,7 @@ main {
 }
 
 /* -------------------------------------------------------------------
-   STYLE DU TABLEAU : Alignement pour Desktop (RÉTABLI - aligné à gauche)
+   STYLE DU TABLEAU : Centrage Universel des Données
    ------------------------------------------------------------------- */
 
 .classement-table, .details-table { 
@@ -125,10 +125,16 @@ main {
 
 .classement-table th, .classement-table td, .details-table th, .details-table td {
     padding: 12px 15px;
-    text-align: left; /* Rétablissement de l'alignement initial (Gauche) */
+    text-align: center; /* NOUVEAU : Centrage par défaut de toutes les cellules */
     border-bottom: 1px solid #eee;
     font-size: 0.9em;
 }
+
+/* Règle pour l'alignement à gauche du NOM */
+.classement-table td:nth-child(5) {
+    text-align: left; /* Nom doit rester aligné à gauche */
+}
+
 
 .classement-table th, .details-table th {
     background-color: var(--color-lagon);
@@ -191,7 +197,6 @@ a.coureur-link:hover {
 
 /* =======================================================================
 MEDIA QUERIES (Optimisation pour Mobile)
-=> Masquage et Alignement restent actifs ici pour la vue portrait
 ======================================================================= */
 
 /* Conteneur pour le défilement horizontal du tableau */
@@ -236,6 +241,7 @@ MEDIA QUERIES (Optimisation pour Mobile)
     
     /* ----------------------------------------------------
        RÈGLE DE MASQUAGE EN VUE PORTRAIT (max-width: 768px)
+       Affiche: Nom (5), Club (6), Pts Total (7), Classement (8)
     ---------------------------------------------------- */
     
     /* Colonne 1: Sous Catégorie */
@@ -258,10 +264,7 @@ MEDIA QUERIES (Optimisation pour Mobile)
     }
     
     /* RÈGLE CRITIQUE : Alignement pour la vue portrait */
-    .classement-table td:nth-child(5) { text-align: left; } /* Nom (Col 5) */
-    .classement-table td:nth-child(6) { text-align: left; } /* Club (Col 6) */
-    .classement-table td:nth-child(7) { text-align: right; } /* Pts Total (Col 7) */
-    .classement-table td:nth-child(8) { text-align: right; } /* Classement (Col 8) */
+    .classement-table td:nth-child(5) { text-align: left; } /* Nom (Col 5) reste aligné à gauche */
     
     /* Correction pour la taille minimale */
     .classement-table, .details-table {
@@ -273,11 +276,10 @@ MEDIA QUERIES (Optimisation pour Mobile)
 
 /* =======================================================================
 RÈGLE D'ANNULATION (Desktop / Paysage : min-width: 769px)
-=> Rétablit TOUTES les colonnes masquées.
 ======================================================================= */
 
 @media (min-width: 769px) {
-    /* Rétablit l'affichage de toutes les colonnes masquées - Utilisation de !important pour forcer */
+    /* Rétablit l'affichage de toutes les colonnes masquées */
     
     /* Colonnes 1, 2, 3, 4, 6 de classement */
     .classement-table th:nth-child(1), .classement-table td:nth-child(1),
