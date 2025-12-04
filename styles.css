@@ -112,7 +112,7 @@ main {
 }
 
 /* -------------------------------------------------------------------
-   STYLE DU TABLEAU : Alignement pour Desktop (Par défaut)
+   STYLE DU TABLEAU : Alignement pour Desktop (RÉTABLI - aligné à gauche)
    ------------------------------------------------------------------- */
 
 .classement-table, .details-table { 
@@ -120,12 +120,12 @@ main {
     border-collapse: separate; 
     border-spacing: 0;
     margin-top: 25px;
-    min-width: 900px; /* Largeur minimale pour les colonnes Desktop */
+    min-width: 900px; 
 }
 
 .classement-table th, .classement-table td, .details-table th, .details-table td {
     padding: 12px 15px;
-    text-align: left; /* Alignement par défaut à gauche pour texte */
+    text-align: left; /* Rétablissement de l'alignement initial (Gauche) */
     border-bottom: 1px solid #eee;
     font-size: 0.9em;
 }
@@ -141,21 +141,6 @@ main {
     z-index: 10;
 }
 
-/* ALIGNEMENT NUMÉRIQUE pour Desktop (Centré sur les colonnes de valeur) */
-/* Col 3: Nb Courses */
-.classement-table th:nth-child(3), .classement-table td:nth-child(3) { text-align: center; }
-
-/* Col 7: Points Total */
-.classement-table th:nth-child(7), .classement-table td:nth-child(7) { text-align: right; }
-
-/* Col 8: Classement */
-.classement-table th:nth-child(8), .classement-table td:nth-child(8) { text-align: right; }
-
-/* ALIGNEMENT TABLEAU DE DÉTAILS */
-.details-table th:nth-child(5), .details-table td:nth-child(5) { text-align: right; } /* Points */
-
-/* --- Reste du Style (omises pour la concision) --- */
-
 .classement-table tr:nth-child(even), .details-table tr:nth-child(even) {
     background-color: #fcfcfc;
 }
@@ -170,7 +155,7 @@ main {
     font-weight: 700;
 }
 
-/* Style spécifique à la vue détaillée et au lien */
+/* Style spécifique à la vue détaillée et au lien (omises pour la concision) */
 .details-table h3 {
     color: var(--color-lagon);
     margin-top: 0;
@@ -206,6 +191,7 @@ a.coureur-link:hover {
 
 /* =======================================================================
 MEDIA QUERIES (Optimisation pour Mobile)
+=> Masquage et Alignement restent actifs ici pour la vue portrait
 ======================================================================= */
 
 /* Conteneur pour le défilement horizontal du tableau */
@@ -232,7 +218,7 @@ MEDIA QUERIES (Optimisation pour Mobile)
         margin: 10px auto;
         border-radius: 0;
     }
-    
+
     /* --- Navigation et Boutons Mobile (omises pour la concision) --- */
 
     #nav-seasons, #nav-categories, #nav-masters {
@@ -250,7 +236,6 @@ MEDIA QUERIES (Optimisation pour Mobile)
     
     /* ----------------------------------------------------
        RÈGLE DE MASQUAGE EN VUE PORTRAIT (max-width: 768px)
-       Affiche: Nom (5), Club (6), Pts Total (7), Classement (8)
     ---------------------------------------------------- */
     
     /* Colonne 1: Sous Catégorie */
@@ -273,14 +258,40 @@ MEDIA QUERIES (Optimisation pour Mobile)
     }
     
     /* RÈGLE CRITIQUE : Alignement pour la vue portrait */
-    .classement-table td:nth-child(5) { text-align: left; } /* Nom */
-    .classement-table td:nth-child(6) { text-align: left; } /* Club */
-    .classement-table td:nth-child(7) { text-align: right; } /* Pts Total */
-    .classement-table td:nth-child(8) { text-align: right; } /* Classement */
+    .classement-table td:nth-child(5) { text-align: left; } /* Nom (Col 5) */
+    .classement-table td:nth-child(6) { text-align: left; } /* Club (Col 6) */
+    .classement-table td:nth-child(7) { text-align: right; } /* Pts Total (Col 7) */
+    .classement-table td:nth-child(8) { text-align: right; } /* Classement (Col 8) */
     
     /* Correction pour la taille minimale */
     .classement-table, .details-table {
         margin-top: 15px; 
-        min-width: 320px; /* Largeur pour les 4 colonnes essentielles */
+        min-width: 320px; 
+    }
+}
+
+
+/* =======================================================================
+RÈGLE D'ANNULATION (Desktop / Paysage : min-width: 769px)
+=> Rétablit TOUTES les colonnes masquées.
+======================================================================= */
+
+@media (min-width: 769px) {
+    /* Rétablit l'affichage de toutes les colonnes masquées - Utilisation de !important pour forcer */
+    
+    /* Colonnes 1, 2, 3, 4, 6 de classement */
+    .classement-table th:nth-child(1), .classement-table td:nth-child(1),
+    .classement-table th:nth-child(2), .classement-table td:nth-child(2),
+    .classement-table th:nth-child(3), .classement-table td:nth-child(3),
+    .classement-table th:nth-child(4), .classement-table td:nth-child(4),
+    .classement-table th:nth-child(6), .classement-table td:nth-child(6) {
+        display: table-cell !important;
+    }
+    
+    /* Colonnes du tableau de DÉTAILS */
+    .details-table th:nth-child(1), .details-table td:nth-child(1), 
+    .details-table th:nth-child(3), .details-table td:nth-child(3),
+    .details-table th:nth-child(4), .details-table td:nth-child(4) {
+        display: table-cell !important;
     }
 }
