@@ -1,5 +1,5 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne - Espacement des boutons)
+FICHIER : styles.css (Design Réunionnais Moderne - Structure et Masters)
 ======================================================================= */
 
 /* Couleurs Clés */
@@ -33,7 +33,7 @@ h1 { /* Coupe de la Réunion Route */
     letter-spacing: 1px;
 }
 
-h2 { /* Catégorie dynamique */
+h2 { /* Catégorie dynamique (vide) */
     margin: 0 0 15px 0;
     font-size: 1.5em;
     font-weight: 300;
@@ -53,30 +53,38 @@ main {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style de la Navigation Saisons/Catégories --- */
+/* --- Style des Conteneurs de Navigation --- */
 
-/* FORCING STRUCTURE : Les conteneurs NAV prennent toute la largeur (display: block) pour se superposer */
-#nav-seasons {
-    margin: 20px auto 10px;
-    display: block; /* Force la prise de ligne */
+/* Les conteneurs NAV prennent toute la largeur (display: block) pour se superposer */
+#nav-seasons, #nav-categories, #nav-masters {
+    margin: 10px auto; 
+    display: block; 
     background-color: transparent; 
-    border-radius: 0;
     padding: 0;
-    /* Ajout d'une ligne de séparation visuelle au-dessus des catégories */
+    text-align: center; /* Pour centrer les tuiles à l'intérieur */
+}
+
+/* Ligne de séparation sous les Saisons */
+#nav-seasons {
+    margin-top: 20px;
+    margin-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
+    padding-bottom: 10px;
 }
 
+/* Espacement entre Catégories et Masters */
 #nav-categories {
-    margin: 10px auto 0;
-    display: block; /* Force la prise de ligne */
-    background-color: transparent; 
-    border-radius: 8px;
-    padding: 3px;
-    max-width: 90%;
+    margin-bottom: 10px;
 }
 
-/* Style des liens A à l'intérieur des NAV - AJOUT DE MARGE ICI */
-#nav-seasons a, #nav-categories a {
+#nav-masters {
+    margin-bottom: 20px;
+}
+
+
+/* --- Style des Boutons (Tuiles) --- */
+
+#nav-seasons a, #nav-categories a, #nav-masters a {
     color: var(--color-light);
     text-decoration: none;
     padding: 8px 18px;
@@ -87,56 +95,12 @@ main {
     font-size: 0.95em;
     background-color: rgba(255, 255, 255, 0.1); 
     
-    /* ESPACEMENT : 10px à droite de chaque bouton */
+    /* ESPACEMENT entre les boutons */
     margin-right: 10px; 
+    margin-bottom: 5px; /* Petite marge si les boutons passent à la ligne */
 }
 
-#nav-seasons a:hover, #nav-categories a:hover {
+/* Style au survol */
+#nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
     background-color: var(--color-volcan);
-}
-
-#nav-seasons a.active, #nav-categories a.active {
-    background-color: var(--color-light);
-    color: var(--color-lagon); 
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-/* --- Style du Tableau --- */
-.classement-table {
-    width: 100%;
-    border-collapse: separate; 
-    border-spacing: 0;
-    margin-top: 25px;
-}
-
-.classement-table th, .classement-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-.classement-table th {
-    background-color: var(--color-lagon);
-    color: var(--color-light);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.85em;
-    position: sticky; 
-    top: 0;
-    z-index: 10;
-}
-
-.classement-table tr:nth-child(even) {
-    background-color: #fcfcfc;
-}
-
-.classement-table tr:hover {
-    background-color: #f0f8ff; 
-}
-
-/* Mise en évidence du classement (1ère place Volcan) */
-.classement-table tr td:first-child strong {
-    color: var(--color-volcan); 
-    font-size: 1.2em;
-    font-weight: 700;
 }
