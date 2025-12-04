@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v28 - Final avec Dossard Conversi et Vue Détaillée)
+// FICHIER : app.js (v28 - Correction Finale Dossard Affichage)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -214,7 +214,7 @@ function renderTable(data) {
             let displayContent = content; 
             
             if (header === 'Dossard') {
-                // Le lien utilise l'ID de recherche (Dossard)
+                // Applique la conversion pour l'affichage (Ex: 52000 -> 52)
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
                 // Le Nom est la clé de recherche pour la vue détaillée (Texte pur)
@@ -239,6 +239,9 @@ function renderTable(data) {
 
 // --- 4. Logique Détaillée du Coureur ---
 
+/**
+ * Génère le tableau HTML des résultats détaillés (Date, Course, Position, Points).
+ */
 function renderCoureurDetails(details) {
     const container = document.getElementById('classement-container');
     if (!container) return;
@@ -250,7 +253,9 @@ function renderCoureurDetails(details) {
     
     const coureurNom = details[0].Nom;
     const coureurDossardRecherche = details[0].Dossard; 
-    const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); // Affiche 52 au lieu de 52000
+    
+    // CORRECTION APPLIQUÉE ICI : Afficher le dossard converti dans le titre
+    const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
 
     // Calcul et Affichage du total des points
     let totalPoints = 0;
@@ -260,6 +265,8 @@ function renderCoureurDetails(details) {
             totalPoints += points;
         }
     });
+    
+    // Titre avec le dossard converti (52 au lieu de 52000)
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
@@ -291,7 +298,7 @@ async function showCoureurDetails(nom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     const sheetdbApiId = saisonConfig.apiId;
     
-    // NOUVEAU : Recherche par Nom (Texte) pour résoudre le problème du format 12F
+    // 1. URL de recherche : Recherche par Nom (Texte)
     const encodedNom = encodeURIComponent(nom);
     const searchUrl = `https://sheetdb.io/api/v1/${sheetdbApiId}/search?Nom=${encodedNom}&sheet=Résultats Bruts`;
 
