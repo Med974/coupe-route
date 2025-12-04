@@ -1,5 +1,5 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne - FINAL RESPONSIVE V2)
+FICHIER : styles.css (Design Réunionnais Moderne - FINAL RESPONSIVE V3)
 ======================================================================= */
 
 /* Couleurs Clés */
@@ -230,46 +230,31 @@ MEDIA QUERIES (Optimisation pour Mobile)
     
     /* ----------------------------------------------------
        RÈGLE DE MASQUAGE EN VUE PORTRAIT (max-width: 768px)
-       Ceci masque les colonnes non essentielles
     ---------------------------------------------------- */
     
     /* Colonne 1: Sous Catégorie */
-    .classement-table th:nth-child(1),
-    .classement-table td:nth-child(1) {
-        display: none;
-    }
+    .classement-table th:nth-child(1), .classement-table td:nth-child(1) { display: none; }
     
     /* Colonne 2: Catégorie Master */
-    .classement-table th:nth-child(2),
-    .classement-table td:nth-child(2) {
-        display: none;
-    }
+    .classement-table th:nth-child(2), .classement-table td:nth-child(2) { display: none; }
 
     /* Colonne 3: Nb Courses */
-    .classement-table th:nth-child(3),
-    .classement-table td:nth-child(3) {
-        display: none;
-    }
+    .classement-table th:nth-child(3), .classement-table td:nth-child(3) { display: none; }
 
     /* Colonne 4: Dossard */
-    .classement-table th:nth-child(4),
-    .classement-table td:nth-child(4) {
-        display: none;
-    }
+    .classement-table th:nth-child(4), .classement-table td:nth-child(4) { display: none; }
 
     /* Colonne 6: Club */
-    .classement-table th:nth-child(6),
-    .classement-table td:nth-child(6) {
-        display: none;
-    }
+    .classement-table th:nth-child(6), .classement-table td:nth-child(6) { display: none; }
 
     /* Masquage des colonnes du tableau de DÉTAILS pour le rendre plus compact */
     .details-table th:nth-child(1), .details-table td:nth-child(1), /* Date */
-    .details-table th:nth-child(3), .details-table td:nth-child(3) { /* Position */
+    .details-table th:nth-child(3), .details-table td:nth-child(3), /* Position */
+    .details-table th:nth-child(4), .details-table td:nth-child(4) { /* Catégorie */
         display: none;
     }
     
-    /* Correction pour le défilement et la taille */
+    /* Correction pour la taille minimale */
     .classement-table, .details-table {
         margin-top: 15px; 
         min-width: 300px; 
@@ -283,7 +268,7 @@ RÈGLE D'ANNULATION (Desktop / Paysage : min-width: 769px)
 ======================================================================= */
 
 @media (min-width: 769px) {
-    /* Rétablit l'affichage de toutes les colonnes masquées en utilisant !important */
+    /* Rétablit l'affichage de toutes les colonnes masquées - Utilisation de !important pour forcer */
     
     /* Colonnes 1, 2, 3, 4, 6 de classement */
     .classement-table th:nth-child(1), .classement-table td:nth-child(1),
@@ -296,7 +281,8 @@ RÈGLE D'ANNULATION (Desktop / Paysage : min-width: 769px)
     
     /* Colonnes du tableau de DÉTAILS */
     .details-table th:nth-child(1), .details-table td:nth-child(1), 
-    .details-table th:nth-child(3), .details-table td:nth-child(3) {
+    .details-table th:nth-child(3), .details-table td:nth-child(3),
+    .details-table th:nth-child(4), .details-table td:nth-child(4) {
         display: table-cell !important;
     }
 }
