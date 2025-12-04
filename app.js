@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v14 - FINAL FIX)
+// FICHIER : app.js (v16 - Nom d'affichage corrigé "U15U17 Filles")
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -12,6 +12,11 @@ const SAISONS_CONFIG = {
             'open': { name: 'OPEN', sheetName: 'Open' },
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
             'access34': { name: 'Access 3/4', sheetName: 'Access34' },
+            'femmes': { name: 'FEMMES', sheetName: 'Femmes' },
+            'u17': { name: 'U17', sheetName: 'U17' },
+            'u15': { name: 'U15', sheetName: 'U15' },
+            // CORRECTION APPLIQUÉE ICI : Name convivial vs sheetName réel
+            'u15u17f': { name: 'U15/U17 Filles', sheetName: 'U15U17Femmes' },
         }
     },
     '2026': {
@@ -21,6 +26,11 @@ const SAISONS_CONFIG = {
             'open': { name: 'OPEN', sheetName: 'Open' }, 
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
             'access34': { name: 'Access 3/4', sheetName: 'Access34' },
+            'femmes': { name: 'FEMMES', sheetName: 'Femmes' },
+            'u17': { name: 'U17', sheetName: 'U17' },
+            'u15': { name: 'U15', sheetName: 'U15' },
+            // CORRECTION APPLIQUÉE ICI : Name convivial vs sheetName réel
+            'u15u17f': { name: 'U15/U17 Filles', sheetName: 'U15U17Femmes' },
         }
     }
 };
@@ -30,7 +40,7 @@ const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
 
-// NOUVEAU : Configuration des boutons Masters pour le filtrage
+// Configuration des boutons Masters 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
     { key: 'M1', name: 'M1' },
@@ -72,7 +82,7 @@ function buildJsonUrl(saisonKey, categoryKey) {
 }
 
 /**
- * Crée les boutons de navigation (Saisons et Catégories, et Masters).
+ * Crée les boutons de navigation (Saisons et Catégories).
  */
 function createNavBar(currentSaison, currentCategory) {
     const seasonsContainer = document.getElementById('nav-seasons');
@@ -107,7 +117,6 @@ function createNavBar(currentSaison, currentCategory) {
     // 3. Navigation Masters
     let mastersHtml = '';
     MASTERS_CONFIG.forEach(master => {
-        // Le filtre Master par défaut est 'all' (Général)
         const isActive = master.key === 'all' ? 'active' : '';
         mastersHtml += `<a href="#" data-master="${master.key}" class="master-button ${isActive}">${master.name}</a>`;
     });
@@ -212,7 +221,6 @@ function handleMasterFilterChange(event) {
     if (selectedMaster !== 'all') {
         // Filtrage des données brutes stockées
         filteredData = globalClassementData.filter(coureur => {
-            // Le coureur doit avoir une valeur pour la colonne 'Master' ET elle doit correspondre à la sélection
             return coureur.Master === selectedMaster; 
         });
     }
@@ -268,7 +276,7 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // Initialisation du filtre Master (Ajouter l'écouteur d'événement)
+        // Initialisation du filtre Master
         const mastersContainer = document.getElementById('nav-masters');
         if (mastersContainer) {
             mastersContainer.addEventListener('click', handleMasterFilterChange);
