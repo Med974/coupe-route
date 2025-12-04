@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v14 - Correction ReferenceError et Logique Masters)
+// FICHIER : app.js (v14 - FINAL FIX)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -28,8 +28,18 @@ const SAISONS_CONFIG = {
 const DEFAULT_SAISON = '2026'; 
 const DEFAULT_CATEGORY = 'open';
 
-// Stockage global pour le filtrage Masters
 let globalClassementData = []; 
+
+// NOUVEAU : Configuration des boutons Masters pour le filtrage
+const MASTERS_CONFIG = [
+    { key: 'all', name: 'Général' },
+    { key: 'M1', name: 'M1' },
+    { key: 'M2', name: 'M2' },
+    { key: 'M3', name: 'M3' },
+    { key: 'M4', name: 'M4' },
+    { key: 'M5', name: 'M5' },
+    { key: 'M6', name: 'M6' },
+];
 
 
 // --- 2. Fonctions Utilitaires ---
@@ -62,11 +72,12 @@ function buildJsonUrl(saisonKey, categoryKey) {
 }
 
 /**
- * Crée les boutons de navigation (Saisons et Catégories).
+ * Crée les boutons de navigation (Saisons et Catégories, et Masters).
  */
 function createNavBar(currentSaison, currentCategory) {
     const seasonsContainer = document.getElementById('nav-seasons');
     const categoriesContainer = document.getElementById('nav-categories');
+    const mastersContainer = document.getElementById('nav-masters');
 
     // 1. Navigation Saisons
     let seasonsHtml = '';
@@ -92,12 +103,22 @@ function createNavBar(currentSaison, currentCategory) {
     if (categoriesContainer) {
         categoriesContainer.innerHTML = categoriesHtml;
     }
+    
+    // 3. Navigation Masters
+    let mastersHtml = '';
+    MASTERS_CONFIG.forEach(master => {
+        // Le filtre Master par défaut est 'all' (Général)
+        const isActive = master.key === 'all' ? 'active' : '';
+        mastersHtml += `<a href="#" data-master="${master.key}" class="master-button ${isActive}">${master.name}</a>`;
+    });
+    if (mastersContainer) {
+        mastersContainer.innerHTML = mastersHtml;
+    }
 }
 
 // --- 3. Fonctions de Données et Rendu ---
 
 async function fetchClassementData(url) {
-    // CORRECTION : Le conteneur est récupéré localement car il peut être null au début
     const container = document.getElementById('classement-container');
     
     try {
@@ -128,7 +149,6 @@ async function fetchClassementData(url) {
 }
 
 function renderTable(data) {
-    // CORRECTION : Le conteneur est récupéré localement
     const container = document.getElementById('classement-container');
 
     if (data.length === 0 || typeof data[0] !== 'object') {
@@ -170,16 +190,40 @@ function renderTable(data) {
     }
 }
 
-// --- 4. Logique Master (sera implémentée ici) ---
+// --- 4. Logique Master ---
 
-// ... (handleMasterFilterChange reste le même pour le moment)
+function handleMasterFilterChange(event) {
+    event.preventDefault(); 
+    
+    const button = event.target.closest('a.master-button');
+    if (!button) return;
+
+    const selectedMaster = button.getAttribute('data-master');
+    
+    // 1. Mise à jour du style des boutons Masters
+    document.querySelectorAll('#nav-masters .master-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    button.classList.add('active');
+    
+    // 2. Application du filtre
+    let filteredData = globalClassementData;
+
+    if (selectedMaster !== 'all') {
+        // Filtrage des données brutes stockées
+        filteredData = globalClassementData.filter(coureur => {
+            // Le coureur doit avoir une valeur pour la colonne 'Master' ET elle doit correspondre à la sélection
+            return coureur.Master === selectedMaster; 
+        });
+    }
+
+    // 3. Affichage du tableau filtré
+    renderTable(filteredData);
+}
 
 // --- 5. Fonction Principale ---
 
 async function init() {
-    // Récupération locale des éléments du DOM
-    const container = document.getElementById('classement-container');
-    
     let currentSaison = getSaisonFromURL();
     const currentCategoryKey = getCategoryFromURL();
     
@@ -208,8 +252,14 @@ async function init() {
         categoryTitleElement.textContent = ""; 
     }
 
-    // Retrait de la logique <p> qui n'existe plus dans le HTML
-    
+    // Mise à jour de la saison affichée dans la balise <p>
+    const seasonParagraph = document.querySelector('header p');
+    if (seasonParagraph) {
+        seasonParagraph.textContent = `Saison ${currentSaison}`;
+    }
+
+    const container = document.getElementById('classement-container');
+
     if (jsonUrl) {
         if (container) {
             container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
@@ -218,10 +268,10 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // Initialisation du filtre Master
-        const masterFilter = document.getElementById('master-filter');
-        if (masterFilter) {
-            // masterFilter.addEventListener('change', handleMasterFilterChange); // Listener sera ajouté après l'implémentation du Master
+        // Initialisation du filtre Master (Ajouter l'écouteur d'événement)
+        const mastersContainer = document.getElementById('nav-masters');
+        if (mastersContainer) {
+            mastersContainer.addEventListener('click', handleMasterFilterChange);
         }
         
         renderTable(rawData);
@@ -231,7 +281,5 @@ async function init() {
         }
     }
 }
-
-// Le reste du code... (handleMasterFilterChange)
 
 init();
