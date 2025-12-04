@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v14 - Code Final et Stabilisé)
+// FICHIER : app.js (v15 - Intégration Finale des Masters)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -12,7 +12,6 @@ const SAISONS_CONFIG = {
             'open': { name: 'OPEN', sheetName: 'Open' },
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
             'access34': { name: 'Access 3/4', sheetName: 'Access34' },
-            // Les futurs Masters seront ajoutés ici
         }
     },
     '2026': {
@@ -29,7 +28,7 @@ const SAISONS_CONFIG = {
 const DEFAULT_SAISON = '2026'; 
 const DEFAULT_CATEGORY = 'open';
 
-// Stockage global pour le filtrage Masters (sera rempli par fetchClassementData)
+// Stockage global pour le filtrage Masters (contient toutes les données non filtrées de la catégorie)
 let globalClassementData = []; 
 
 
@@ -66,7 +65,6 @@ function buildJsonUrl(saisonKey, categoryKey) {
  * Crée les boutons de navigation (Saisons et Catégories).
  */
 function createNavBar(currentSaison, currentCategory) {
-    // Les références sont récupérées localement pour plus de sécurité
     const seasonsContainer = document.getElementById('nav-seasons');
     const categoriesContainer = document.getElementById('nav-categories');
 
@@ -99,7 +97,6 @@ function createNavBar(currentSaison, currentCategory) {
 // --- 3. Fonctions de Données et Rendu ---
 
 async function fetchClassementData(url) {
-    // Récupération du conteneur dans la fonction
     const container = document.getElementById('classement-container');
     
     try {
@@ -145,7 +142,8 @@ function renderTable(data) {
 
     html += '<thead><tr>';
     headers.forEach(header => {
-        const displayHeader = header.replace('PointsTotal', 'Total Pts').replace('NbCourses', 'Nb Courses').replace('SousCategorie', 'Sous Catégorie');
+        // Nettoyage des en-têtes (en supposant Master sans espace)
+        const displayHeader = header.replace('PointsTotal', 'Total Pts').replace('NbCourses', 'Nb Courses').replace('SousCategorie', 'Sous Catégorie').replace('Master', 'Catégorie Master');
         html += `<th>${displayHeader}</th>`;
     });
     html += '</tr></thead>';
@@ -171,7 +169,27 @@ function renderTable(data) {
     }
 }
 
-// --- 4. Fonction Principale ---
+// --- 4. Logique Master ---
+
+function handleMasterFilterChange() {
+    const masterFilter = document.getElementById('master-filter');
+    const selectedMaster = masterFilter.value;
+
+    let filteredData = globalClassementData;
+
+    if (selectedMaster !== 'all') {
+        // Filtrage des données brutes stockées. 'Master' doit correspondre au label exact de la colonne.
+        filteredData = globalClassementData.filter(coureur => {
+            // Le coureur doit avoir une valeur pour la colonne 'Master' ET elle doit correspondre à la sélection
+            return coureur.Master === selectedMaster; 
+        });
+    }
+
+    // Mise à jour du classement dans l'interface
+    renderTable(filteredData);
+}
+
+// --- 5. Fonction Principale ---
 
 async function init() {
     let currentSaison = getSaisonFromURL();
@@ -218,6 +236,13 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
+        // Initialisation du filtre Master
+        const masterFilter = document.getElementById('master-filter');
+        if (masterFilter) {
+            masterFilter.addEventListener('change', handleMasterFilterChange);
+        }
+        
+        // Affichage initial
         renderTable(rawData);
     } else {
         if (container) {
