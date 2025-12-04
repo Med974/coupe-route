@@ -1,22 +1,21 @@
 // =======================================================================
 // FICHIER : app.js
-// GESTION DYNAMIQUE DES CLASSEMENTS COUPE DE LA RÉUNION ROUTE
+// GESTION DYNAMIQUE DES CLASSEMENTS COUPE DE LA RÉUNION ROUTE (v2 - SheetDB)
 // =======================================================================
 
 // --- 1. Configuration et Mappage des Catégories ---
 
-// Remplacez VOTRE_ID_DU_FICHIER par l'identifiant unique de votre fichier Google Sheets
-// (Exemple: '1BixR...c2JgG')
-const SHEET_FILE_ID = '1hRFXjctBI6csXthOYXooDhhXplX03OeQmTOgr7r06hI'; 
+// ID unique fourni par SheetDB (Endpoint URL de base)
+const SHEETDB_API_ID = 'cn1mysle9dz6t'; 
 
-// Mappage des catégories vers leurs GID (Identifiant de la feuille)
-// Assurez-vous d'avoir publié chaque feuille de classement sur le web (TSV)
+// Mappage des catégories vers leurs NOMS DE FEUILLES EXACTS dans Google Sheets.
 const CATEGORY_MAP = {
-    'Open': { name: 'OPEN', gid: '59291840' },   // GID de la feuille Classement Open
-    'Access 1/2': { name: 'Access 1/2', gid: '372122761' }, // GID de la feuille Classement Access
-    'Access 3/4': { name: 'Access 3/4', gid: '1167957081' }, // GID de la feuille Classement Autres
-    // Ajoutez ici des catégories spécifiques si vous avez créé des feuilles dédiées (ex: M1)
-    // 'open_m1': { name: 'OPEN M1', gid: '334567890' }, 
+    // Les clés des URLs (ex: ?cat=open)
+    'open': { name: 'OPEN', sheetName: 'Classement Open' },
+    'access12': { name: 'Access 1/2', sheetName: 'Classement Access 1/2' }, 
+    'access34': { name: 'Access 3/4', sheetName: 'Classement Access 3/4' },
+    // J'ai modifié les clés des URLs ('Access 1/2' et 'Access 3/4') en 'access12' et 'access34' 
+    // pour éviter les espaces et slashes dans les paramètres d'URL, ce qui est une bonne pratique.
 };
 
 const DEFAULT_CATEGORY = 'open';
@@ -35,17 +34,18 @@ function getCategoryFromURL() {
 }
 
 /**
- * Construit l'URL complète pour la récupération des données TSV d'une feuille spécifique.
+ * Construit l'URL complète pour la récupération des données JSON via SheetDB.
+ * Remplace l'ancienne fonction buildTsvUrl.
  * @param {string} categoryKey - La clé de la catégorie (ex: 'open').
- * @returns {string | null} L'URL TSV.
+ * @returns {string | null} L'URL JSON de SheetDB.
  */
-function buildTsvUrl(categoryKey) {
+function buildJsonUrl(categoryKey) {
     const categoryInfo = CATEGORY_MAP[categoryKey];
-    if (!categoryInfo || !SHEET_FILE_ID) {
+    if (!categoryInfo || !SHEETDB_API_ID) {
         return null;
     }
-    // Utilisation de l'API de requête GVIZ
-    return `https://docs.google.com/spreadsheets/d/${SHEET_FILE_ID}/gviz/tq?tqx=out:tsv&gid=${categoryInfo.gid}`;
+    // Format de l'API SheetDB pour accéder à une feuille spécifique
+    return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}/sheets/${categoryInfo.sheetName}`;
 }
 
 /**
@@ -58,7 +58,7 @@ function createNavBar() {
     Object.keys(CATEGORY_MAP).forEach(key => {
         const category = CATEGORY_MAP[key];
         const isActive = key === currentCategory ? 'active' : '';
-        // Utilisation de l'URL pour changer la catégorie
+        // Utilisation de l'URL avec les nouvelles clés sans espace
         navHtml += `<a href="?cat=${key}" class="${isActive}">${category.name}</a>`;
     });
 
@@ -70,54 +70,43 @@ function createNavBar() {
 // --- 3. Fonctions de Récupération et de Traitement des Données ---
 
 /**
- * Récupère et traite les données TSV.
- * @param {string} url - L'URL TSV de la feuille de classement.
+ * Récupère les données JSON via l'API SheetDB.
+ * Remplace l'ancienne fonction fetchClassementData (qui traitait le TSV).
+ * @param {string} url - L'URL JSON de la feuille de classement.
  * @returns {Promise<Array<Object>>} - Tableau de coureurs.
  */
 async function fetchClassementData(url) {
     try {
+        console.log("Tentative de récupération de l'URL JSON :", url);
+        
         const response = await fetch(url);
-        const tsvText = await response.text();
-
-        // Nettoyer les lignes (surtout pour les fins de fichier)
-        const rows = tsvText.split('\n').filter(row => row.trim() !== '');
         
-        // La première ligne contient les en-têtes (labels de la QUERY)
-        // Utilisation de .replaceAll() pour nettoyer les sauts de ligne dans les en-têtes
-        const headers = rows[0].split('\t').map(header => header.trim().replaceAll('\r', ''));
+        if (!response.ok) {
+            const errorBody = await response.text();
+            // Si le statut est 404, c'est probablement le nom de la feuille qui est incorrect
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le nom de l'onglet dans SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
+        }
         
-        // Traiter les lignes de données
-        const data = rows.slice(1).map(row => {
-            const values = row.split('\t').map(value => value.trim().replaceAll('\r', ''));
-            const coureur = {};
-            
-            headers.forEach((header, index) => {
-                // S'assurer que le classement (dernière colonne) est un nombre
-                if (header === 'Classement' || header === 'Points Total') {
-                    coureur[header] = parseFloat(values[index]) || 0;
-                } else {
-                    coureur[header] = values[index];
-                }
-            });
-            return coureur;
-        });
-
+        // Les données sont au format JSON !
+        const data = await response.json(); 
+        
+        // La structure des données est déjà bonne (tableau d'objets)
         return data;
 
     } catch (error) {
-        container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. Veuillez vérifier l'URL TSV et votre connexion.</p>`;
+        container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. L'API SheetDB a échoué. Détails : ${error.message}</p>`;
         console.error("Erreur de récupération :", error);
         return [];
     }
 }
 
 /**
- * Génère le tableau HTML de classement.
+ * Génère le tableau HTML de classement. Cette fonction ne change pas, car elle lit les objets.
  * @param {Array<Object>} data - Le tableau de coureurs filtré.
  */
 function renderTable(data) {
     if (data.length === 0) {
-        container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie.</p>';
+        container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez le nom de l\'onglet dans SheetDB.</p>';
         return;
     }
 
@@ -129,7 +118,7 @@ function renderTable(data) {
     // Construction de l'en-tête (TH)
     html += '<thead><tr>';
     headers.forEach(header => {
-        // Optionnel : Afficher des titres plus propres pour l'utilisateur
+        // Afficher des titres plus propres pour l'utilisateur
         const displayHeader = header.replace('Points Total', 'Total Pts').replace('NbCourses', 'Nb Courses');
         html += `<th>${displayHeader}</th>`;
     });
@@ -140,9 +129,15 @@ function renderTable(data) {
     data.forEach(coureur => {
         html += '<tr>';
         headers.forEach(header => {
+            // S'assurer que les valeurs numériques sont bien traitées
+            let content = coureur[header];
+            if (header === 'Classement' || header === 'Points Total') {
+                content = parseFloat(content) || 0; // Conversion en nombre pour la sécurité
+            }
+
             // Mise en forme spécifique pour le Classement
-            const content = (header === 'Classement') ? `<strong>${coureur[header]}</strong>` : coureur[header];
-            html += `<td>${content}</td>`;
+            const displayContent = (header === 'Classement') ? `<strong>${content}</strong>` : content;
+            html += `<td>${displayContent}</td>`;
         });
         html += '</tr>';
     });
@@ -155,12 +150,13 @@ function renderTable(data) {
 
 async function init() {
     const currentCategoryKey = getCategoryFromURL();
-    const tsvUrl = buildTsvUrl(currentCategoryKey);
+    // Utiliser la nouvelle fonction pour obtenir l'URL JSON
+    const jsonUrl = buildJsonUrl(currentCategoryKey); 
 
     // Mettre à jour les titres de la page
     const categoryName = CATEGORY_MAP[currentCategoryKey] ? CATEGORY_MAP[currentCategoryKey].name : currentCategoryKey.toUpperCase();
-    document.title = `Classement ${categoryName} - Route 2025`;
-    
+    document.title = `Classement ${categoryName} - Route 2026`; // Mettre à jour l'année
+
     // Créer la barre de navigation
     createNavBar();
     
@@ -168,16 +164,15 @@ async function init() {
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = `Classement ${categoryName}`;
 
-    if (tsvUrl) {
+    if (jsonUrl) {
         // Afficher un message de chargement
         container.innerHTML = '<p>Chargement des données...</p>';
         
-        const rawData = await fetchClassementData(tsvUrl);
+        const rawData = await fetchClassementData(jsonUrl); 
         renderTable(rawData);
     } else {
-        container.innerHTML = `<p style="color: red;">Configuration incorrecte ou catégorie "${currentCategoryKey}" non trouvée.</p>`;
+        container.innerHTML = `<p style="color: red;">Configuration incorrecte ou catégorie "${currentCategoryKey}" non trouvée. Vérifiez CATEGORY_MAP.</p>`;
     }
 }
 
 init();
-
