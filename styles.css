@@ -53,7 +53,7 @@ main {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style des Conteneurs de Navigation --- */
+/* --- Style des Conteneurs de Navigation (omis pour la concision) --- */
 
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
@@ -63,7 +63,6 @@ main {
     text-align: center; 
 }
 
-/* Ligne de séparation sous les Saisons */
 #nav-seasons {
     margin-top: 20px;
     margin-bottom: 10px;
@@ -83,7 +82,7 @@ main {
 }
 
 
-/* --- Style des Boutons (Tuiles) --- */
+/* --- Style des Boutons (Tuiles) (omis pour la concision) --- */
 
 #nav-seasons a, #nav-categories a, #nav-masters a {
     color: var(--color-light);
@@ -100,19 +99,17 @@ main {
     margin-bottom: 5px; 
 }
 
-/* Style au survol */
 #nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
     background-color: var(--color-volcan);
 }
 
-/* Style des boutons Actifs */
 #nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
     background-color: var(--color-light);
     color: var(--color-lagon); 
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Style du Tableau --- */
+/* --- Style du Tableau Général (omis pour la concision) --- */
 
 .classement-table, .details-table { 
     width: 100%;
@@ -146,14 +143,12 @@ main {
     background-color: #f0f8ff; 
 }
 
-/* Mise en évidence du classement (1ère place Volcan) */
 .classement-table tr td:first-child strong {
     color: var(--color-volcan); 
     font-size: 1.2em;
     font-weight: 700;
 }
 
-/* Style spécifique à la vue détaillée et au lien */
 .details-table h3 {
     color: var(--color-lagon);
     margin-top: 0;
@@ -190,7 +185,6 @@ a.coureur-link:hover {
 MEDIA QUERIES (Optimisation pour Mobile)
 ======================================================================= */
 
-/* Conteneur pour le défilement horizontal du tableau */
 .table-responsive {
     overflow-x: auto;
     width: 100%;
@@ -199,7 +193,7 @@ MEDIA QUERIES (Optimisation pour Mobile)
 
 @media (max-width: 768px) {
     
-    /* --- Ajustements Généraux --- */
+    /* --- Ajustements Généraux (omises pour la concision) --- */
     
     header {
         padding: 20px 10px;
@@ -215,32 +209,28 @@ MEDIA QUERIES (Optimisation pour Mobile)
         border-radius: 0;
     }
 
-    /* --- Navigation et Boutons (Empilement) --- */
+    /* --- Navigation et Boutons Mobile (omises pour la concision) --- */
 
     #nav-seasons, #nav-categories, #nav-masters {
         text-align: center;
         padding: 0 5px; 
     }
 
-    /* Les boutons s'étendent pour prendre la moitié de la largeur (deux par ligne) */
     #nav-seasons a, #nav-categories a, #nav-masters a {
         display: inline-block; 
-        width: calc(50% - 15px); /* Deux boutons par ligne, ajusté pour la marge */
+        width: calc(50% - 15px); 
         margin: 5px 5px; 
         padding: 8px 5px;
         font-size: 0.85em;
     }
     
     /* ----------------------------------------------------
-       MASQUAGE DES COLONNES EN VUE PORTRAIT
-       Affiche seulement : Nom (5), Points Total (7), Classement (8)
+       RÈGLE DE MASQUAGE EN VUE PORTRAIT (max-width: 768px)
     ---------------------------------------------------- */
     
     /* Colonne 1: Sous Catégorie */
     .classement-table th:nth-child(1),
-    .classement-table td:nth-child(1),
-    .details-table th:nth-child(4), /* Catégorie dans le tableau de Détails */
-    .details-table td:nth-child(4) {
+    .classement-table td:nth-child(1) {
         display: none;
     }
     
@@ -268,18 +258,40 @@ MEDIA QUERIES (Optimisation pour Mobile)
         display: none;
     }
 
-    /* Correction pour le tableau de Détail (Masquer Date, Position si nécessaire) */
+    /* Masquage des colonnes du tableau de DÉTAILS pour le rendre plus compact */
     .details-table th:nth-child(1), .details-table td:nth-child(1), /* Date */
     .details-table th:nth-child(3), .details-table td:nth-child(3) { /* Position */
         display: none;
     }
     
-
-    /* --- Tableau de Classement (Scrolling Horizontal) --- */
-    
+    /* Correction pour le défilement et la taille */
     .classement-table, .details-table {
         margin-top: 15px; 
-        /* Réduire la taille minimale pour la vue portrait */
         min-width: 300px; 
+    }
+}
+
+
+/* =======================================================================
+RÈGLE D'ANNULATION (Desktop / Paysage : min-width: 769px)
+======================================================================= */
+
+@media (min-width: 769px) {
+    /* Rétablit l'affichage de toutes les colonnes masquées */
+    
+    /* Colonnes 1, 2, 3, 4, 6 de classement */
+    .classement-table th:nth-child(1), .classement-table td:nth-child(1),
+    .classement-table th:nth-child(2), .classement-table td:nth-child(2),
+    .classement-table th:nth-child(3), .classement-table td:nth-child(3),
+    .classement-table th:nth-child(4), .classement-table td:nth-child(4),
+    .classement-table th:nth-child(6), .classement-table td:nth-child(6) {
+        display: table-cell !important;
+    }
+    
+    /* Colonnes du tableau de DÉTAILS */
+    .details-table th:nth-child(1), .details-table td:nth-child(1), 
+    .details-table th:nth-child(3), .details-table td:nth-child(3),
+    .details-table th:nth-child(4), .details-table td:nth-child(4) {
+        display: table-cell !important;
     }
 }
