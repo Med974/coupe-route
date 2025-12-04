@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v27 - Solution Stable et Finale)
+// FICHIER : app.js (v27 - Stabilité et Dossards avec Lettres)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -8,7 +8,6 @@ const SAISONS_CONFIG = {
     '2025': {
         name: 'Saison 2025',
         apiId: 'hiydnpj4xuxdz', 
-        rawSheetName: 'Résultats Bruts', // Nom de feuille source
         categories: {
             'open': { name: 'OPEN', sheetName: 'Open' },
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
@@ -22,7 +21,6 @@ const SAISONS_CONFIG = {
     '2026': {
         name: 'Saison 2026',
         apiId: 'guq5nvsip34b6', 
-        rawSheetName: 'Résultats Bruts', // Nom de feuille source
         categories: {
             'open': { name: 'OPEN', sheetName: 'Open' }, 
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
@@ -224,7 +222,7 @@ function renderCoureurDetails(details) {
 
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossard})</h3>`;
     
-    // NOUVEAU : Calcul et Affichage du total des points
+    // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
         const points = parseFloat(course.Points);
@@ -240,7 +238,6 @@ function renderCoureurDetails(details) {
     html += '<thead><tr><th>Date</th><th>Course</th><th>Position</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
 
     details.forEach(course => {
-        // Les clés utilisées doivent correspondre aux en-têtes réels de la feuille "Résultats Bruts"
         html += `<tr>
                     <td>${course.Date}</td> 
                     <td>${course.Course}</td> 
@@ -281,9 +278,7 @@ async function showCoureurDetails(dossard, saisonKey) {
         
         const data = await response.json();
         
-        // La recherche par Dossard peut renvoyer plusieurs coureurs s'ils partagent le même numéro
-        // Il est possible que l'API renvoie des résultats partiels à cause du mélange Texte/Numéro.
-        
+        // C'est ici que l'API renvoie potentiellement un tableau vide à cause du format 12F
         renderCoureurDetails(data); 
 
     } catch (error) {
@@ -382,7 +377,6 @@ async function init() {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
-                    // Assurez-vous que le dossard est renvoyé comme TEXTE par l'API pour inclure 12F
                     const dossard = link.getAttribute('data-dossard');
                     const currentSaison = getSaisonFromURL(); 
                     
@@ -399,5 +393,4 @@ async function init() {
     }
 }
 
-// Lancement de l'application après le chargement complet du DOM pour éviter les erreurs.
 document.addEventListener('DOMContentLoaded', init);
