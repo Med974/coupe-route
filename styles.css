@@ -1,93 +1,126 @@
 /* =======================================================================
-FICHIER : styles.css
-Style de base pour le site de classement
+FICHIER : styles.css (Design Réunionnais Moderne)
 ======================================================================= */
 
+/* Couleurs Clés */
+:root {
+    --color-lagon: #00A7BB;      /* Bleu Lagon/Océan */
+    --color-volcan: #D94F00;     /* Rouge-Orange (pour l'emphase) */
+    --color-background: #F8F8F8; /* Fond Tropical très clair */
+    --color-text: #2c3e50;
+    --color-light: #ffffff;
+}
+
 body {
-    font-family: sans-serif;
+    font-family: 'Roboto', 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: var(--color-background);
+    color: var(--color-text);
 }
 
 header {
-    background-color: #004d99; /* Bleu foncé */
-    color: white;
-    padding: 20px;
+    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%); /* Dégradé Profond */
+    color: var(--color-light);
+    padding: 30px 20px;
     text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-h1 {
-    margin: 0;
-    font-size: 2em;
+h1 { /* Coupe de la Réunion Route */
+    margin: 0 0 5px 0;
+    font-size: 2.5em;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+h2 { /* Classement Général */
+    margin: 0 0 15px 0;
+    font-size: 1.5em;
+    font-weight: 300;
+}
+
+p { /* Saison 2025 */
+    margin-top: 10px;
+    font-size: 1.1em;
 }
 
 main {
     padding: 20px;
-    max-width: 1200px;
-    margin: 20px auto;
-    background-color: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 1300px;
+    margin: 30px auto;
+    background-color: var(--color-light);
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style de la Navigation --- */
+/* --- Style de la Navigation (Inspiration Vague) --- */
 #nav-categories {
-    margin: 15px 0;
-    padding: 5px;
-    background-color: #0066cc; /* Bleu plus clair */
-    border-radius: 5px;
+    margin: 20px auto 0;
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.1); 
+    border-radius: 8px;
+    padding: 3px;
+    max-width: 90%;
 }
 
 #nav-categories a {
-    color: white;
+    color: var(--color-light);
     text-decoration: none;
-    padding: 10px 15px;
+    padding: 8px 18px;
     display: inline-block;
-    font-weight: bold;
-    border-radius: 3px;
-    transition: background-color 0.3s;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 0.95em;
 }
 
 #nav-categories a:hover {
-    background-color: #0073e6;
+    background-color: var(--color-volcan);
 }
 
 #nav-categories a.active {
-    background-color: #0088ee; /* Bouton actif */
+    background-color: var(--color-light);
+    color: var(--color-lagon); /* Texte lagon sur fond blanc */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 /* --- Style du Tableau --- */
 .classement-table {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+    border-collapse: separate; /* Pour des coins arrondis */
+    border-spacing: 0;
+    margin-top: 25px;
 }
 
 .classement-table th, .classement-table td {
     padding: 12px 15px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #eee;
 }
 
 .classement-table th {
-    background-color: #e9e9e9;
-    font-weight: bold;
+    background-color: var(--color-lagon);
+    color: var(--color-light);
+    font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.9em;
-}
-
-/* Mise en évidence du classement (première colonne) */
-.classement-table tr td:first-child strong {
-    font-size: 1.1em;
-    color: #cc0000;
+    font-size: 0.85em;
+    position: sticky; /* Pour garder l'en-tête visible lors du scroll */
+    top: 0;
+    z-index: 10;
 }
 
 .classement-table tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background-color: #fcfcfc;
 }
 
 .classement-table tr:hover {
-    background-color: #f0f0f0;
+    background-color: #f0f8ff; /* Très légère touche de bleu au survol */
+}
+
+/* Mise en évidence du classement (1ère place Volcan) */
+.classement-table tr td:first-child strong {
+    color: var(--color-volcan); /* Rouge-orange pour la 1ère place */
+    font-size: 1.2em;
+    font-weight: 700;
 }
