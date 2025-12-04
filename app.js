@@ -157,4 +157,23 @@ async function init() {
 
     // Mettre à jour les titres de la page
     const categoryName = CATEGORY_MAP[currentCategoryKey] ? CATEGORY_MAP[currentCategoryKey].name : currentCategoryKey.toUpperCase();
-    document.title = `Classement ${categoryName} - Route
+    document.title = `Classement ${categoryName} - Route 2026`; 
+
+    // Créer la barre de navigation
+    createNavBar();
+    
+    // Mettre à jour le titre principal (H1)
+    const h1 = document.querySelector('h1');
+    if (h1) h1.textContent = `Classement ${categoryName}`;
+
+    if (jsonUrl) {
+        container.innerHTML = '<p>Chargement des données...</p>';
+        
+        const rawData = await fetchClassementData(jsonUrl); 
+        renderTable(rawData);
+    } else {
+        container.innerHTML = `<p style="color: red;">Configuration incorrecte ou catégorie "${currentCategoryKey}" non trouvée. Vérifiez CATEGORY_MAP.</p>`;
+    }
+}
+
+init();
