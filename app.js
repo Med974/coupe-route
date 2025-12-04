@@ -144,7 +144,7 @@ async function init() {
     
     // Mise à jour du h1 (Titre général)
     const h1 = document.querySelector('h1');
-    if (h1) h1.textContent = "Coupe de la Réunion Routeeeeeeee"; 
+    if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     
     // CORRECTION APPLIQUÉE : On retire l'injection du texte de catégorie au h2 (ID category-title)
     // On efface simplement le contenu du h2 au cas où il y aurait quelque chose
@@ -164,4 +164,5 @@ async function init() {
 }
 
 init();
+
 
