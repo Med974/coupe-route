@@ -44,7 +44,6 @@ function buildJsonUrl(categoryKey) {
     // Utilisation du format ?sheet=
     const sheetParam = encodeURIComponent(categoryInfo.sheetName);
     
-    // Endpoint de base + paramètre de feuille
     return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}?sheet=${sheetParam}`;
 }
 
@@ -149,15 +148,19 @@ async function init() {
 
     const categoryName = CATEGORY_MAP[currentCategoryKey] ? CATEGORY_MAP[currentCategoryKey].name : currentCategoryKey.toUpperCase();
     
-    // CORRECTION DE L'ANNÉE ICI
+    // CORRECTION DE L'ANNÉE : 2026 -> 2025
     document.title = `Classement ${categoryName} - Route 2025`; 
 
     createNavBar();
     
+    // Mise à jour du <h1> et du <h2> (Titre général et titre de catégorie)
     const h1 = document.querySelector('h1');
-    // Le <h1> affiche "COUPE DE LA RÉUNION ROUTE" (fixe)
-    const h2 = document.querySelector('h2');
-    if (h2) h2.textContent = `Classement ${categoryName}`; // Le <h2> affiche la catégorie sélectionnée
+    if (h1) h1.textContent = "Coupe de la Réunion Route"; // Respect de la casse
+    
+    const categoryTitleElement = document.querySelector('h2');
+    if (categoryTitleElement) {
+        categoryTitleElement.textContent = `Classement ${categoryName}`;
+    }
 
     if (jsonUrl) {
         container.innerHTML = '<p>Chargement des données...</p>';
