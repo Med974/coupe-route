@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v13 - Correction ReferenceError et Structure Finale)
+// FICHIER : app.js (v14 - Code Final et Stabilisé)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -12,6 +12,7 @@ const SAISONS_CONFIG = {
             'open': { name: 'OPEN', sheetName: 'Open' },
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
             'access34': { name: 'Access 3/4', sheetName: 'Access34' },
+            // Les futurs Masters seront ajoutés ici
         }
     },
     '2026': {
@@ -28,7 +29,8 @@ const SAISONS_CONFIG = {
 const DEFAULT_SAISON = '2026'; 
 const DEFAULT_CATEGORY = 'open';
 
-let globalClassementData = []; // Stockage global pour le futur filtre Master
+// Stockage global pour le filtrage Masters (sera rempli par fetchClassementData)
+let globalClassementData = []; 
 
 
 // --- 2. Fonctions Utilitaires ---
@@ -64,7 +66,7 @@ function buildJsonUrl(saisonKey, categoryKey) {
  * Crée les boutons de navigation (Saisons et Catégories).
  */
 function createNavBar(currentSaison, currentCategory) {
-    // CORRECTION : Les références sont récupérées localement
+    // Les références sont récupérées localement pour plus de sécurité
     const seasonsContainer = document.getElementById('nav-seasons');
     const categoriesContainer = document.getElementById('nav-categories');
 
@@ -97,7 +99,7 @@ function createNavBar(currentSaison, currentCategory) {
 // --- 3. Fonctions de Données et Rendu ---
 
 async function fetchClassementData(url) {
-    // CORRECTION : Récupération du conteneur DANS la fonction, car 'container' n'était pas défini
+    // Récupération du conteneur dans la fonction
     const container = document.getElementById('classement-container');
     
     try {
@@ -195,7 +197,6 @@ async function init() {
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     
-    // Le h2 (ID category-title) est laissé vide
     const categoryTitleElement = document.getElementById('category-title');
     if (categoryTitleElement) {
         categoryTitleElement.textContent = ""; 
