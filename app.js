@@ -1,25 +1,47 @@
 // =======================================================================
-// FICHIER : app.js
-// GESTION DYNAMIQUE DES CLASSEMENTS COUPE DE LA RÉUNION ROUTE (v7 - Titre retiré)
+// FICHIER : app.js (v9 - Gestion des Saisons et Default 2026)
 // =======================================================================
 
-// --- 1. Configuration et Mappage des Catégories ---
+// --- 1. Configuration Multi-Saisons ---
 
-// ID unique fourni par SheetDB (Endpoint URL de base)
-const SHEETDB_API_ID = 'hiydnpj4xuxdz'; 
-
-// Mappage des catégories vers leurs NOMS DE FEUILLES EXACTS dans Google Sheets.
-const CATEGORY_MAP = {
-    'open': { name: 'OPEN', sheetName: 'Open' },
-    'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
-    'access34': { name: 'Access 3/4', sheetName: 'Access34' },
+const SAISONS_CONFIG = {
+    '2025': {
+        name: 'Saison 2025',
+        apiId: 'hiydnpj4xuxdz', // API actuelle de 2025
+        categories: {
+            'open': { name: 'OPEN', sheetName: 'Open' },
+            'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
+            'access34': { name: 'Access 3/4', sheetName: 'Access34' },
+            // Les masters de 2025 iront ici
+        }
+    },
+    '2026': {
+        name: 'Saison 2026',
+        apiId: 'NOUVEL_ID_API_2026', // <<< REMPLACER CECI PAR L'ID DE L'API 2026
+        categories: {
+            'open': { name: 'OPEN', sheetName: 'Open' }, 
+            'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
+            'access34': { name: 'Access 3/4', sheetName: 'Access34' },
+            // Les masters de 2026 iront ici
+        }
+    }
 };
 
+const DEFAULT_SAISON = '2026'; // <<< Changement de la saison par défaut
 const DEFAULT_CATEGORY = 'open';
+
+// Références aux éléments HTML
 const container = document.getElementById('classement-container');
-const navContainer = document.getElementById('nav-categories');
+const navCategoriesContainer = document.getElementById('nav-categories');
+const navSeasonsContainer = document.getElementById('nav-seasons');
+
 
 // --- 2. Fonctions Utilitaires ---
+
+function getSaisonFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('saison') || DEFAULT_SAISON;
+}
 
 function getCategoryFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -29,12 +51,15 @@ function getCategoryFromURL() {
 /**
  * Construit l'URL complète pour la récupération des données JSON via SheetDB.
  */
-function buildJsonUrl(categoryKey) {
-    const categoryInfo = CATEGORY_MAP[categoryKey];
-    if (!categoryInfo || !SHEETDB_API_ID) {
-        return null;
-    }
+function buildJsonUrl(saisonKey, categoryKey) {
+    const saisonConfig = SAISONS_CONFIG[saisonKey];
+    if (!saisonConfig) return null;
+
+    const categoryInfo = saisonConfig.categories[categoryKey];
+    if (!categoryInfo) return null;
     
+    const SHEETDB_API_ID = saisonConfig.apiId;
+
     // Utilisation du format ?sheet=
     const sheetParam = encodeURIComponent(categoryInfo.sheetName);
     
@@ -42,28 +67,39 @@ function buildJsonUrl(categoryKey) {
 }
 
 /**
- * Crée les boutons de navigation en haut de page.
+ * Crée les boutons de navigation (Saisons et Catégories).
  */
-function createNavBar() {
-    const currentCategory = getCategoryFromURL();
-    let navHtml = '';
-
-    Object.keys(CATEGORY_MAP).forEach(key => {
-        const category = CATEGORY_MAP[key];
-        const isActive = key === currentCategory ? 'active' : '';
-        navHtml += `<a href="?cat=${key}" class="${isActive}">${category.name}</a>`;
+function createNavBar(currentSaison, currentCategory) {
+    // 1. Navigation Saisons
+    let seasonsHtml = '';
+    Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
+        const saison = SAISONS_CONFIG[saisonKey];
+        const isActive = saisonKey === currentSaison ? 'active' : '';
+        // On garde la même catégorie en changeant de saison
+        seasonsHtml += `<a href="?saison=${saisonKey}&cat=${currentCategory}" class="${isActive}">${saison.name}</a>`;
     });
+    if (navSeasonsContainer) {
+        navSeasonsContainer.innerHTML = seasonsHtml;
+    }
 
-    if (navContainer) {
-        navContainer.innerHTML = navHtml;
+    // 2. Navigation Catégories
+    const currentCategories = SAISONS_CONFIG[currentSaison]?.categories;
+    let categoriesHtml = '';
+    if (currentCategories) {
+        Object.keys(currentCategories).forEach(categoryKey => {
+            const category = currentCategories[categoryKey];
+            const isActive = categoryKey === currentCategory ? 'active' : '';
+            // On garde la même saison en changeant de catégorie
+            categoriesHtml += `<a href="?saison=${currentSaison}&cat=${categoryKey}" class="${isActive}">${category.name}</a>`;
+        });
+    }
+    if (navCategoriesContainer) {
+        navCategoriesContainer.innerHTML = categoriesHtml;
     }
 }
 
-// --- 3. Fonctions de Récupération et de Traitement des Données ---
+// --- 3. Fonctions de Données et Rendu ---
 
-/**
- * Récupère les données JSON via l'API SheetDB.
- */
 async function fetchClassementData(url) {
     try {
         console.log("Tentative de récupération de l'URL JSON :", url);
@@ -90,9 +126,6 @@ async function fetchClassementData(url) {
     }
 }
 
-/**
- * Génère le tableau HTML de classement.
- */
 function renderTable(data) {
     if (data.length === 0 || typeof data[0] !== 'object') {
         container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez les données.</p>';
@@ -132,37 +165,5 @@ function renderTable(data) {
 // --- 4. Fonction Principale ---
 
 async function init() {
-    const currentCategoryKey = getCategoryFromURL();
-    const jsonUrl = buildJsonUrl(currentCategoryKey); 
-
-    const categoryName = CATEGORY_MAP[currentCategoryKey] ? CATEGORY_MAP[currentCategoryKey].name : currentCategoryKey.toUpperCase();
-    
-    // Année 2025
-    document.title = `Classement ${categoryName} - Route 2025`; 
-
-    createNavBar();
-    
-    // Mise à jour du h1 (Titre général)
-    const h1 = document.querySelector('h1');
-    if (h1) h1.textContent = "Coupe de la Réunion Route"; 
-    
-    // CORRECTION APPLIQUÉE : On retire l'injection du texte de catégorie au h2 (ID category-title)
-    // On efface simplement le contenu du h2 au cas où il y aurait quelque chose
-    const categoryTitleElement = document.getElementById('category-title');
-    if (categoryTitleElement) {
-        categoryTitleElement.textContent = ""; // Retrait de l'affichage du titre de catégorie
-    }
-
-    if (jsonUrl) {
-        container.innerHTML = '<p>Chargement des données...</p>';
-        
-        const rawData = await fetchClassementData(jsonUrl); 
-        renderTable(rawData);
-    } else {
-        container.innerHTML = `<p style="color: red;">Configuration incorrecte ou catégorie "${currentCategoryKey}" non trouvée. Vérifiez CATEGORY_MAP.</p>`;
-    }
-}
-
-init();
-
-
+    const currentSaison = getSaisonFromURL();
+    const currentCategory
