@@ -1,170 +1,69 @@
 /* =======================================================================
-FICHIER : styles.css (FINAL - Correction de la vue Détails)
+MEDIA QUERIES (Optimisation pour Mobile)
 ======================================================================= */
 
-/* Couleurs Clés */
-:root {
-    --color-lagon: #00A7BB;      
-    --color-volcan: #D94F00;     
-    --color-background: #F8F8F8; 
-    --color-text: #2c3e50;
-    --color-light: #ffffff;
-}
+@media (max-width: 768px) {
+    
+    /* --- Ajustements Généraux --- */
+    
+    header {
+        padding: 20px 10px;
+    }
+    
+    h1 {
+        font-size: 1.8em;
+    }
 
-body {
-    font-family: 'Roboto', 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: var(--color-background);
-    color: var(--color-text);
-}
+    /* Le conteneur principal devient moins large */
+    main {
+        padding: 10px;
+        margin: 10px auto;
+        border-radius: 0;
+    }
 
-header {
-    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%);
-    color: var(--color-light);
-    padding: 30px 20px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+    /* --- Navigation et Boutons (Empilement) --- */
 
-h1 { 
-    margin: 0 0 5px 0;
-    font-size: 2.5em;
-    letter-spacing: 1px;
-}
+    /* Les conteneurs de navigation prennent toute la largeur, centrent les boutons, et les empilent */
+    #nav-seasons, #nav-categories, #nav-masters {
+        display: block; /* S'assure que chaque NAV est sur sa propre ligne */
+        text-align: center;
+        padding-bottom: 5px;
+    }
 
-h2 { 
-    margin: 0 0 15px 0;
-    font-size: 1.5em;
-    font-weight: 300;
-}
-
-p { 
-    margin-top: 10px;
-    font-size: 1.1em;
-}
-
-main {
-    padding: 20px;
-    max-width: 1300px;
-    margin: 30px auto;
-    background-color: var(--color-light);
-    border-radius: 10px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-}
-
-/* --- Style des Conteneurs de Navigation (inchangé) --- */
-#nav-seasons, #nav-categories, #nav-masters {
-    margin: 10px auto; 
-    display: block; 
-    background-color: transparent; 
-    padding: 0;
-    text-align: center; 
-}
-
-#nav-seasons {
-    margin-top: 20px;
-    margin-bottom: 10px;
-    display: block;
-    background-color: transparent; 
-    border-radius: 0;
-    padding: 0;
-    padding-bottom: 10px;
-}
-
-#nav-categories {
-    margin-bottom: 10px;
-}
-
-#nav-masters {
-    margin-bottom: 20px;
-}
-
-#nav-seasons a, #nav-categories a, #nav-masters a {
-    color: var(--color-light);
-    text-decoration: none;
-    padding: 8px 18px;
-    display: inline-block;
-    font-weight: 500;
-    border-radius: 6px;
-    transition: background-color 0.3s, color 0.3s;
-    font-size: 0.95em;
-    background-color: rgba(255, 255, 255, 0.1); 
-    margin-right: 10px; 
-    margin-bottom: 5px; 
-}
-
-#nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
-    background-color: var(--color-volcan);
-}
-
-#nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
-    background-color: var(--color-light);
-    color: var(--color-lagon); 
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-/* --- Style du Tableau Général ET DÉTAILS --- */
-
-/* Applique le style au tableau général ET au nouveau tableau de détails */
-.classement-table, .details-table { 
-    width: 100%;
-    border-collapse: separate; 
-    border-spacing: 0;
-    margin-top: 25px;
-}
-
-.classement-table th, .classement-table td, .details-table th, .details-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-.classement-table th, .details-table th {
-    background-color: var(--color-lagon);
-    color: var(--color-light);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.85em;
-    position: sticky; 
-    top: 0;
-    z-index: 10;
-}
-
-.classement-table tr:nth-child(even), .details-table tr:nth-child(even) {
-    background-color: #fcfcfc;
-}
-
-.classement-table tr:hover, .details-table tr:hover {
-    background-color: #f0f8ff; 
-}
-
-/* Mise en évidence du classement (1ère place Volcan) */
-.classement-table tr td:first-child strong {
-    color: var(--color-volcan); 
-    font-size: 1.2em;
-    font-weight: 700;
-}
-
-/* Style spécifique à la vue détaillée */
-.details-table h3 {
-    color: var(--color-lagon);
-    margin-top: 0;
-}
-
-/* Style du bouton Retour */
-button {
-    background-color: var(--color-volcan);
-    color: var(--color-light);
-    border: none;
-    padding: 10px 20px;
-    font-size: 1em;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-top: 20px;
-}
-
-button:hover {
-    background-color: #a83d00;
+    /* Les boutons à l'intérieur des NAV s'étendent un peu plus et utilisent une police plus petite */
+    #nav-seasons a, #nav-categories a, #nav-masters a {
+        display: block; /* Chaque bouton prend sa propre ligne */
+        width: calc(50% - 15px); /* Deux boutons par ligne, ajusté pour la marge */
+        float: left; /* Aligner à gauche pour que le "display: block" ne casse pas l'alignement */
+        margin: 5px 5px; /* Marge réduite */
+        padding: 8px 5px;
+        font-size: 0.85em;
+    }
+    
+    /* Si vous voulez une seule colonne (plus lisible), utilisez ceci à la place du float:left: */
+    /*
+    #nav-seasons a, #nav-categories a, #nav-masters a {
+        display: block; 
+        width: 90%; 
+        margin: 5px auto; 
+        font-size: 0.9em;
+    }
+    */
+    
+    /* --- Tableau de Classement (Scrolling Horizontal) --- */
+    
+    /* Pour éviter que le tableau ne dépasse, on enveloppe la table dans un conteneur défilant */
+    /* C'est la méthode la plus simple pour les tableaux larges. */
+    .table-responsive {
+        overflow-x: auto;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .classement-table, .details-table {
+        /* On retire la marge pour les petits écrans */
+        margin-top: 15px; 
+        /* On garantit une largeur minimale pour éviter l'illisibilité (adapté à vos 7 colonnes) */
+        min-width: 700px; 
+    }
 }
