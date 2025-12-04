@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v12 - FINAL FIX)
+// FICHIER : app.js (v13 - Correction ReferenceError et Structure Finale)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -28,8 +28,7 @@ const SAISONS_CONFIG = {
 const DEFAULT_SAISON = '2026'; 
 const DEFAULT_CATEGORY = 'open';
 
-// Global variable for data storage (for Masters filtering later)
-let globalClassementData = []; 
+let globalClassementData = []; // Stockage global pour le futur filtre Master
 
 
 // --- 2. Fonctions Utilitaires ---
@@ -65,7 +64,7 @@ function buildJsonUrl(saisonKey, categoryKey) {
  * Crée les boutons de navigation (Saisons et Catégories).
  */
 function createNavBar(currentSaison, currentCategory) {
-    // CORRECTION APPLIQUÉE : Ciblage des conteneurs dans la fonction
+    // CORRECTION : Les références sont récupérées localement
     const seasonsContainer = document.getElementById('nav-seasons');
     const categoriesContainer = document.getElementById('nav-categories');
 
@@ -98,6 +97,9 @@ function createNavBar(currentSaison, currentCategory) {
 // --- 3. Fonctions de Données et Rendu ---
 
 async function fetchClassementData(url) {
+    // CORRECTION : Récupération du conteneur DANS la fonction, car 'container' n'était pas défini
+    const container = document.getElementById('classement-container');
+    
     try {
         console.log("Tentative de récupération de l'URL JSON :", url);
         
@@ -117,16 +119,21 @@ async function fetchClassementData(url) {
         return data;
 
     } catch (error) {
-        // Le conteneur reste global
-        container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. L'API SheetDB a échoué. Détails : ${error.message}</p>`;
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. L'API SheetDB a échoué. Détails : ${error.message}</p>`;
+        }
         console.error("Erreur de récupération :", error);
         return [];
     }
 }
 
 function renderTable(data) {
+    const container = document.getElementById('classement-container');
+
     if (data.length === 0 || typeof data[0] !== 'object') {
-        container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez les données.</p>';
+        if (container) {
+            container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez les données.</p>';
+        }
         return;
     }
 
@@ -157,7 +164,9 @@ function renderTable(data) {
     });
     html += '</tbody></table>';
 
-    container.innerHTML = html;
+    if (container) {
+        container.innerHTML = html;
+    }
 }
 
 // --- 4. Fonction Principale ---
@@ -182,11 +191,11 @@ async function init() {
     // Créer les barres de navigation (Saisons et Catégories)
     createNavBar(currentSaison, currentCategoryKey);
     
-    // Mise à jour du h1 (Titre général)
+    // Mise à jour des éléments de titre
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     
-    // Le h2 (ID category-title) est laissé vide comme demandé
+    // Le h2 (ID category-title) est laissé vide
     const categoryTitleElement = document.getElementById('category-title');
     if (categoryTitleElement) {
         categoryTitleElement.textContent = ""; 
@@ -198,15 +207,21 @@ async function init() {
         seasonParagraph.textContent = `Saison ${currentSaison}`;
     }
 
+    const container = document.getElementById('classement-container');
+
     if (jsonUrl) {
-        container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
+        if (container) {
+            container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
+        }
         
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
         renderTable(rawData);
     } else {
-        container.innerHTML = `<p style="color: red;">Configuration des données manquante pour la saison ${currentSaison} ou la catégorie "${currentCategoryKey}".</p>`;
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Configuration des données manquante pour la saison ${currentSaison} ou la catégorie "${currentCategoryKey}".</p>`;
+        }
     }
 }
 
