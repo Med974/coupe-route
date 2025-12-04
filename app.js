@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v9 - Gestion des Saisons et Default 2026)
+// FICHIER : app.js (v10 - Gestion des Saisons et Default 2026)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -7,27 +7,25 @@
 const SAISONS_CONFIG = {
     '2025': {
         name: 'Saison 2025',
-        apiId: 'hiydnpj4xuxdz', // API actuelle de 2025
+        apiId: 'hiydnpj4xuxdz', 
         categories: {
             'open': { name: 'OPEN', sheetName: 'Open' },
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
             'access34': { name: 'Access 3/4', sheetName: 'Access34' },
-            // Les masters de 2025 iront ici
         }
     },
     '2026': {
         name: 'Saison 2026',
-        apiId: 'NOUVEL_ID_API_2026', // <<< REMPLACER CECI PAR L'ID DE L'API 2026
+        apiId: 'guq5nvsip34b6', // <<< ID réel pour 2026
         categories: {
             'open': { name: 'OPEN', sheetName: 'Open' }, 
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
             'access34': { name: 'Access 3/4', sheetName: 'Access34' },
-            // Les masters de 2026 iront ici
         }
     }
 };
 
-const DEFAULT_SAISON = '2026'; // <<< Changement de la saison par défaut
+const DEFAULT_SAISON = '2026'; // <<< Défaut sur la nouvelle saison
 const DEFAULT_CATEGORY = 'open';
 
 // Références aux éléments HTML
@@ -75,7 +73,6 @@ function createNavBar(currentSaison, currentCategory) {
     Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
         const saison = SAISONS_CONFIG[saisonKey];
         const isActive = saisonKey === currentSaison ? 'active' : '';
-        // On garde la même catégorie en changeant de saison
         seasonsHtml += `<a href="?saison=${saisonKey}&cat=${currentCategory}" class="${isActive}">${saison.name}</a>`;
     });
     if (navSeasonsContainer) {
@@ -89,7 +86,6 @@ function createNavBar(currentSaison, currentCategory) {
         Object.keys(currentCategories).forEach(categoryKey => {
             const category = currentCategories[categoryKey];
             const isActive = categoryKey === currentCategory ? 'active' : '';
-            // On garde la même saison en changeant de catégorie
             categoriesHtml += `<a href="?saison=${currentSaison}&cat=${categoryKey}" class="${isActive}">${category.name}</a>`;
         });
     }
@@ -165,5 +161,49 @@ function renderTable(data) {
 // --- 4. Fonction Principale ---
 
 async function init() {
-    const currentSaison = getSaisonFromURL();
-    const currentCategory
+    let currentSaison = getSaisonFromURL();
+    const currentCategoryKey = getCategoryFromURL();
+    
+    // Vérifie si la saison demandée existe, sinon utilise la saison par défaut
+    if (!SAISONS_CONFIG[currentSaison]) {
+        console.warn(`Saison ${currentSaison} non configurée. Chargement de ${DEFAULT_SAISON}.`);
+        currentSaison = DEFAULT_SAISON; 
+    }
+
+    const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey); 
+
+    const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
+    
+    // Mise à jour de l'année dans le titre du navigateur
+    document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
+
+    // Créer les barres de navigation (Saisons et Catégories)
+    createNavBar(currentSaison, currentCategoryKey);
+    
+    // Mise à jour du h1 (Titre général)
+    const h1 = document.querySelector('h1');
+    if (h1) h1.textContent = "Coupe de la Réunion Route"; 
+    
+    // Le h2 (ID category-title) est vide car le titre est géré par la navigation
+    const categoryTitleElement = document.getElementById('category-title');
+    if (categoryTitleElement) {
+        categoryTitleElement.textContent = ""; 
+    }
+
+    // Mise à jour de la saison affichée dans la balise <p>
+    const seasonParagraph = document.querySelector('header p');
+    if (seasonParagraph) {
+        seasonParagraph.textContent = `Saison ${currentSaison}`;
+    }
+
+    if (jsonUrl) {
+        container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
+        
+        const rawData = await fetchClassementData(jsonUrl); 
+        renderTable(rawData);
+    } else {
+        container.innerHTML = `<p style="color: red;">Configuration des données manquante pour la saison ${currentSaison} ou la catégorie "${currentCategoryKey}".</p>`;
+    }
+}
+
+init();
