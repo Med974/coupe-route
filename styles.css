@@ -1,5 +1,5 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne - Correction du bouton ACTIF)
+FICHIER : styles.css (Design Réunionnais Moderne - FINAL)
 ======================================================================= */
 
 /* Couleurs Clés */
@@ -20,26 +20,26 @@ body {
 }
 
 header {
-    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%); 
+    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%); /* Dégradé Profond */
     color: var(--color-light);
     padding: 30px 20px;
     text-align: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-h1 { 
+h1 { /* Coupe de la Réunion Route */
     margin: 0 0 5px 0;
     font-size: 2.5em;
     letter-spacing: 1px;
 }
 
-h2 { 
+h2 { /* Catégorie dynamique */
     margin: 0 0 15px 0;
     font-size: 1.5em;
     font-weight: 300;
 }
 
-p { 
+p { /* Saison 2025/2026 */
     margin-top: 10px;
     font-size: 1.1em;
 }
@@ -53,7 +53,7 @@ main {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style des Conteneurs de Navigation --- */
+/* --- Style de la Navigation Saisons/Catégories --- */
 
 /* Les conteneurs NAV prennent toute la largeur (display: block) pour se superposer */
 #nav-seasons, #nav-categories, #nav-masters {
@@ -64,11 +64,15 @@ main {
     text-align: center; 
 }
 
-/* Ligne de séparation sous les Saisons */
+/* Ligne de séparation sous les Saisons - RETIRÉE */
 #nav-seasons {
     margin-top: 20px;
     margin-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
+    display: block;
+    background-color: transparent; 
+    border-radius: 0;
+    padding: 0;
+    /* La propriété border-bottom a été retirée pour supprimer la ligne */
     padding-bottom: 10px;
 }
 
@@ -98,20 +102,17 @@ main {
     margin-bottom: 5px; 
 }
 
-/* Style au survol */
 #nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
     background-color: var(--color-volcan);
 }
 
-/* Style des boutons Actifs */
 #nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
-    background-color: var(--color-light); /* FOND : BLANC */
-    color: var(--color-lagon); /* TEXTE : BLEU LAGON */
+    background-color: var(--color-light);
+    color: var(--color-lagon); 
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Style du Tableau (inchangé) --- */
-
+/* --- Style du Tableau --- */
 .classement-table {
     width: 100%;
     border-collapse: separate; 
