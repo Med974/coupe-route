@@ -6,7 +6,7 @@
 // --- 1. Configuration et Mappage des Catégories ---
 
 // ID unique fourni par SheetDB (Endpoint URL de base)
-const SHEETDB_API_ID = 'cn1mysle9dz6t'; 
+const SHEETDB_API_ID = 'hiydnpj4xuxdz'; 
 
 // Mappage des catégories vers leurs NOMS DE FEUILLES EXACTS dans Google Sheets.
 // Les sheetName pointent vers les nouveaux noms SANS caractères spéciaux.
@@ -177,3 +177,4 @@ async function init() {
 }
 
 init();
+
