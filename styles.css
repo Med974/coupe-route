@@ -1,5 +1,5 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne - Structure corrigée)
+FICHIER : styles.css (Design Réunionnais Moderne - Espacement des boutons)
 ======================================================================= */
 
 /* Couleurs Clés */
@@ -75,7 +75,7 @@ main {
     max-width: 90%;
 }
 
-/* Style des liens A à l'intérieur des NAV */
+/* Style des liens A à l'intérieur des NAV - AJOUT DE MARGE ICI */
 #nav-seasons a, #nav-categories a {
     color: var(--color-light);
     text-decoration: none;
@@ -85,8 +85,10 @@ main {
     border-radius: 6px;
     transition: background-color 0.3s, color 0.3s;
     font-size: 0.95em;
-    /* Fond pour les boutons */
     background-color: rgba(255, 255, 255, 0.1); 
+    
+    /* ESPACEMENT : 10px à droite de chaque bouton */
+    margin-right: 10px; 
 }
 
 #nav-seasons a:hover, #nav-categories a:hover {
