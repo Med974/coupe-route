@@ -5,7 +5,7 @@
 // --- 1. Configuration Multi-Saisons ---
 
 // URL de base du Worker Cloudflare (À REMPLACER !)
-const WORKER_BASE_URL = 'https://VOTRE_WORKER_URL/'; 
+const WORKER_BASE_URL = 'https://morning-darkness-4a2d.med97400.workers.dev/'; 
 
 const SAISONS_CONFIG = {
     '2025': {
@@ -418,3 +418,4 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
