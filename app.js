@@ -9,7 +9,7 @@ const SHEETDB_API_ID = 'cn1mysle9dz6t';
 
 const CATEGORY_MAP = {
     // Les sheetName pointent maintenant vers les feuilles de données brutes pour l'API
-    'apiopen': { name: 'OPEN', sheetName: 'API Open' },
+    'open': { name: 'OPEN', sheetName: 'API Open' },
     'access12': { name: 'Access 1/2', sheetName: 'API Access 1/2' }, 
     'access34': { name: 'Access 3/4', sheetName: 'API Access 3/4' },
 };
@@ -176,6 +176,7 @@ async function init() {
 }
 
 init();
+
 
 
 
