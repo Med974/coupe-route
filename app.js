@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v16 - Nom d'affichage corrigé "U15U17 Filles")
+// FICHIER : app.js (v18 - Vue Détaillée par Coureur)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -12,10 +12,9 @@ const SAISONS_CONFIG = {
             'open': { name: 'OPEN', sheetName: 'Open' },
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
             'access34': { name: 'Access 3/4', sheetName: 'Access34' },
-            'femmes': { name: 'FEMMES', sheetName: 'Femmes' },
+            'femmes': { name: 'Femmes', sheetName: 'Femmes' },
             'u17': { name: 'U17', sheetName: 'U17' },
             'u15': { name: 'U15', sheetName: 'U15' },
-            // CORRECTION APPLIQUÉE ICI : Name convivial vs sheetName réel
             'u15u17f': { name: 'U15/U17 Filles', sheetName: 'U15U17Femmes' },
         }
     },
@@ -26,10 +25,9 @@ const SAISONS_CONFIG = {
             'open': { name: 'OPEN', sheetName: 'Open' }, 
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
             'access34': { name: 'Access 3/4', sheetName: 'Access34' },
-            'femmes': { name: 'FEMMES', sheetName: 'Femmes' },
+            'femmes': { name: 'Femmes', sheetName: 'Femmes' },
             'u17': { name: 'U17', sheetName: 'U17' },
             'u15': { name: 'U15', sheetName: 'U15' },
-            // CORRECTION APPLIQUÉE ICI : Name convivial vs sheetName réel
             'u15u17f': { name: 'U15/U17 Filles', sheetName: 'U15U17Femmes' },
         }
     }
@@ -40,7 +38,6 @@ const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
 
-// Configuration des boutons Masters 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
     { key: 'M1', name: 'M1' },
@@ -157,6 +154,9 @@ async function fetchClassementData(url) {
     }
 }
 
+/**
+ * Génère le tableau HTML de classement général (avec liens cliquables).
+ */
 function renderTable(data) {
     const container = document.getElementById('classement-container');
 
@@ -183,11 +183,17 @@ function renderTable(data) {
         html += '<tr>';
         headers.forEach(header => {
             let content = coureur[header];
-            if (header === 'Classement' || header === 'PointsTotal') {
-                content = parseFloat(content) || content; 
+            let displayContent = content;
+
+            if (header === 'Nom') {
+                // Rendre le nom cliquable
+                displayContent = `<a href="#" class="coureur-link" data-dossard="${coureur.Dossard}">${content}</a>`;
+            } else if (header === 'Classement') {
+                displayContent = `<strong>${content}</strong>`;
+            } else if (header === 'PointsTotal') {
+                displayContent = parseFloat(content) || content; 
             }
 
-            const displayContent = (header === 'Classement') ? `<strong>${content}</strong>` : content;
             html += `<td>${displayContent}</td>`;
         });
         html += '</tr>';
@@ -199,7 +205,91 @@ function renderTable(data) {
     }
 }
 
-// --- 4. Logique Master ---
+
+// --- 4. Logique Détaillée du Coureur ---
+
+/**
+ * Génère le tableau HTML des résultats détaillés (Date, Nom Course, Position, Points).
+ */
+function renderCoureurDetails(details) {
+    const container = document.getElementById('classement-container');
+    if (!container) return;
+    
+    if (details.length === 0) {
+        container.innerHTML = '<p>Aucun résultat de course trouvé pour ce coureur.</p>';
+        return;
+    }
+    
+    // Supposons que le nom complet et le dossard sont dans la première entrée
+    const coureurNom = details[0].Nom;
+    const coureurDossard = details[0].Dossard;
+
+    let html = `<h3>Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossard})</h3>`;
+    html += '<table class="details-table">';
+    
+    // En-têtes (Colonnes pertinentes de Résultats Bruts)
+    html += '<thead><tr><th>Date</th><th>Nom Course</th><th>Position</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
+
+    // Remplissage des lignes
+    details.forEach(course => {
+        // NOTE: Les clés doivent correspondre aux en-têtes exacts de la feuille Résultats Bruts
+        html += `<tr>
+                    <td>${course.Date}</td> 
+                    <td>${course['Nom Course']}</td>
+                    <td>${course.Position}</td>
+                    <td>${course.Catégorie}</td>
+                    <td><strong>${course.Points}</strong></td>
+                 </tr>`;
+    });
+    
+    html += '</tbody></table>';
+
+    // Bouton de retour au classement général
+    html += `<button onclick="init()">Retour au Classement Général</button>`;
+
+    container.innerHTML = html;
+}
+
+
+/**
+ * Gère le clic sur le nom du coureur et récupère ses résultats détaillés.
+ */
+async function showCoureurDetails(dossard, saisonKey) {
+    const saisonConfig = SAISONS_CONFIG[saisonKey];
+    const sheetdbApiId = saisonConfig.apiId;
+    
+    // 1. Construire l'URL de recherche pour la feuille Résultats Bruts
+    // Note: La colonne 'Dossard' dans Résultats Bruts doit exister.
+    const searchUrl = `https://sheetdb.io/api/v1/${sheetdbApiId}/search?Dossard=${dossard}&sheet=Résultats Bruts`;
+
+    // 2. Afficher un message de chargement
+    const container = document.getElementById('classement-container');
+    if (container) {
+        container.innerHTML = `<p>Chargement des résultats pour le dossard ${dossard}...</p>`;
+    }
+    
+    // 3. Récupérer les données
+    try {
+        const response = await fetch(searchUrl);
+        
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez que l'onglet 'Résultats Bruts' est accessible.`);
+        }
+        
+        const data = await response.json();
+        
+        // 4. Afficher les détails dans un tableau spécifique
+        renderCoureurDetails(data); 
+
+    } catch (error) {
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Erreur lors de la récupération des détails : ${error.message}</p>`;
+        }
+    }
+}
+
+
+// --- 5. Logique Master (inchangée) ---
 
 function handleMasterFilterChange(event) {
     event.preventDefault(); 
@@ -219,7 +309,6 @@ function handleMasterFilterChange(event) {
     let filteredData = globalClassementData;
 
     if (selectedMaster !== 'all') {
-        // Filtrage des données brutes stockées
         filteredData = globalClassementData.filter(coureur => {
             return coureur.Master === selectedMaster; 
         });
@@ -229,7 +318,7 @@ function handleMasterFilterChange(event) {
     renderTable(filteredData);
 }
 
-// --- 5. Fonction Principale ---
+// --- 6. Fonction Principale ---
 
 async function init() {
     let currentSaison = getSaisonFromURL();
@@ -276,10 +365,25 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // Initialisation du filtre Master
+        // Initialisation des écouteurs
         const mastersContainer = document.getElementById('nav-masters');
         if (mastersContainer) {
             mastersContainer.addEventListener('click', handleMasterFilterChange);
+        }
+        
+        // NOUVEAU : Attacher l'écouteur de clic sur les liens des coureurs
+        const classementContainer = document.getElementById('classement-container');
+        if (classementContainer) {
+            classementContainer.addEventListener('click', (e) => {
+                const link = e.target.closest('.coureur-link');
+                if (link) {
+                    e.preventDefault();
+                    const dossard = link.getAttribute('data-dossard');
+                    const currentSaison = getSaisonFromURL(); 
+                    
+                    showCoureurDetails(dossard, currentSaison);
+                }
+            });
         }
         
         renderTable(rawData);
