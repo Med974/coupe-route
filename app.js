@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v16 - Tuiles Masters)
+// FICHIER : app.js (v14 - Correction ReferenceError et Logique Masters)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -25,28 +25,41 @@ const SAISONS_CONFIG = {
     }
 };
 
-// NOUVEAU : Configuration des boutons Masters
-const MASTERS_CONFIG = [
-    { key: 'all', name: 'Général' }, // Clé 'all' pour les non-filtrés
-    { key: 'M1', name: 'M1' },
-    { key: 'M2', name: 'M2' },
-    { key: 'M3', name: 'M3' },
-    { key: 'M4', name: 'M4' },
-    { key: 'M5', name: 'M5' },
-    { key: 'M6', name: 'M6' },
-];
-
 const DEFAULT_SAISON = '2026'; 
 const DEFAULT_CATEGORY = 'open';
 
+// Stockage global pour le filtrage Masters
 let globalClassementData = []; 
-let currentMasterFilter = 'all'; // État actuel du filtre Master
 
 
 // --- 2. Fonctions Utilitaires ---
-// (Fonctions inchangées : getSaisonFromURL, getCategoryFromURL, buildJsonUrl)
 
-// ... (fonctions inchangées) ...
+function getSaisonFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('saison') || DEFAULT_SAISON;
+}
+
+function getCategoryFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('cat') || DEFAULT_CATEGORY;
+}
+
+/**
+ * Construit l'URL complète pour la récupération des données JSON via SheetDB.
+ */
+function buildJsonUrl(saisonKey, categoryKey) {
+    const saisonConfig = SAISONS_CONFIG[saisonKey];
+    if (!saisonConfig) return null;
+
+    const categoryInfo = saisonConfig.categories[categoryKey];
+    if (!categoryInfo) return null;
+    
+    const SHEETDB_API_ID = saisonConfig.apiId;
+
+    const sheetParam = encodeURIComponent(categoryInfo.sheetName);
+    
+    return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}?sheet=${sheetParam}`;
+}
 
 /**
  * Crée les boutons de navigation (Saisons et Catégories).
@@ -54,9 +67,8 @@ let currentMasterFilter = 'all'; // État actuel du filtre Master
 function createNavBar(currentSaison, currentCategory) {
     const seasonsContainer = document.getElementById('nav-seasons');
     const categoriesContainer = document.getElementById('nav-categories');
-    const mastersContainer = document.getElementById('nav-masters'); // NOUVEAU
 
-    // 1. Navigation Saisons (inchangée)
+    // 1. Navigation Saisons
     let seasonsHtml = '';
     Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
         const saison = SAISONS_CONFIG[saisonKey];
@@ -67,7 +79,7 @@ function createNavBar(currentSaison, currentCategory) {
         seasonsContainer.innerHTML = seasonsHtml;
     }
 
-    // 2. Navigation Catégories (inchangée)
+    // 2. Navigation Catégories
     const currentCategories = SAISONS_CONFIG[currentSaison]?.categories;
     let categoriesHtml = '';
     if (currentCategories) {
@@ -80,67 +92,98 @@ function createNavBar(currentSaison, currentCategory) {
     if (categoriesContainer) {
         categoriesContainer.innerHTML = categoriesHtml;
     }
-    
-    // 3. Navigation Masters (Tuiles)
-    let mastersHtml = '';
-    MASTERS_CONFIG.forEach(master => {
-        const isActive = master.key === currentMasterFilter ? 'active' : '';
-        // Utilisation d'un attribut data-master pour le JS et d'un href="#" pour le style
-        mastersHtml += `<a href="#" data-master="${master.key}" class="master-button ${isActive}">${master.name}</a>`;
-    });
-    if (mastersContainer) {
-        mastersContainer.innerHTML = mastersHtml;
-    }
 }
-
 
 // --- 3. Fonctions de Données et Rendu ---
 
-// ... (fetchClassementData et renderTable inchangées) ...
-
-// --- 4. Logique Master (Nouvelle gestion des clics) ---
-
-function handleMasterFilterChange(event) {
-    // Empêche le navigateur de remonter en haut de page
-    event.preventDefault(); 
+async function fetchClassementData(url) {
+    // CORRECTION : Le conteneur est récupéré localement car il peut être null au début
+    const container = document.getElementById('classement-container');
     
-    // S'assure que l'élément cliqué est bien le lien (ou son parent)
-    const button = event.target.closest('a.master-button');
-    if (!button) return;
+    try {
+        console.log("Tentative de récupération de l'URL JSON :", url);
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez les noms de feuilles dans SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
+        }
+        
+        const data = await response.json(); 
+        
+        if (data && data.error) {
+             throw new Error(`Erreur API: ${data.error}`);
+        }
+        
+        return data;
 
-    // Récupération de la clé Master
-    const selectedMaster = button.getAttribute('data-master');
-    
-    // Mise à jour de l'état global et du style
-    currentMasterFilter = selectedMaster;
-    
-    // 1. Mise à jour du style des boutons Masters
-    document.querySelectorAll('#nav-masters .master-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    button.classList.add('active');
-    
-    // 2. Application du filtre
-    let filteredData = globalClassementData;
+    } catch (error) {
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. L'API SheetDB a échoué. Détails : ${error.message}</p>`;
+        }
+        console.error("Erreur de récupération :", error);
+        return [];
+    }
+}
 
-    if (selectedMaster !== 'all') {
-        filteredData = globalClassementData.filter(coureur => {
-            // 'Master' doit correspondre au label exact de la colonne (ex: M1, M2, etc.)
-            // On inclut les coureurs qui ont leur Master correspondant
-            return coureur.Master === selectedMaster; 
-        });
+function renderTable(data) {
+    // CORRECTION : Le conteneur est récupéré localement
+    const container = document.getElementById('classement-container');
+
+    if (data.length === 0 || typeof data[0] !== 'object') {
+        if (container) {
+            container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez les données.</p>';
+        }
+        return;
     }
 
-    // 3. Affichage du tableau filtré
-    renderTable(filteredData);
+    const headers = Object.keys(data[0]);
+
+    let html = '<table class="classement-table">';
+
+    html += '<thead><tr>';
+    headers.forEach(header => {
+        const displayHeader = header.replace('PointsTotal', 'Total Pts').replace('NbCourses', 'Nb Courses').replace('SousCategorie', 'Sous Catégorie').replace('Master', 'Catégorie Master');
+        html += `<th>${displayHeader}</th>`;
+    });
+    html += '</tr></thead>';
+
+    html += '<tbody>';
+    data.forEach(coureur => {
+        html += '<tr>';
+        headers.forEach(header => {
+            let content = coureur[header];
+            if (header === 'Classement' || header === 'PointsTotal') {
+                content = parseFloat(content) || content; 
+            }
+
+            const displayContent = (header === 'Classement') ? `<strong>${content}</strong>` : content;
+            html += `<td>${displayContent}</td>`;
+        });
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+
+    if (container) {
+        container.innerHTML = html;
+    }
 }
+
+// --- 4. Logique Master (sera implémentée ici) ---
+
+// ... (handleMasterFilterChange reste le même pour le moment)
 
 // --- 5. Fonction Principale ---
 
 async function init() {
+    // Récupération locale des éléments du DOM
+    const container = document.getElementById('classement-container');
+    
     let currentSaison = getSaisonFromURL();
     const currentCategoryKey = getCategoryFromURL();
     
+    // Vérifie si la saison demandée existe, sinon utilise la saison par défaut
     if (!SAISONS_CONFIG[currentSaison]) {
         console.warn(`Saison ${currentSaison} non configurée. Chargement de ${DEFAULT_SAISON}.`);
         currentSaison = DEFAULT_SAISON; 
@@ -150,11 +193,13 @@ async function init() {
 
     const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
     
+    // Mise à jour de l'année dans le titre du navigateur
     document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
 
-    // Créer les barres de navigation
+    // Créer les barres de navigation (Saisons et Catégories)
     createNavBar(currentSaison, currentCategoryKey);
     
+    // Mise à jour des éléments de titre
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     
@@ -163,8 +208,8 @@ async function init() {
         categoryTitleElement.textContent = ""; 
     }
 
-    const container = document.getElementById('classement-container');
-
+    // Retrait de la logique <p> qui n'existe plus dans le HTML
+    
     if (jsonUrl) {
         if (container) {
             container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
@@ -173,13 +218,12 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // CORRECTION : Attache l'écouteur d'événement sur le conteneur principal
-        const mastersContainer = document.getElementById('nav-masters');
-        if (mastersContainer) {
-            mastersContainer.addEventListener('click', handleMasterFilterChange);
+        // Initialisation du filtre Master
+        const masterFilter = document.getElementById('master-filter');
+        if (masterFilter) {
+            // masterFilter.addEventListener('change', handleMasterFilterChange); // Listener sera ajouté après l'implémentation du Master
         }
         
-        // Affichage initial (Général par défaut)
         renderTable(rawData);
     } else {
         if (container) {
@@ -187,5 +231,7 @@ async function init() {
         }
     }
 }
+
+// Le reste du code... (handleMasterFilterChange)
 
 init();
