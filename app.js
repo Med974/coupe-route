@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v28 - Correction Finale Dossard Affichage)
+// FICHIER : app.js (v29 - Correction Finale Suffixe d'Affichage)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -63,15 +63,14 @@ function getCategoryFromURL() {
 
 /**
  * Convertit l'ID de dossard de recherche (ex: '52000') en ID d'affichage (ex: '52').
- * Gère les suffixes numériques définis pour chaque catégorie pour l'affichage public.
  */
 function getDisplayDossard(dossardRecherche) {
     if (!dossardRecherche) return dossardRecherche;
     
-    // Convertir en chaîne pour les opérations de suffixe
+    // CORRECTION APPLIQUÉE : Conversion explicite en String avant l'opération de suffixe
     const dossardStr = String(dossardRecherche); 
 
-    // Règles de conversion des suffixes (du plus long au plus court pour éviter les conflits)
+    // Règles de conversion des suffixes (du plus long au plus court)
     const suffixes = ['1517', '000', '170', '150'];
     
     for (const suffix of suffixes) {
@@ -81,7 +80,7 @@ function getDisplayDossard(dossardRecherche) {
         }
     }
     
-    // Retourne le dossard original si aucune règle ne s'applique (Open/Access simples)
+    // Retourne le dossard original si aucune règle ne s'applique 
     return dossardRecherche; 
 }
 
@@ -210,7 +209,7 @@ function renderTable(data) {
                 content = parseFloat(content) || content; 
             }
 
-            // CORRECTION D'AFFICHAGE DU DOSSARD (Conversion du 52000 en 52)
+            // Rendre le Nom cliquable (cette logique est correcte)
             let displayContent = content; 
             
             if (header === 'Dossard') {
@@ -224,7 +223,7 @@ function renderTable(data) {
             } else {
                  displayContent = content;
             }
-            
+
             html += `<td>${displayContent}</td>`;
         });
         html += '</tr>';
@@ -239,9 +238,6 @@ function renderTable(data) {
 
 // --- 4. Logique Détaillée du Coureur ---
 
-/**
- * Génère le tableau HTML des résultats détaillés (Date, Course, Position, Points).
- */
 function renderCoureurDetails(details) {
     const container = document.getElementById('classement-container');
     if (!container) return;
@@ -254,7 +250,7 @@ function renderCoureurDetails(details) {
     const coureurNom = details[0].Nom;
     const coureurDossardRecherche = details[0].Dossard; 
     
-    // CORRECTION APPLIQUÉE ICI : Afficher le dossard converti dans le titre
+    // Afficher le dossard converti dans le titre
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
 
     // Calcul et Affichage du total des points
@@ -265,8 +261,6 @@ function renderCoureurDetails(details) {
             totalPoints += points;
         }
     });
-    
-    // Titre avec le dossard converti (52 au lieu de 52000)
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
