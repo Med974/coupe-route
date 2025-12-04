@@ -5,15 +5,13 @@
 
 // --- 1. Configuration et Mappage des Catégories ---
 
-// ID unique fourni par SheetDB (Endpoint URL de base)
 const SHEETDB_API_ID = 'cn1mysle9dz6t'; 
 
-// Mappage des catégories vers leurs NOMS DE FEUILLES EXACTS dans Google Sheets.
-// sheetName doit correspondre EXACTEMENT au nom de l'onglet dans Google Sheets.
 const CATEGORY_MAP = {
-    'open': { name: 'OPEN', sheetName: 'Open' },
-    'access12': { name: 'Access 1/2', sheetName: 'Access 1/2' }, 
-    'access34': { name: 'Access 3/4', sheetName: 'Access 3/4' },
+    // Les sheetName pointent maintenant vers les feuilles de données brutes pour l'API
+    'open': { name: 'OPEN', sheetName: 'API Open' },
+    'access12': { name: 'Access 1/2', sheetName: 'API Access 1/2' }, 
+    'access34': { name: 'Access 3/4', sheetName: 'API Access 3/4' },
 };
 
 const DEFAULT_CATEGORY = 'open';
@@ -178,4 +176,5 @@ async function init() {
 }
 
 init();
+
 
