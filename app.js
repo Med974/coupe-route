@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v26 - Ajout du Total dans la Vue Détaillée)
+// FICHIER : app.js (v27 - Solution Stable et Finale)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -8,6 +8,7 @@ const SAISONS_CONFIG = {
     '2025': {
         name: 'Saison 2025',
         apiId: 'hiydnpj4xuxdz', 
+        rawSheetName: 'Résultats Bruts', // Nom de feuille source
         categories: {
             'open': { name: 'OPEN', sheetName: 'Open' },
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
@@ -21,6 +22,7 @@ const SAISONS_CONFIG = {
     '2026': {
         name: 'Saison 2026',
         apiId: 'guq5nvsip34b6', 
+        rawSheetName: 'Résultats Bruts', // Nom de feuille source
         categories: {
             'open': { name: 'OPEN', sheetName: 'Open' }, 
             'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
@@ -208,10 +210,6 @@ function renderTable(data) {
 
 // --- 4. Logique Détaillée du Coureur ---
 
-/**
- * Génère le tableau HTML des résultats détaillés (Date, Course, Position, Points).
- * Inclut le calcul et l'affichage du Total des Points.
- */
 function renderCoureurDetails(details) {
     const container = document.getElementById('classement-container');
     if (!container) return;
@@ -224,26 +222,23 @@ function renderCoureurDetails(details) {
     const coureurNom = details[0].Nom;
     const coureurDossard = details[0].Dossard;
 
-    // NOUVEAU : Calcul du total des points
+    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossard})</h3>`;
+    
+    // NOUVEAU : Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // La colonne 'Points' doit être traitée comme un nombre
         const points = parseFloat(course.Points);
         if (!isNaN(points)) {
             totalPoints += points;
         }
     });
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
-    // Affichage de l'en-tête avec le total
-    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossard})</h3>`;
-    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`; // Affichage du total
 
     html += '<table class="details-table">';
     
-    // En-têtes (Colonnes pertinentes de Résultats Bruts)
     html += '<thead><tr><th>Date</th><th>Course</th><th>Position</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
 
-    // Remplissage des lignes
     details.forEach(course => {
         // Les clés utilisées doivent correspondre aux en-têtes réels de la feuille "Résultats Bruts"
         html += `<tr>
@@ -264,14 +259,12 @@ function renderCoureurDetails(details) {
 }
 
 
-/**
- * Gère le clic sur le nom du coureur et récupère ses résultats détaillés.
- */
 async function showCoureurDetails(dossard, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     const sheetdbApiId = saisonConfig.apiId;
     
     // 1. URL de recherche : Cibler l'onglet "Résultats Bruts" et filtrer par Dossard
+    // Note : L'URL est construite pour rechercher la valeur TEXTUELLE du dossard.
     const searchUrl = `https://sheetdb.io/api/v1/${sheetdbApiId}/search?Dossard=${dossard}&sheet=Résultats Bruts`;
 
     const container = document.getElementById('classement-container');
@@ -283,12 +276,14 @@ async function showCoureurDetails(dossard, saisonKey) {
         const response = await fetch(searchUrl);
         
         if (!response.ok) {
-            throw new new Error(`Erreur HTTP: ${response.status}. Vérifiez que l'onglet 'Résultats Bruts' est accessible.`);
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez que l'onglet 'Résultats Bruts' est accessible.`);
         }
         
         const data = await response.json();
         
-        // 2. Afficher le résultat formaté
+        // La recherche par Dossard peut renvoyer plusieurs coureurs s'ils partagent le même numéro
+        // Il est possible que l'API renvoie des résultats partiels à cause du mélange Texte/Numéro.
+        
         renderCoureurDetails(data); 
 
     } catch (error) {
@@ -375,19 +370,19 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // Initialisation du filtre Master
+        // Initialisation des écouteurs
         const mastersContainer = document.getElementById('nav-masters');
         if (mastersContainer) {
             mastersContainer.addEventListener('click', handleMasterFilterChange);
         }
         
-        // Attacher l'écouteur de clic sur les liens des coureurs
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
             classementContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
+                    // Assurez-vous que le dossard est renvoyé comme TEXTE par l'API pour inclure 12F
                     const dossard = link.getAttribute('data-dossard');
                     const currentSaison = getSaisonFromURL(); 
                     
@@ -404,5 +399,5 @@ async function init() {
     }
 }
 
-// Lancement de l'application APRÈS le chargement complet du DOM pour éviter les erreurs.
+// Lancement de l'application après le chargement complet du DOM pour éviter les erreurs.
 document.addEventListener('DOMContentLoaded', init);
