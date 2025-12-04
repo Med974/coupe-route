@@ -31,16 +31,15 @@ h1 { /* Coupe de la Réunion Route */
     margin: 0 0 5px 0;
     font-size: 2.5em;
     letter-spacing: 1px;
-    /* La ligne text-transform: uppercase; a été retirée ici */
 }
 
-h2 { /* Classement Général / Nom de Catégorie Dynamique */
+h2 { /* Catégorie dynamique */
     margin: 0 0 15px 0;
     font-size: 1.5em;
     font-weight: 300;
 }
 
-p { /* Saison 2025 */
+p { /* Saison 2025/2026 */
     margin-top: 10px;
     font-size: 1.1em;
 }
@@ -54,9 +53,18 @@ main {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style de la Navigation --- */
+/* --- Style de la Navigation Saisons/Catégories --- */
+#nav-seasons {
+    /* Style spécifique pour les saisons (peut être différent des catégories) */
+    margin: 20px auto 10px;
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.2); /* Fond plus clair */
+    border-radius: 6px;
+    padding: 3px;
+}
+
 #nav-categories {
-    margin: 20px auto 0;
+    margin: 10px auto 0;
     display: inline-block;
     background-color: rgba(255, 255, 255, 0.1); 
     border-radius: 8px;
@@ -64,7 +72,7 @@ main {
     max-width: 90%;
 }
 
-#nav-categories a {
+#nav-seasons a, #nav-categories a {
     color: var(--color-light);
     text-decoration: none;
     padding: 8px 18px;
@@ -75,11 +83,11 @@ main {
     font-size: 0.95em;
 }
 
-#nav-categories a:hover {
+#nav-seasons a:hover, #nav-categories a:hover {
     background-color: var(--color-volcan);
 }
 
-#nav-categories a.active {
+#nav-seasons a.active, #nav-categories a.active {
     background-color: var(--color-light);
     color: var(--color-lagon); /* Texte lagon sur fond blanc */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
