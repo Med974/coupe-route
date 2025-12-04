@@ -1,5 +1,5 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne - FINAL RESPONSIVE)
+FICHIER : styles.css (Design Réunionnais Moderne - FINAL RESPONSIVE V2)
 ======================================================================= */
 
 /* Couleurs Clés */
@@ -53,7 +53,7 @@ main {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style des Conteneurs de Navigation (omis pour la concision) --- */
+/* --- Style des Conteneurs de Navigation (omises pour la concision) --- */
 
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
@@ -82,7 +82,7 @@ main {
 }
 
 
-/* --- Style des Boutons (Tuiles) (omis pour la concision) --- */
+/* --- Style des Boutons (Tuiles) (omises pour la concision) --- */
 
 #nav-seasons a, #nav-categories a, #nav-masters a {
     color: var(--color-light);
@@ -99,17 +99,19 @@ main {
     margin-bottom: 5px; 
 }
 
+/* Style au survol */
 #nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
     background-color: var(--color-volcan);
 }
 
+/* Style des boutons Actifs */
 #nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
     background-color: var(--color-light);
     color: var(--color-lagon); 
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Style du Tableau Général (omis pour la concision) --- */
+/* --- Style du Tableau Général (omises pour la concision) --- */
 
 .classement-table, .details-table { 
     width: 100%;
@@ -149,6 +151,7 @@ main {
     font-weight: 700;
 }
 
+/* Style spécifique à la vue détaillée et au lien (omises pour la concision) */
 .details-table h3 {
     color: var(--color-lagon);
     margin-top: 0;
@@ -185,6 +188,7 @@ a.coureur-link:hover {
 MEDIA QUERIES (Optimisation pour Mobile)
 ======================================================================= */
 
+/* Conteneur pour le défilement horizontal du tableau */
 .table-responsive {
     overflow-x: auto;
     width: 100%;
@@ -226,6 +230,7 @@ MEDIA QUERIES (Optimisation pour Mobile)
     
     /* ----------------------------------------------------
        RÈGLE DE MASQUAGE EN VUE PORTRAIT (max-width: 768px)
+       Ceci masque les colonnes non essentielles
     ---------------------------------------------------- */
     
     /* Colonne 1: Sous Catégorie */
@@ -274,10 +279,11 @@ MEDIA QUERIES (Optimisation pour Mobile)
 
 /* =======================================================================
 RÈGLE D'ANNULATION (Desktop / Paysage : min-width: 769px)
+=> Rétablit TOUTES les colonnes masquées.
 ======================================================================= */
 
 @media (min-width: 769px) {
-    /* Rétablit l'affichage de toutes les colonnes masquées */
+    /* Rétablit l'affichage de toutes les colonnes masquées en utilisant !important */
     
     /* Colonnes 1, 2, 3, 4, 6 de classement */
     .classement-table th:nth-child(1), .classement-table td:nth-child(1),
@@ -290,8 +296,7 @@ RÈGLE D'ANNULATION (Desktop / Paysage : min-width: 769px)
     
     /* Colonnes du tableau de DÉTAILS */
     .details-table th:nth-child(1), .details-table td:nth-child(1), 
-    .details-table th:nth-child(3), .details-table td:nth-child(3),
-    .details-table th:nth-child(4), .details-table td:nth-child(4) {
+    .details-table th:nth-child(3), .details-table td:nth-child(3) {
         display: table-cell !important;
     }
 }
