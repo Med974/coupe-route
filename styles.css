@@ -1,5 +1,5 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne - FINAL)
+FICHIER : styles.css (Design Réunionnais Moderne - FINAL RESPONSIVE)
 ======================================================================= */
 
 /* Couleurs Clés */
@@ -63,6 +63,7 @@ main {
     text-align: center; 
 }
 
+/* Ligne de séparation sous les Saisons */
 #nav-seasons {
     margin-top: 20px;
     margin-bottom: 10px;
@@ -99,17 +100,19 @@ main {
     margin-bottom: 5px; 
 }
 
+/* Style au survol */
 #nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
     background-color: var(--color-volcan);
 }
 
+/* Style des boutons Actifs */
 #nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
     background-color: var(--color-light);
     color: var(--color-lagon); 
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Style du Tableau Général ET DÉTAILS --- */
+/* --- Style du Tableau --- */
 
 .classement-table, .details-table { 
     width: 100%;
@@ -150,13 +153,12 @@ main {
     font-weight: 700;
 }
 
-/* Style spécifique à la vue détaillée */
+/* Style spécifique à la vue détaillée et au lien */
 .details-table h3 {
     color: var(--color-lagon);
     margin-top: 0;
 }
 
-/* Style du bouton Retour */
 button {
     background-color: var(--color-volcan);
     color: var(--color-light);
@@ -173,17 +175,20 @@ button:hover {
     background-color: #a83d00;
 }
 
-/* --- Style du lien cliquable du coureur (Corrigé) --- */
 a.coureur-link {
-    color: var(--color-text); /* Couleur du texte par défaut */
-    text-decoration: none; /* Retrait du soulignement 'année 90' */
+    color: var(--color-text); 
+    text-decoration: none; 
     font-weight: 500;
     transition: color 0.3s;
 }
 
 a.coureur-link:hover {
-    color: var(--color-volcan); /* Couleur rouge/orange au survol */
+    color: var(--color-volcan); 
 }
+
+/* =======================================================================
+MEDIA QUERIES (Optimisation pour Mobile)
+======================================================================= */
 
 /* Conteneur pour le défilement horizontal du tableau */
 .table-responsive {
@@ -194,7 +199,7 @@ a.coureur-link:hover {
 
 @media (max-width: 768px) {
     
-    /* --- Ajustements Généraux Mobile --- */
+    /* --- Ajustements Généraux --- */
     
     header {
         padding: 20px 10px;
@@ -210,7 +215,7 @@ a.coureur-link:hover {
         border-radius: 0;
     }
 
-    /* --- Navigation et Boutons Mobile --- */
+    /* --- Navigation et Boutons (Empilement) --- */
 
     #nav-seasons, #nav-categories, #nav-masters {
         text-align: center;
@@ -220,7 +225,7 @@ a.coureur-link:hover {
     /* Les boutons s'étendent pour prendre la moitié de la largeur (deux par ligne) */
     #nav-seasons a, #nav-categories a, #nav-masters a {
         display: inline-block; 
-        width: calc(50% - 15px); 
+        width: calc(50% - 15px); /* Deux boutons par ligne, ajusté pour la marge */
         margin: 5px 5px; 
         padding: 8px 5px;
         font-size: 0.85em;
@@ -230,6 +235,7 @@ a.coureur-link:hover {
     
     .classement-table, .details-table {
         margin-top: 15px; 
+        /* Largeur minimale pour garantir la lisibilité des colonnes sur mobile */
         min-width: 700px; 
     }
 }
