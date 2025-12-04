@@ -1,6 +1,6 @@
 // =======================================================================
 // FICHIER : app.js
-// GESTION DYNAMIQUE DES CLASSEMENTS COUPE DE LA RÉUNION ROUTE (v4 - Final)
+// GESTION DYNAMIQUE DES CLASSEMENTS COUPE DE LA RÉUNION ROUTE (v5 - Final)
 // =======================================================================
 
 // --- 1. Configuration et Mappage des Catégories ---
@@ -21,10 +21,6 @@ const navContainer = document.getElementById('nav-categories');
 
 // --- 2. Fonctions Utilitaires ---
 
-/**
- * Extrait le paramètre 'cat' de l'URL pour déterminer la catégorie à afficher.
- * @returns {string} La clé de la catégorie demandée.
- */
 function getCategoryFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('cat') || DEFAULT_CATEGORY;
@@ -32,8 +28,6 @@ function getCategoryFromURL() {
 
 /**
  * Construit l'URL complète pour la récupération des données JSON via SheetDB.
- * @param {string} categoryKey - La clé de la catégorie (ex: 'open').
- * @returns {string | null} L'URL JSON de SheetDB.
  */
 function buildJsonUrl(categoryKey) {
     const categoryInfo = CATEGORY_MAP[categoryKey];
@@ -69,8 +63,6 @@ function createNavBar() {
 
 /**
  * Récupère les données JSON via l'API SheetDB.
- * @param {string} url - L'URL JSON de la feuille de classement.
- * @returns {Promise<Array<Object>>} - Tableau de coureurs.
  */
 async function fetchClassementData(url) {
     try {
@@ -83,7 +75,6 @@ async function fetchClassementData(url) {
             throw new Error(`Erreur HTTP: ${response.status}. Vérifiez les noms de feuilles dans SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
         }
         
-        // Les données sont au format JSON !
         const data = await response.json(); 
         
         if (data && data.error) {
@@ -101,7 +92,6 @@ async function fetchClassementData(url) {
 
 /**
  * Génère le tableau HTML de classement.
- * @param {Array<Object>} data - Le tableau de coureurs filtré.
  */
 function renderTable(data) {
     if (data.length === 0 || typeof data[0] !== 'object') {
@@ -148,16 +138,14 @@ async function init() {
 
     const categoryName = CATEGORY_MAP[currentCategoryKey] ? CATEGORY_MAP[currentCategoryKey].name : currentCategoryKey.toUpperCase();
     
-    // CORRECTION DE L'ANNÉE : 2026 -> 2025
+    // Année 2025
     document.title = `Classement ${categoryName} - Route 2025`; 
 
     createNavBar();
     
-    // Mise à jour du <h1> et du <h2> (Titre général et titre de catégorie)
-    const h1 = document.querySelector('h1');
-    if (h1) h1.textContent = "Coupe de la Réunion Route"; // Respect de la casse
-    
-    const categoryTitleElement = document.querySelector('h2');
+    // Le h1 est géré par le HTML (Coupe de la Réunion Route)
+    // Le h2 (ID category-title) affiche la catégorie dynamique
+    const categoryTitleElement = document.getElementById('category-title');
     if (categoryTitleElement) {
         categoryTitleElement.textContent = `Classement ${categoryName}`;
     }
