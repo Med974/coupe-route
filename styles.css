@@ -1,5 +1,5 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne - Structure et Masters)
+FICHIER : styles.css (Design Réunionnais Moderne - Correction du bouton ACTIF)
 ======================================================================= */
 
 /* Couleurs Clés */
@@ -20,26 +20,26 @@ body {
 }
 
 header {
-    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%); /* Dégradé Profond */
+    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%); 
     color: var(--color-light);
     padding: 30px 20px;
     text-align: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-h1 { /* Coupe de la Réunion Route */
+h1 { 
     margin: 0 0 5px 0;
     font-size: 2.5em;
     letter-spacing: 1px;
 }
 
-h2 { /* Catégorie dynamique (vide) */
+h2 { 
     margin: 0 0 15px 0;
     font-size: 1.5em;
     font-weight: 300;
 }
 
-p { /* Saison 2025/2026 */
+p { 
     margin-top: 10px;
     font-size: 1.1em;
 }
@@ -61,7 +61,7 @@ main {
     display: block; 
     background-color: transparent; 
     padding: 0;
-    text-align: center; /* Pour centrer les tuiles à l'intérieur */
+    text-align: center; 
 }
 
 /* Ligne de séparation sous les Saisons */
@@ -72,7 +72,6 @@ main {
     padding-bottom: 10px;
 }
 
-/* Espacement entre Catégories et Masters */
 #nav-categories {
     margin-bottom: 10px;
 }
@@ -95,12 +94,58 @@ main {
     font-size: 0.95em;
     background-color: rgba(255, 255, 255, 0.1); 
     
-    /* ESPACEMENT entre les boutons */
     margin-right: 10px; 
-    margin-bottom: 5px; /* Petite marge si les boutons passent à la ligne */
+    margin-bottom: 5px; 
 }
 
 /* Style au survol */
 #nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
     background-color: var(--color-volcan);
+}
+
+/* Style des boutons Actifs */
+#nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
+    background-color: var(--color-light); /* FOND : BLANC */
+    color: var(--color-lagon); /* TEXTE : BLEU LAGON */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Style du Tableau (inchangé) --- */
+
+.classement-table {
+    width: 100%;
+    border-collapse: separate; 
+    border-spacing: 0;
+    margin-top: 25px;
+}
+
+.classement-table th, .classement-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.classement-table th {
+    background-color: var(--color-lagon);
+    color: var(--color-light);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    position: sticky; 
+    top: 0;
+    z-index: 10;
+}
+
+.classement-table tr:nth-child(even) {
+    background-color: #fcfcfc;
+}
+
+.classement-table tr:hover {
+    background-color: #f0f8ff; 
+}
+
+.classement-table tr td:first-child strong {
+    color: var(--color-volcan); 
+    font-size: 1.2em;
+    font-weight: 700;
 }
