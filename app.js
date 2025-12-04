@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v25 - Vue Détaillée Formatée)
+// FICHIER : app.js (v26 - Ajout du Total dans la Vue Détaillée)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -187,12 +187,13 @@ function renderTable(data) {
 
             // Rendre le Nom cliquable (cette logique est correcte)
             let displayContent = content; 
+            
             if (header === 'Nom') {
                 displayContent = `<a href="#" class="coureur-link" data-dossard="${coureur.Dossard}">${content}</a>`;
             } else if (header === 'Classement') {
                 displayContent = `<strong>${content}</strong>`;
             }
-            
+
             html += `<td>${displayContent}</td>`;
         });
         html += '</tr>';
@@ -209,7 +210,7 @@ function renderTable(data) {
 
 /**
  * Génère le tableau HTML des résultats détaillés (Date, Course, Position, Points).
- * CORRECTION APPLIQUÉE ICI pour l'affichage lisible.
+ * Inclut le calcul et l'affichage du Total des Points.
  */
 function renderCoureurDetails(details) {
     const container = document.getElementById('classement-container');
@@ -220,14 +221,26 @@ function renderCoureurDetails(details) {
         return;
     }
     
-    // Le nom complet et le dossard sont dans la première entrée
     const coureurNom = details[0].Nom;
     const coureurDossard = details[0].Dossard;
 
+    // NOUVEAU : Calcul du total des points
+    let totalPoints = 0;
+    details.forEach(course => {
+        // La colonne 'Points' doit être traitée comme un nombre
+        const points = parseFloat(course.Points);
+        if (!isNaN(points)) {
+            totalPoints += points;
+        }
+    });
+
+    // Affichage de l'en-tête avec le total
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossard})</h3>`;
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`; // Affichage du total
+
     html += '<table class="details-table">';
     
-    // En-têtes formatées
+    // En-têtes (Colonnes pertinentes de Résultats Bruts)
     html += '<thead><tr><th>Date</th><th>Course</th><th>Position</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
 
     // Remplissage des lignes
@@ -270,7 +283,7 @@ async function showCoureurDetails(dossard, saisonKey) {
         const response = await fetch(searchUrl);
         
         if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez que l'onglet 'Résultats Bruts' est accessible.`);
+            throw new new Error(`Erreur HTTP: ${response.status}. Vérifiez que l'onglet 'Résultats Bruts' est accessible.`);
         }
         
         const data = await response.json();
@@ -344,12 +357,11 @@ async function init() {
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     
-    const categoryTitleElement = document.getElementById('category-title');
+    const categoryTitleElement = document.querySelector('header h2');
     if (categoryTitleElement) {
         categoryTitleElement.textContent = ""; 
     }
 
-    // Mise à jour de la saison affichée dans la balise <p>
     const seasonParagraph = document.querySelector('header p');
     if (seasonParagraph) {
         seasonParagraph.textContent = `Saison ${currentSaison}`;
@@ -392,4 +404,5 @@ async function init() {
     }
 }
 
+// Lancement de l'application APRÈS le chargement complet du DOM pour éviter les erreurs.
 document.addEventListener('DOMContentLoaded', init);
