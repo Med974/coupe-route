@@ -44,8 +44,8 @@ function buildTsvUrl(categoryKey) {
     if (!categoryInfo || !SHEET_FILE_ID) {
         return null;
     }
-    // Format pour récupérer les données TSV d'un fichier publié sur le web
-    return `https://docs.google.com/spreadsheets/d/${SHEET_FILE_ID}/pub?output=tsv&gid=${categoryInfo.gid}`;
+    // Utilisation de l'API de requête GVIZ
+    return `https://docs.google.com/spreadsheets/d/${SHEET_FILE_ID}/gviz/tq?tqx=out:tsv&gid=${categoryInfo.gid}`;
 }
 
 /**
@@ -180,3 +180,4 @@ async function init() {
 }
 
 init();
+
