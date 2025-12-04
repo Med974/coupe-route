@@ -31,10 +31,10 @@ h1 { /* Coupe de la Réunion Route */
     margin: 0 0 5px 0;
     font-size: 2.5em;
     letter-spacing: 1px;
-    text-transform: uppercase;
+    /* La ligne text-transform: uppercase; a été retirée ici */
 }
 
-h2 { /* Classement Général */
+h2 { /* Classement Général / Nom de Catégorie Dynamique */
     margin: 0 0 15px 0;
     font-size: 1.5em;
     font-weight: 300;
@@ -54,7 +54,7 @@ main {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style de la Navigation (Inspiration Vague) --- */
+/* --- Style de la Navigation --- */
 #nav-categories {
     margin: 20px auto 0;
     display: inline-block;
@@ -88,7 +88,7 @@ main {
 /* --- Style du Tableau --- */
 .classement-table {
     width: 100%;
-    border-collapse: separate; /* Pour des coins arrondis */
+    border-collapse: separate; 
     border-spacing: 0;
     margin-top: 25px;
 }
@@ -105,7 +105,7 @@ main {
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.85em;
-    position: sticky; /* Pour garder l'en-tête visible lors du scroll */
+    position: sticky; 
     top: 0;
     z-index: 10;
 }
@@ -115,12 +115,12 @@ main {
 }
 
 .classement-table tr:hover {
-    background-color: #f0f8ff; /* Très légère touche de bleu au survol */
+    background-color: #f0f8ff; 
 }
 
 /* Mise en évidence du classement (1ère place Volcan) */
 .classement-table tr td:first-child strong {
-    color: var(--color-volcan); /* Rouge-orange pour la 1ère place */
+    color: var(--color-volcan); 
     font-size: 1.2em;
     font-weight: 700;
 }
