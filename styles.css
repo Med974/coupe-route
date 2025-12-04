@@ -1,5 +1,5 @@
 /* =======================================================================
-FICHIER : styles.css (FINAL - Affichage Simplifié Universel)
+FICHIER : styles.css (Design Réunionnais Moderne - FINAL STABILISÉ)
 ======================================================================= */
 
 /* Couleurs Clés */
@@ -53,7 +53,7 @@ main {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style des Conteneurs de Navigation --- */
+/* --- Style des Conteneurs de Navigation (omises pour la concision) --- */
 
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
@@ -82,7 +82,7 @@ main {
 }
 
 
-/* --- Style des Boutons (Tuiles) --- */
+/* --- Style des Boutons (Tuiles) (omises pour la concision) --- */
 
 #nav-seasons a, #nav-categories a, #nav-masters a {
     color: var(--color-light);
@@ -111,71 +111,50 @@ main {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Style du Tableau : Simplification et Taille de Police --- */
+/* -------------------------------------------------------------------
+   STYLE DU TABLEAU : Alignement pour Desktop (Par défaut)
+   ------------------------------------------------------------------- */
 
 .classement-table, .details-table { 
     width: 100%;
     border-collapse: separate; 
     border-spacing: 0;
     margin-top: 25px;
-    min-width: 320px; /* Largeur minimale pour le portable */
+    min-width: 900px; /* Largeur minimale pour les colonnes Desktop */
 }
 
-/* En-têtes du tableau */
+.classement-table th, .classement-table td, .details-table th, .details-table td {
+    padding: 12px 15px;
+    text-align: left; /* Alignement par défaut à gauche pour texte */
+    border-bottom: 1px solid #eee;
+    font-size: 0.9em;
+}
+
 .classement-table th, .details-table th {
     background-color: var(--color-lagon);
     color: var(--color-light);
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.8em; /* Réduction de la taille de police */
-    padding: 10px 8px; /* Réduction du padding */
-    text-align: left;
-    border-bottom: 1px solid #eee;
+    font-size: 0.85em;
+    position: sticky; 
+    top: 0;
+    z-index: 10;
 }
 
-/* Cellules de données */
-.classement-table td, .details-table td {
-    padding: 8px 8px; /* Réduction du padding */
-    text-align: left;
-    border-bottom: 1px solid #eee;
-    font-size: 0.85em; /* Réduction de la taille de police */
-}
+/* ALIGNEMENT NUMÉRIQUE pour Desktop (Centré sur les colonnes de valeur) */
+/* Col 3: Nb Courses */
+.classement-table th:nth-child(3), .classement-table td:nth-child(3) { text-align: center; }
 
+/* Col 7: Points Total */
+.classement-table th:nth-child(7), .classement-table td:nth-child(7) { text-align: right; }
 
-/* -----------------------------------------------------------------------
-   MASQUAGE DES COLONNES NON REQUISES (Afficher: Nom, Club, Points Total, Classement)
-   
-   La QUERY renvoie les colonnes dans cet ordre: 
-   1: Sous Catégorie | 2: Master | 3: Nb Courses | 4: Dossard | 5: Nom | 6: Club | 7: Pts Total | 8: Classement
-   ----------------------------------------------------------------------- */
+/* Col 8: Classement */
+.classement-table th:nth-child(8), .classement-table td:nth-child(8) { text-align: right; }
 
-/* Colonne 1: Sous Catégorie */
-.classement-table th:nth-child(1), .classement-table td:nth-child(1) { display: none; }
+/* ALIGNEMENT TABLEAU DE DÉTAILS */
+.details-table th:nth-child(5), .details-table td:nth-child(5) { text-align: right; } /* Points */
 
-/* Colonne 2: Catégorie Master */
-.classement-table th:nth-child(2), .classement-table td:nth-child(2) { display: none; }
-
-/* Colonne 3: Nb Courses */
-.classement-table th:nth-child(3), .classement-table td:nth-child(3) { display: none; }
-
-/* Colonne 4: Dossard */
-.classement-table th:nth-child(4), .classement-table td:nth-child(4) { display: none; }
-
-/* Colonne 5: Nom (Conservée) */
-
-/* Colonnes 7 et 8: Points Total et Classement (Conservées) */
-
-
-/* Masquage des colonnes du tableau de DÉTAILS pour le rendre plus compact (Date, Position, Catégorie) */
-.details-table th:nth-child(1), .details-table td:nth-child(1), /* Date */
-.details-table th:nth-child(3), .details-table td:nth-child(3), /* Position */
-.details-table th:nth-child(4), .details-table td:nth-child(4) { /* Catégorie */
-    display: none;
-}
-/* Le tableau de Détails affichera: Course, Points */
-
-
-/* --- Reste du Style (Inchagé) --- */
+/* --- Reste du Style (omises pour la concision) --- */
 
 .classement-table tr:nth-child(even), .details-table tr:nth-child(even) {
     background-color: #fcfcfc;
@@ -187,7 +166,7 @@ main {
 
 .classement-table tr td:first-child strong {
     color: var(--color-volcan); 
-    font-size: 1.1em; /* Ajustement de la taille du Classement pour la nouvelle police */
+    font-size: 1.2em;
     font-weight: 700;
 }
 
@@ -202,7 +181,7 @@ button {
     color: var(--color-light);
     border: none;
     padding: 10px 20px;
-    font-size: 0.9em; /* Réduction de la taille de police */
+    font-size: 0.9em;
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.3s;
@@ -224,11 +203,84 @@ a.coureur-link:hover {
     color: var(--color-volcan); 
 }
 
-/* Le conteneur responsive est conservé pour le cas où le Club déborde légèrement */
+
+/* =======================================================================
+MEDIA QUERIES (Optimisation pour Mobile)
+======================================================================= */
+
+/* Conteneur pour le défilement horizontal du tableau */
 .table-responsive {
     overflow-x: auto;
     width: 100%;
     -webkit-overflow-scrolling: touch;
 }
 
-/* Les Media Queries sont retirées pour garantir un affichage unique et fiable sur TOUS les écrans */
+@media (max-width: 768px) {
+    
+    /* --- Ajustements Généraux Mobile --- */
+    
+    header {
+        padding: 20px 10px;
+    }
+    
+    h1 {
+        font-size: 1.8em;
+    }
+
+    main {
+        padding: 10px;
+        margin: 10px auto;
+        border-radius: 0;
+    }
+    
+    /* --- Navigation et Boutons Mobile (omises pour la concision) --- */
+
+    #nav-seasons, #nav-categories, #nav-masters {
+        text-align: center;
+        padding: 0 5px; 
+    }
+
+    #nav-seasons a, #nav-categories a, #nav-masters a {
+        display: inline-block; 
+        width: calc(50% - 15px); 
+        margin: 5px 5px; 
+        padding: 8px 5px;
+        font-size: 0.85em;
+    }
+    
+    /* ----------------------------------------------------
+       RÈGLE DE MASQUAGE EN VUE PORTRAIT (max-width: 768px)
+       Affiche: Nom (5), Club (6), Pts Total (7), Classement (8)
+    ---------------------------------------------------- */
+    
+    /* Colonne 1: Sous Catégorie */
+    .classement-table th:nth-child(1), .classement-table td:nth-child(1) { display: none; }
+    
+    /* Colonne 2: Catégorie Master */
+    .classement-table th:nth-child(2), .classement-table td:nth-child(2) { display: none; }
+
+    /* Colonne 3: Nb Courses */
+    .classement-table th:nth-child(3), .classement-table td:nth-child(3) { display: none; }
+
+    /* Colonne 4: Dossard */
+    .classement-table th:nth-child(4), .classement-table td:nth-child(4) { display: none; }
+    
+    /* Masquage des colonnes du tableau de DÉTAILS pour le rendre plus compact */
+    .details-table th:nth-child(1), .details-table td:nth-child(1), /* Date */
+    .details-table th:nth-child(3), .details-table td:nth-child(3), /* Position */
+    .details-table th:nth-child(4), .details-table td:nth-child(4) { /* Catégorie */
+        display: none;
+    }
+    
+    /* RÈGLE CRITIQUE : Alignement pour la vue portrait */
+    .classement-table td:nth-child(5) { text-align: left; } /* Nom */
+    .classement-table td:nth-child(6) { text-align: left; } /* Club */
+    .classement-table td:nth-child(7) { text-align: right; } /* Pts Total */
+    .classement-table td:nth-child(8) { text-align: right; } /* Classement */
+    
+    /* Correction pour la taille minimale */
+    .classement-table, .details-table {
+        margin-top: 15px; 
+        min-width: 320px; /* Largeur pour les 4 colonnes essentielles */
+    }
+}
