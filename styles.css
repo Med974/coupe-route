@@ -1,69 +1,70 @@
 /* =======================================================================
-MEDIA QUERIES (Optimisation pour Mobile)
+FICHIER : styles.css (Design Réunionnais Moderne - FINAL RESPONSIVE)
 ======================================================================= */
 
-@media (max-width: 768px) {
-    
-    /* --- Ajustements Généraux --- */
-    
-    header {
-        padding: 20px 10px;
-    }
-    
-    h1 {
-        font-size: 1.8em;
-    }
-
-    /* Le conteneur principal devient moins large */
-    main {
-        padding: 10px;
-        margin: 10px auto;
-        border-radius: 0;
-    }
-
-    /* --- Navigation et Boutons (Empilement) --- */
-
-    /* Les conteneurs de navigation prennent toute la largeur, centrent les boutons, et les empilent */
-    #nav-seasons, #nav-categories, #nav-masters {
-        display: block; /* S'assure que chaque NAV est sur sa propre ligne */
-        text-align: center;
-        padding-bottom: 5px;
-    }
-
-    /* Les boutons à l'intérieur des NAV s'étendent un peu plus et utilisent une police plus petite */
-    #nav-seasons a, #nav-categories a, #nav-masters a {
-        display: block; /* Chaque bouton prend sa propre ligne */
-        width: calc(50% - 15px); /* Deux boutons par ligne, ajusté pour la marge */
-        float: left; /* Aligner à gauche pour que le "display: block" ne casse pas l'alignement */
-        margin: 5px 5px; /* Marge réduite */
-        padding: 8px 5px;
-        font-size: 0.85em;
-    }
-    
-    /* Si vous voulez une seule colonne (plus lisible), utilisez ceci à la place du float:left: */
-    /*
-    #nav-seasons a, #nav-categories a, #nav-masters a {
-        display: block; 
-        width: 90%; 
-        margin: 5px auto; 
-        font-size: 0.9em;
-    }
-    */
-    
-    /* --- Tableau de Classement (Scrolling Horizontal) --- */
-    
-    /* Pour éviter que le tableau ne dépasse, on enveloppe la table dans un conteneur défilant */
-    /* C'est la méthode la plus simple pour les tableaux larges. */
-    .table-responsive {
-        overflow-x: auto;
-        width: 100%;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .classement-table, .details-table {
-        /* On retire la marge pour les petits écrans */
-        margin-top: 15px; 
-        /* On garantit une largeur minimale pour éviter l'illisibilité (adapté à vos 7 colonnes) */
-        min-width: 700px; 
-    }
+/* Couleurs Clés */
+:root {
+    --color-lagon: #00A7BB;      /* Bleu Lagon/Océan */
+    --color-volcan: #D94F00;     /* Rouge-Orange (pour l'emphase) */
+    --color-background: #F8F8F8; /* Fond Tropical très clair */
+    --color-text: #2c3e50;
+    --color-light: #ffffff;
 }
+
+body {
+    font-family: 'Roboto', 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-background);
+    color: var(--color-text);
+}
+
+header {
+    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%); /* Dégradé Profond */
+    color: var(--color-light);
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+h1 { /* Coupe de la Réunion Route */
+    margin: 0 0 5px 0;
+    font-size: 2.5em;
+    letter-spacing: 1px;
+}
+
+h2 { /* Catégorie dynamique */
+    margin: 0 0 15px 0;
+    font-size: 1.5em;
+    font-weight: 300;
+}
+
+p { /* Saison 2025/2026 */
+    margin-top: 10px;
+    font-size: 1.1em;
+}
+
+main {
+    padding: 20px;
+    max-width: 1300px;
+    margin: 30px auto;
+    background-color: var(--color-light);
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Style des Conteneurs de Navigation --- */
+
+/* Les conteneurs NAV prennent toute la largeur pour se superposer */
+#nav-seasons, #nav-categories, #nav-masters {
+    margin: 10px auto; 
+    display: block; 
+    background-color: transparent; 
+    padding: 0;
+    text-align: center; 
+}
+
+/* Ligne de séparation sous les Saisons */
+#nav-seasons {
+    margin-top: 20px;
+    margin-bottom:
