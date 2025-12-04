@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v27 - Stabilité et Dossards avec Lettres)
+// FICHIER : app.js (v28 - Final avec Dossard Conversi et Vue Détaillée)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -60,6 +60,31 @@ function getCategoryFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('cat') || DEFAULT_CATEGORY;
 }
+
+/**
+ * Convertit l'ID de dossard de recherche (ex: '52000') en ID d'affichage (ex: '52').
+ * Gère les suffixes numériques définis pour chaque catégorie pour l'affichage public.
+ */
+function getDisplayDossard(dossardRecherche) {
+    if (!dossardRecherche) return dossardRecherche;
+    
+    // Convertir en chaîne pour les opérations de suffixe
+    const dossardStr = String(dossardRecherche); 
+
+    // Règles de conversion des suffixes (du plus long au plus court pour éviter les conflits)
+    const suffixes = ['1517', '000', '170', '150'];
+    
+    for (const suffix of suffixes) {
+        if (dossardStr.endsWith(suffix)) {
+            // Retire le suffixe spécifique
+            return dossardStr.slice(0, -suffix.length);
+        }
+    }
+    
+    // Retourne le dossard original si aucune règle ne s'applique (Open/Access simples)
+    return dossardRecherche; 
+}
+
 
 /**
  * Construit l'URL complète pour la récupération des données JSON via SheetDB.
@@ -185,15 +210,21 @@ function renderTable(data) {
                 content = parseFloat(content) || content; 
             }
 
-            // Rendre le Nom cliquable (cette logique est correcte)
+            // CORRECTION D'AFFICHAGE DU DOSSARD (Conversion du 52000 en 52)
             let displayContent = content; 
             
-            if (header === 'Nom') {
-                displayContent = `<a href="#" class="coureur-link" data-dossard="${coureur.Dossard}">${content}</a>`;
+            if (header === 'Dossard') {
+                // Le lien utilise l'ID de recherche (Dossard)
+                displayContent = getDisplayDossard(content);
+            } else if (header === 'Nom') {
+                // Le Nom est la clé de recherche pour la vue détaillée (Texte pur)
+                displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Classement') {
                 displayContent = `<strong>${content}</strong>`;
+            } else {
+                 displayContent = content;
             }
-
+            
             html += `<td>${displayContent}</td>`;
         });
         html += '</tr>';
@@ -218,10 +249,9 @@ function renderCoureurDetails(details) {
     }
     
     const coureurNom = details[0].Nom;
-    const coureurDossard = details[0].Dossard;
+    const coureurDossardRecherche = details[0].Dossard; 
+    const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); // Affiche 52 au lieu de 52000
 
-    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossard})</h3>`;
-    
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
@@ -230,6 +260,7 @@ function renderCoureurDetails(details) {
             totalPoints += points;
         }
     });
+    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
 
@@ -256,17 +287,17 @@ function renderCoureurDetails(details) {
 }
 
 
-async function showCoureurDetails(dossard, saisonKey) {
+async function showCoureurDetails(nom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     const sheetdbApiId = saisonConfig.apiId;
     
-    // 1. URL de recherche : Cibler l'onglet "Résultats Bruts" et filtrer par Dossard
-    // Note : L'URL est construite pour rechercher la valeur TEXTUELLE du dossard.
-    const searchUrl = `https://sheetdb.io/api/v1/${sheetdbApiId}/search?Dossard=${dossard}&sheet=Résultats Bruts`;
+    // NOUVEAU : Recherche par Nom (Texte) pour résoudre le problème du format 12F
+    const encodedNom = encodeURIComponent(nom);
+    const searchUrl = `https://sheetdb.io/api/v1/${sheetdbApiId}/search?Nom=${encodedNom}&sheet=Résultats Bruts`;
 
     const container = document.getElementById('classement-container');
     if (container) {
-        container.innerHTML = `<p>Chargement des résultats pour le dossard ${dossard}...</p>`;
+        container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
     }
     
     try {
@@ -278,7 +309,6 @@ async function showCoureurDetails(dossard, saisonKey) {
         
         const data = await response.json();
         
-        // C'est ici que l'API renvoie potentiellement un tableau vide à cause du format 12F
         renderCoureurDetails(data); 
 
     } catch (error) {
@@ -377,10 +407,11 @@ async function init() {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
-                    const dossard = link.getAttribute('data-dossard');
+                    // ATTENTION : La recherche se fait par NOM (Texte)
+                    const nom = link.getAttribute('data-nom'); 
                     const currentSaison = getSaisonFromURL(); 
                     
-                    showCoureurDetails(dossard, currentSaison);
+                    showCoureurDetails(nom, currentSaison);
                 }
             });
         }
