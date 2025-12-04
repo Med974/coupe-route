@@ -12,9 +12,9 @@ const SHEET_FILE_ID = '1hRFXjctBI6csXthOYXooDhhXplX03OeQmTOgr7r06hI';
 // Mappage des catégories vers leurs GID (Identifiant de la feuille)
 // Assurez-vous d'avoir publié chaque feuille de classement sur le web (TSV)
 const CATEGORY_MAP = {
-    'open': { name: 'OPEN', gid: '59291840' },   // GID de la feuille Classement Open
-    'access': { name: 'Access 1/2', gid: '372122761' }, // GID de la feuille Classement Access
-    'autres': { name: 'Access 3/4', gid: '1167957081' }, // GID de la feuille Classement Autres
+    'Open': { name: 'OPEN', gid: '59291840' },   // GID de la feuille Classement Open
+    'Access 1/2': { name: 'Access 1/2', gid: '372122761' }, // GID de la feuille Classement Access
+    'Access 3/4': { name: 'Access 3/4', gid: '1167957081' }, // GID de la feuille Classement Autres
     // Ajoutez ici des catégories spécifiques si vous avez créé des feuilles dédiées (ex: M1)
     // 'open_m1': { name: 'OPEN M1', gid: '334567890' }, 
 };
