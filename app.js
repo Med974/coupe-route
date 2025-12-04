@@ -9,13 +9,11 @@
 const SHEETDB_API_ID = 'cn1mysle9dz6t'; 
 
 // Mappage des catégories vers leurs NOMS DE FEUILLES EXACTS dans Google Sheets.
+// CLÉS : utilisées dans l'URL (?cat=...) | sheetName : utilisé dans l'API SheetDB
 const CATEGORY_MAP = {
-    // Les clés des URLs (ex: ?cat=open)
-    'open': { name: 'OPEN', sheetName: 'Classement Open' },
-    'access12': { name: 'Access 1/2', sheetName: 'Classement Access 1/2' }, 
-    'access34': { name: 'Access 3/4', sheetName: 'Classement Access 3/4' },
-    // J'ai modifié les clés des URLs ('Access 1/2' et 'Access 3/4') en 'access12' et 'access34' 
-    // pour éviter les espaces et slashes dans les paramètres d'URL, ce qui est une bonne pratique.
+    'open': { name: 'OPEN', sheetName: 'Open' },
+    'access12': { name: 'Access 1/2', sheetName: 'Access 1/2' }, 
+    'access34': { name: 'Access 3/4', sheetName: 'Access 3/4' },
 };
 
 const DEFAULT_CATEGORY = 'open';
@@ -35,7 +33,6 @@ function getCategoryFromURL() {
 
 /**
  * Construit l'URL complète pour la récupération des données JSON via SheetDB.
- * Remplace l'ancienne fonction buildTsvUrl.
  * @param {string} categoryKey - La clé de la catégorie (ex: 'open').
  * @returns {string | null} L'URL JSON de SheetDB.
  */
@@ -45,7 +42,8 @@ function buildJsonUrl(categoryKey) {
         return null;
     }
     // Format de l'API SheetDB pour accéder à une feuille spécifique
-    return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}/sheets/${categoryInfo.sheetName}`;
+    // Utilise encodeURIComponent pour gérer les espaces/caractères spéciaux dans le nom de la feuille
+    return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}/sheets/${encodeURIComponent(categoryInfo.sheetName)}`;
 }
 
 /**
@@ -58,7 +56,7 @@ function createNavBar() {
     Object.keys(CATEGORY_MAP).forEach(key => {
         const category = CATEGORY_MAP[key];
         const isActive = key === currentCategory ? 'active' : '';
-        // Utilisation de l'URL avec les nouvelles clés sans espace
+        // Les liens utilisent les clés sans espace (open, access12, access34)
         navHtml += `<a href="?cat=${key}" class="${isActive}">${category.name}</a>`;
     });
 
@@ -71,7 +69,6 @@ function createNavBar() {
 
 /**
  * Récupère les données JSON via l'API SheetDB.
- * Remplace l'ancienne fonction fetchClassementData (qui traitait le TSV).
  * @param {string} url - L'URL JSON de la feuille de classement.
  * @returns {Promise<Array<Object>>} - Tableau de coureurs.
  */
@@ -83,11 +80,10 @@ async function fetchClassementData(url) {
         
         if (!response.ok) {
             const errorBody = await response.text();
-            // Si le statut est 404, c'est probablement le nom de la feuille qui est incorrect
             throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le nom de l'onglet dans SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
         }
         
-        // Les données sont au format JSON !
+        // Les données sont au format JSON ! C'est la ligne qui remplace la lecture TSV
         const data = await response.json(); 
         
         // La structure des données est déjà bonne (tableau d'objets)
@@ -101,12 +97,13 @@ async function fetchClassementData(url) {
 }
 
 /**
- * Génère le tableau HTML de classement. Cette fonction ne change pas, car elle lit les objets.
+ * Génère le tableau HTML de classement.
  * @param {Array<Object>} data - Le tableau de coureurs filtré.
  */
 function renderTable(data) {
-    if (data.length === 0) {
-        container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez le nom de l\'onglet dans SheetDB.</p>';
+    if (data.length === 0 || typeof data[0] !== 'object') {
+        // Ajout d'une vérification de la structure des données
+        container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez le nom de l\'onglet et les données.</p>';
         return;
     }
 
@@ -132,7 +129,8 @@ function renderTable(data) {
             // S'assurer que les valeurs numériques sont bien traitées
             let content = coureur[header];
             if (header === 'Classement' || header === 'Points Total') {
-                content = parseFloat(content) || 0; // Conversion en nombre pour la sécurité
+                // Conversion en nombre pour la sécurité, car SheetDB renvoie souvent des chaînes
+                content = parseFloat(content) || content; 
             }
 
             // Mise en forme spécifique pour le Classement
@@ -150,12 +148,11 @@ function renderTable(data) {
 
 async function init() {
     const currentCategoryKey = getCategoryFromURL();
-    // Utiliser la nouvelle fonction pour obtenir l'URL JSON
     const jsonUrl = buildJsonUrl(currentCategoryKey); 
 
     // Mettre à jour les titres de la page
     const categoryName = CATEGORY_MAP[currentCategoryKey] ? CATEGORY_MAP[currentCategoryKey].name : currentCategoryKey.toUpperCase();
-    document.title = `Classement ${categoryName} - Route 2026`; // Mettre à jour l'année
+    document.title = `Classement ${categoryName} - Route 2026`; 
 
     // Créer la barre de navigation
     createNavBar();
