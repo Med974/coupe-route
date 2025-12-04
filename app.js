@@ -9,8 +9,9 @@
 const SHEETDB_API_ID = 'cn1mysle9dz6t'; 
 
 // Mappage des catégories vers leurs NOMS DE FEUILLES EXACTS dans Google Sheets.
-// CLÉS : utilisées dans l'URL (?cat=...) | sheetName : utilisé dans l'API SheetDB
+// Les clés des URLs (open, access12, access34) sont optimisées pour les paramètres d'URL.
 const CATEGORY_MAP = {
+    // sheetName doit correspondre EXACTEMENT au nom de l'onglet dans Google Sheets.
     'open': { name: 'OPEN', sheetName: 'Open' },
     'access12': { name: 'Access 1/2', sheetName: 'Access 1/2' }, 
     'access34': { name: 'Access 3/4', sheetName: 'Access 3/4' },
@@ -33,6 +34,7 @@ function getCategoryFromURL() {
 
 /**
  * Construit l'URL complète pour la récupération des données JSON via SheetDB.
+ * Utilise encodeURIComponent pour sécuriser le nom de la feuille dans l'URL.
  * @param {string} categoryKey - La clé de la catégorie (ex: 'open').
  * @returns {string | null} L'URL JSON de SheetDB.
  */
@@ -41,9 +43,12 @@ function buildJsonUrl(categoryKey) {
     if (!categoryInfo || !SHEETDB_API_ID) {
         return null;
     }
+    
+    // NOUVEAU : Utilisation de encodeURIComponent() pour gérer les espaces et caractères spéciaux
+    const encodedSheetName = encodeURIComponent(categoryInfo.sheetName);
+    
     // Format de l'API SheetDB pour accéder à une feuille spécifique
-    // Utilise encodeURIComponent pour gérer les espaces/caractères spéciaux dans le nom de la feuille
-    return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}/sheets/${encodeURIComponent(categoryInfo.sheetName)}`;
+    return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}/sheets/${encodedSheetName}`;
 }
 
 /**
@@ -83,7 +88,7 @@ async function fetchClassementData(url) {
             throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le nom de l'onglet dans SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
         }
         
-        // Les données sont au format JSON ! C'est la ligne qui remplace la lecture TSV
+        // Les données sont au format JSON !
         const data = await response.json(); 
         
         // La structure des données est déjà bonne (tableau d'objets)
