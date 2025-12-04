@@ -1,5 +1,6 @@
 // =======================================================================
-// FICHIER : app.js (Correction Finale du Titre)
+// FICHIER : app.js
+// GESTION DYNAMIQUE DES CLASSEMENTS COUPE DE LA RÉUNION ROUTE (v7 - Titre retiré)
 // =======================================================================
 
 // --- 1. Configuration et Mappage des Catégories ---
@@ -25,17 +26,24 @@ function getCategoryFromURL() {
     return urlParams.get('cat') || DEFAULT_CATEGORY;
 }
 
+/**
+ * Construit l'URL complète pour la récupération des données JSON via SheetDB.
+ */
 function buildJsonUrl(categoryKey) {
     const categoryInfo = CATEGORY_MAP[categoryKey];
     if (!categoryInfo || !SHEETDB_API_ID) {
         return null;
     }
     
+    // Utilisation du format ?sheet=
     const sheetParam = encodeURIComponent(categoryInfo.sheetName);
     
     return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}?sheet=${sheetParam}`;
 }
 
+/**
+ * Crée les boutons de navigation en haut de page.
+ */
 function createNavBar() {
     const currentCategory = getCategoryFromURL();
     let navHtml = '';
@@ -53,6 +61,9 @@ function createNavBar() {
 
 // --- 3. Fonctions de Récupération et de Traitement des Données ---
 
+/**
+ * Récupère les données JSON via l'API SheetDB.
+ */
 async function fetchClassementData(url) {
     try {
         console.log("Tentative de récupération de l'URL JSON :", url);
@@ -79,6 +90,9 @@ async function fetchClassementData(url) {
     }
 }
 
+/**
+ * Génère le tableau HTML de classement.
+ */
 function renderTable(data) {
     if (data.length === 0 || typeof data[0] !== 'object') {
         container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez les données.</p>';
@@ -128,12 +142,15 @@ async function init() {
 
     createNavBar();
     
-    // On retire la modification du h1 (qui est maintenant fixe dans le HTML)
+    // Mise à jour du h1 (Titre général)
+    const h1 = document.querySelector('h1');
+    if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     
-    // Ciblage du h2 par son ID pour la catégorie dynamique
+    // CORRECTION APPLIQUÉE : On retire l'injection du texte de catégorie au h2 (ID category-title)
+    // On efface simplement le contenu du h2 au cas où il y aurait quelque chose
     const categoryTitleElement = document.getElementById('category-title');
     if (categoryTitleElement) {
-        categoryTitleElement.textContent = `Classement ${categoryName}`;
+        categoryTitleElement.textContent = ""; // Retrait de l'affichage du titre de catégorie
     }
 
     if (jsonUrl) {
