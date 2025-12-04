@@ -1,5 +1,5 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne - FINAL RESPONSIVE V3)
+FICHIER : styles.css (FINAL - Affichage Simplifié Universel)
 ======================================================================= */
 
 /* Couleurs Clés */
@@ -53,7 +53,7 @@ main {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style des Conteneurs de Navigation (omises pour la concision) --- */
+/* --- Style des Conteneurs de Navigation --- */
 
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
@@ -82,7 +82,7 @@ main {
 }
 
 
-/* --- Style des Boutons (Tuiles) (omises pour la concision) --- */
+/* --- Style des Boutons (Tuiles) --- */
 
 #nav-seasons a, #nav-categories a, #nav-masters a {
     color: var(--color-light);
@@ -111,31 +111,71 @@ main {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Style du Tableau Général (omises pour la concision) --- */
+/* --- Style du Tableau : Simplification et Taille de Police --- */
 
 .classement-table, .details-table { 
     width: 100%;
     border-collapse: separate; 
     border-spacing: 0;
     margin-top: 25px;
+    min-width: 320px; /* Largeur minimale pour le portable */
 }
 
-.classement-table th, .classement-table td, .details-table th, .details-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
+/* En-têtes du tableau */
 .classement-table th, .details-table th {
     background-color: var(--color-lagon);
     color: var(--color-light);
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.85em;
-    position: sticky; 
-    top: 0;
-    z-index: 10;
+    font-size: 0.8em; /* Réduction de la taille de police */
+    padding: 10px 8px; /* Réduction du padding */
+    text-align: left;
+    border-bottom: 1px solid #eee;
 }
+
+/* Cellules de données */
+.classement-table td, .details-table td {
+    padding: 8px 8px; /* Réduction du padding */
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-size: 0.85em; /* Réduction de la taille de police */
+}
+
+
+/* -----------------------------------------------------------------------
+   MASQUAGE DES COLONNES NON REQUISES (Afficher: Nom, Club, Points Total, Classement)
+   
+   La QUERY renvoie les colonnes dans cet ordre: 
+   1: Sous Catégorie | 2: Master | 3: Nb Courses | 4: Dossard | 5: Nom | 6: Club | 7: Pts Total | 8: Classement
+   ----------------------------------------------------------------------- */
+
+/* Colonne 1: Sous Catégorie */
+.classement-table th:nth-child(1), .classement-table td:nth-child(1) { display: none; }
+
+/* Colonne 2: Catégorie Master */
+.classement-table th:nth-child(2), .classement-table td:nth-child(2) { display: none; }
+
+/* Colonne 3: Nb Courses */
+.classement-table th:nth-child(3), .classement-table td:nth-child(3) { display: none; }
+
+/* Colonne 4: Dossard */
+.classement-table th:nth-child(4), .classement-table td:nth-child(4) { display: none; }
+
+/* Colonne 5: Nom (Conservée) */
+
+/* Colonnes 7 et 8: Points Total et Classement (Conservées) */
+
+
+/* Masquage des colonnes du tableau de DÉTAILS pour le rendre plus compact (Date, Position, Catégorie) */
+.details-table th:nth-child(1), .details-table td:nth-child(1), /* Date */
+.details-table th:nth-child(3), .details-table td:nth-child(3), /* Position */
+.details-table th:nth-child(4), .details-table td:nth-child(4) { /* Catégorie */
+    display: none;
+}
+/* Le tableau de Détails affichera: Course, Points */
+
+
+/* --- Reste du Style (Inchagé) --- */
 
 .classement-table tr:nth-child(even), .details-table tr:nth-child(even) {
     background-color: #fcfcfc;
@@ -147,11 +187,11 @@ main {
 
 .classement-table tr td:first-child strong {
     color: var(--color-volcan); 
-    font-size: 1.2em;
+    font-size: 1.1em; /* Ajustement de la taille du Classement pour la nouvelle police */
     font-weight: 700;
 }
 
-/* Style spécifique à la vue détaillée et au lien (omises pour la concision) */
+/* Style spécifique à la vue détaillée et au lien */
 .details-table h3 {
     color: var(--color-lagon);
     margin-top: 0;
@@ -162,7 +202,7 @@ button {
     color: var(--color-light);
     border: none;
     padding: 10px 20px;
-    font-size: 1em;
+    font-size: 0.9em; /* Réduction de la taille de police */
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.3s;
@@ -184,105 +224,11 @@ a.coureur-link:hover {
     color: var(--color-volcan); 
 }
 
-/* =======================================================================
-MEDIA QUERIES (Optimisation pour Mobile)
-======================================================================= */
-
-/* Conteneur pour le défilement horizontal du tableau */
+/* Le conteneur responsive est conservé pour le cas où le Club déborde légèrement */
 .table-responsive {
     overflow-x: auto;
     width: 100%;
     -webkit-overflow-scrolling: touch;
 }
 
-@media (max-width: 768px) {
-    
-    /* --- Ajustements Généraux (omises pour la concision) --- */
-    
-    header {
-        padding: 20px 10px;
-    }
-    
-    h1 {
-        font-size: 1.8em;
-    }
-
-    main {
-        padding: 10px;
-        margin: 10px auto;
-        border-radius: 0;
-    }
-
-    /* --- Navigation et Boutons Mobile (omises pour la concision) --- */
-
-    #nav-seasons, #nav-categories, #nav-masters {
-        text-align: center;
-        padding: 0 5px; 
-    }
-
-    #nav-seasons a, #nav-categories a, #nav-masters a {
-        display: inline-block; 
-        width: calc(50% - 15px); 
-        margin: 5px 5px; 
-        padding: 8px 5px;
-        font-size: 0.85em;
-    }
-    
-    /* ----------------------------------------------------
-       RÈGLE DE MASQUAGE EN VUE PORTRAIT (max-width: 768px)
-    ---------------------------------------------------- */
-    
-    /* Colonne 1: Sous Catégorie */
-    .classement-table th:nth-child(1), .classement-table td:nth-child(1) { display: none; }
-    
-    /* Colonne 2: Catégorie Master */
-    .classement-table th:nth-child(2), .classement-table td:nth-child(2) { display: none; }
-
-    /* Colonne 3: Nb Courses */
-    .classement-table th:nth-child(3), .classement-table td:nth-child(3) { display: none; }
-
-    /* Colonne 4: Dossard */
-    .classement-table th:nth-child(4), .classement-table td:nth-child(4) { display: none; }
-
-    /* Colonne 6: Club */
-    .classement-table th:nth-child(6), .classement-table td:nth-child(6) { display: none; }
-
-    /* Masquage des colonnes du tableau de DÉTAILS pour le rendre plus compact */
-    .details-table th:nth-child(1), .details-table td:nth-child(1), /* Date */
-    .details-table th:nth-child(3), .details-table td:nth-child(3), /* Position */
-    .details-table th:nth-child(4), .details-table td:nth-child(4) { /* Catégorie */
-        display: none;
-    }
-    
-    /* Correction pour la taille minimale */
-    .classement-table, .details-table {
-        margin-top: 15px; 
-        min-width: 300px; 
-    }
-}
-
-
-/* =======================================================================
-RÈGLE D'ANNULATION (Desktop / Paysage : min-width: 769px)
-=> Rétablit TOUTES les colonnes masquées.
-======================================================================= */
-
-@media (min-width: 769px) {
-    /* Rétablit l'affichage de toutes les colonnes masquées - Utilisation de !important pour forcer */
-    
-    /* Colonnes 1, 2, 3, 4, 6 de classement */
-    .classement-table th:nth-child(1), .classement-table td:nth-child(1),
-    .classement-table th:nth-child(2), .classement-table td:nth-child(2),
-    .classement-table th:nth-child(3), .classement-table td:nth-child(3),
-    .classement-table th:nth-child(4), .classement-table td:nth-child(4),
-    .classement-table th:nth-child(6), .classement-table td:nth-child(6) {
-        display: table-cell !important;
-    }
-    
-    /* Colonnes du tableau de DÉTAILS */
-    .details-table th:nth-child(1), .details-table td:nth-child(1), 
-    .details-table th:nth-child(3), .details-table td:nth-child(3),
-    .details-table th:nth-child(4), .details-table td:nth-child(4) {
-        display: table-cell !important;
-    }
-}
+/* Les Media Queries sont retirées pour garantir un affichage unique et fiable sur TOUS les écrans */
