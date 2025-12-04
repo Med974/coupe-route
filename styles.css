@@ -1,12 +1,12 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne - FINAL)
+FICHIER : styles.css (FINAL - Correction de la vue Détails)
 ======================================================================= */
 
 /* Couleurs Clés */
 :root {
-    --color-lagon: #00A7BB;      /* Bleu Lagon/Océan */
-    --color-volcan: #D94F00;     /* Rouge-Orange (pour l'emphase) */
-    --color-background: #F8F8F8; /* Fond Tropical très clair */
+    --color-lagon: #00A7BB;      
+    --color-volcan: #D94F00;     
+    --color-background: #F8F8F8; 
     --color-text: #2c3e50;
     --color-light: #ffffff;
 }
@@ -20,26 +20,26 @@ body {
 }
 
 header {
-    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%); /* Dégradé Profond */
+    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%);
     color: var(--color-light);
     padding: 30px 20px;
     text-align: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-h1 { /* Coupe de la Réunion Route */
+h1 { 
     margin: 0 0 5px 0;
     font-size: 2.5em;
     letter-spacing: 1px;
 }
 
-h2 { /* Catégorie dynamique */
+h2 { 
     margin: 0 0 15px 0;
     font-size: 1.5em;
     font-weight: 300;
 }
 
-p { /* Saison 2025/2026 */
+p { 
     margin-top: 10px;
     font-size: 1.1em;
 }
@@ -53,9 +53,7 @@ main {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Style de la Navigation Saisons/Catégories --- */
-
-/* Les conteneurs NAV prennent toute la largeur (display: block) pour se superposer */
+/* --- Style des Conteneurs de Navigation (inchangé) --- */
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
     display: block; 
@@ -64,7 +62,6 @@ main {
     text-align: center; 
 }
 
-/* Ligne de séparation sous les Saisons - RETIRÉE */
 #nav-seasons {
     margin-top: 20px;
     margin-bottom: 10px;
@@ -72,7 +69,6 @@ main {
     background-color: transparent; 
     border-radius: 0;
     padding: 0;
-    /* La propriété border-bottom a été retirée pour supprimer la ligne */
     padding-bottom: 10px;
 }
 
@@ -84,9 +80,6 @@ main {
     margin-bottom: 20px;
 }
 
-
-/* --- Style des Boutons (Tuiles) --- */
-
 #nav-seasons a, #nav-categories a, #nav-masters a {
     color: var(--color-light);
     text-decoration: none;
@@ -97,7 +90,6 @@ main {
     transition: background-color 0.3s, color 0.3s;
     font-size: 0.95em;
     background-color: rgba(255, 255, 255, 0.1); 
-    
     margin-right: 10px; 
     margin-bottom: 5px; 
 }
@@ -112,21 +104,23 @@ main {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Style du Tableau --- */
-.classement-table {
+/* --- Style du Tableau Général ET DÉTAILS --- */
+
+/* Applique le style au tableau général ET au nouveau tableau de détails */
+.classement-table, .details-table { 
     width: 100%;
     border-collapse: separate; 
     border-spacing: 0;
     margin-top: 25px;
 }
 
-.classement-table th, .classement-table td {
+.classement-table th, .classement-table td, .details-table th, .details-table td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #eee;
 }
 
-.classement-table th {
+.classement-table th, .details-table th {
     background-color: var(--color-lagon);
     color: var(--color-light);
     font-weight: 600;
@@ -137,16 +131,40 @@ main {
     z-index: 10;
 }
 
-.classement-table tr:nth-child(even) {
+.classement-table tr:nth-child(even), .details-table tr:nth-child(even) {
     background-color: #fcfcfc;
 }
 
-.classement-table tr:hover {
+.classement-table tr:hover, .details-table tr:hover {
     background-color: #f0f8ff; 
 }
 
+/* Mise en évidence du classement (1ère place Volcan) */
 .classement-table tr td:first-child strong {
     color: var(--color-volcan); 
     font-size: 1.2em;
     font-weight: 700;
+}
+
+/* Style spécifique à la vue détaillée */
+.details-table h3 {
+    color: var(--color-lagon);
+    margin-top: 0;
+}
+
+/* Style du bouton Retour */
+button {
+    background-color: var(--color-volcan);
+    color: var(--color-light);
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 20px;
+}
+
+button:hover {
+    background-color: #a83d00;
 }
