@@ -1,17 +1,20 @@
 // =======================================================================
 // FICHIER : app.js
-// GESTION DYNAMIQUE DES CLASSEMENTS COUPE DE LA RÉUNION ROUTE (v2 - SheetDB)
+// GESTION DYNAMIQUE DES CLASSEMENTS COUPE DE LA RÉUNION ROUTE (v3 - FINAL)
 // =======================================================================
 
 // --- 1. Configuration et Mappage des Catégories ---
 
+// ID unique fourni par SheetDB (Endpoint URL de base)
 const SHEETDB_API_ID = 'cn1mysle9dz6t'; 
 
+// Mappage des catégories vers leurs NOMS DE FEUILLES EXACTS dans Google Sheets.
+// Les sheetName pointent vers les nouveaux noms SANS caractères spéciaux.
 const CATEGORY_MAP = {
-    // Les sheetName pointent maintenant vers les feuilles de données brutes pour l'API
     'open': { name: 'OPEN', sheetName: 'Open' },
-    'access12': { name: 'Access 1/2', sheetName: 'API Access 1/2' }, 
-    'access34': { name: 'Access 3/4', sheetName: 'API Access 3/4' },
+    // ATTENTION : Ces noms doivent correspondre aux noms d'onglets renommés.
+    'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
+    'access34': { name: 'Access 3/4', sheetName: 'Access34' },
 };
 
 const DEFAULT_CATEGORY = 'open';
@@ -31,7 +34,6 @@ function getCategoryFromURL() {
 
 /**
  * Construit l'URL complète pour la récupération des données JSON via SheetDB.
- * Utilise le format ?sheet= pour cibler la feuille, résolvant le 405/404.
  * @param {string} categoryKey - La clé de la catégorie (ex: 'open').
  * @returns {string | null} L'URL JSON de SheetDB.
  */
@@ -42,7 +44,7 @@ function buildJsonUrl(categoryKey) {
     }
     
     // NOUVEAU FORMAT D'URL : Utilisation de ?sheet=
-    // Encodage du nom de la feuille pour gérer les espaces ('Access 1/2')
+    // Encodage toujours utilisé, même si le nom est propre, pour la sécurité.
     const sheetParam = encodeURIComponent(categoryInfo.sheetName);
     
     // Endpoint de base + paramètre de feuille
@@ -106,7 +108,7 @@ async function fetchClassementData(url) {
 function renderTable(data) {
     if (data.length === 0 || typeof data[0] !== 'object') {
         // Vérification de la structure des données (vide ou non un tableau d'objets)
-        container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez le nom de l\'onglet et les données.</p>';
+        container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez les données.</p>';
         return;
     }
 
@@ -119,7 +121,7 @@ function renderTable(data) {
     html += '<thead><tr>';
     headers.forEach(header => {
         // Afficher des titres plus propres pour l'utilisateur
-        const displayHeader = header.replace('Points Total', 'Total Pts').replace('NbCourses', 'Nb Courses');
+        const displayHeader = header.replace('PointsTotal', 'Total Pts').replace('NbCourses', 'Nb Courses').replace('SousCategorie', 'Sous Catégorie');
         html += `<th>${displayHeader}</th>`;
     });
     html += '</tr></thead>';
@@ -131,7 +133,7 @@ function renderTable(data) {
         headers.forEach(header => {
             // S'assurer que les valeurs numériques sont bien traitées
             let content = coureur[header];
-            if (header === 'Classement' || header === 'Points Total') {
+            if (header === 'Classement' || header === 'PointsTotal') {
                 // Conversion en nombre pour la sécurité, car SheetDB renvoie souvent des chaînes
                 content = parseFloat(content) || content; 
             }
@@ -155,29 +157,4 @@ async function init() {
 
     // Mettre à jour les titres de la page
     const categoryName = CATEGORY_MAP[currentCategoryKey] ? CATEGORY_MAP[currentCategoryKey].name : currentCategoryKey.toUpperCase();
-    document.title = `Classement ${categoryName} - Route 2026`; 
-
-    // Créer la barre de navigation
-    createNavBar();
-    
-    // Mettre à jour le titre principal (H1)
-    const h1 = document.querySelector('h1');
-    if (h1) h1.textContent = `Classement ${categoryName}`;
-
-    if (jsonUrl) {
-        // Afficher un message de chargement
-        container.innerHTML = '<p>Chargement des données...</p>';
-        
-        const rawData = await fetchClassementData(jsonUrl); 
-        renderTable(rawData);
-    } else {
-        container.innerHTML = `<p style="color: red;">Configuration incorrecte ou catégorie "${currentCategoryKey}" non trouvée. Vérifiez CATEGORY_MAP.</p>`;
-    }
-}
-
-init();
-
-
-
-
-
+    document.title = `Classement ${categoryName} - Route
