@@ -1,11 +1,8 @@
 // =======================================================================
-// FICHIER : app.js (v30 - Transition vers Worker Cloudflare)
+// FICHIER : app.js (v29 - Code Stable Avant Worker)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
-
-// URL de base du Worker Cloudflare (À REMPLACER !)
-const WORKER_BASE_URL = 'https://morning-darkness-4a2d.med97400.workers.dev/'; 
 
 const SAISONS_CONFIG = {
     '2025': {
@@ -70,22 +67,26 @@ function getCategoryFromURL() {
 function getDisplayDossard(dossardRecherche) {
     if (!dossardRecherche) return dossardRecherche;
     
+    // Conversion explicite en String avant l'opération de suffixe
     const dossardStr = String(dossardRecherche); 
 
+    // Règles de conversion des suffixes (du plus long au plus court pour éviter les conflits)
     const suffixes = ['1517', '000', '170', '150'];
     
     for (const suffix of suffixes) {
         if (dossardStr.endsWith(suffix)) {
+            // Retire le suffixe spécifique
             return dossardStr.slice(0, -suffix.length);
         }
     }
     
+    // Retourne le dossard original si aucune règle ne s'applique 
     return dossardRecherche; 
 }
 
 
 /**
- * Construit l'URL complète pour la récupération des données JSON via le WORKER.
+ * Construit l'URL complète pour la récupération des données JSON via SheetDB.
  */
 function buildJsonUrl(saisonKey, categoryKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
@@ -94,10 +95,11 @@ function buildJsonUrl(saisonKey, categoryKey) {
     const categoryInfo = saisonConfig.categories[categoryKey];
     if (!categoryInfo) return null;
     
-    // NOUVEAU : Format Worker pour classement général
+    const SHEETDB_API_ID = saisonConfig.apiId; // Utilise l'ID de SheetDB
+
     const sheetParam = encodeURIComponent(categoryInfo.sheetName);
     
-    return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
+    return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}?sheet=${sheetParam}`;
 }
 
 /**
@@ -156,7 +158,7 @@ async function fetchClassementData(url) {
         
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare/SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez les noms de feuilles dans SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
         }
         
         const data = await response.json(); 
@@ -169,7 +171,7 @@ async function fetchClassementData(url) {
 
     } catch (error) {
         if (container) {
-            container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. L'API (Worker/SheetDB) a échoué. Détails : ${error.message}</p>`;
+            container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. L'API SheetDB a échoué. Détails : ${error.message}</p>`;
         }
         console.error("Erreur de récupération :", error);
         return [];
@@ -207,11 +209,14 @@ function renderTable(data) {
                 content = parseFloat(content) || content; 
             }
 
+            // Rendre le Nom cliquable (cette logique est correcte)
             let displayContent = content; 
             
             if (header === 'Dossard') {
+                // Applique la conversion pour l'affichage (Ex: 52000 -> 52)
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
+                // Le Nom est la clé de recherche pour la vue détaillée (Texte pur)
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Classement') {
                 displayContent = `<strong>${content}</strong>`;
@@ -245,8 +250,10 @@ function renderCoureurDetails(details) {
     const coureurNom = details[0].Nom;
     const coureurDossardRecherche = details[0].Dossard; 
     
+    // Afficher le dossard converti dans le titre
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
 
+    // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
         const points = parseFloat(course.Points);
@@ -283,10 +290,11 @@ function renderCoureurDetails(details) {
 
 async function showCoureurDetails(nom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
+    const sheetdbApiId = saisonConfig.apiId;
     
-    // NOUVEAU : Format Worker pour recherche détaillée (URL simplifiée pour le Worker)
+    // 1. URL de recherche : Recherche par Nom (Texte)
     const encodedNom = encodeURIComponent(nom);
-    const searchUrl = `${WORKER_BASE_URL}search?nom=${encodedNom}&sheet=Résultats Bruts&apiId=${saisonConfig.apiId}`; 
+    const searchUrl = `https://sheetdb.io/api/v1/${sheetdbApiId}/search?Nom=${encodedNom}&sheet=Résultats Bruts`;
 
     const container = document.getElementById('classement-container');
     if (container) {
@@ -297,7 +305,7 @@ async function showCoureurDetails(nom, saisonKey) {
         const response = await fetch(searchUrl);
         
         if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare.`);
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez que l'onglet 'Résultats Bruts' est accessible.`);
         }
         
         const data = await response.json();
@@ -418,4 +426,3 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
-
