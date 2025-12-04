@@ -231,11 +231,55 @@ MEDIA QUERIES (Optimisation pour Mobile)
         font-size: 0.85em;
     }
     
+    /* ----------------------------------------------------
+       MASQUAGE DES COLONNES EN VUE PORTRAIT
+       Affiche seulement : Nom (5), Points Total (7), Classement (8)
+    ---------------------------------------------------- */
+    
+    /* Colonne 1: Sous Catégorie */
+    .classement-table th:nth-child(1),
+    .classement-table td:nth-child(1),
+    .details-table th:nth-child(4), /* Catégorie dans le tableau de Détails */
+    .details-table td:nth-child(4) {
+        display: none;
+    }
+    
+    /* Colonne 2: Catégorie Master */
+    .classement-table th:nth-child(2),
+    .classement-table td:nth-child(2) {
+        display: none;
+    }
+
+    /* Colonne 3: Nb Courses */
+    .classement-table th:nth-child(3),
+    .classement-table td:nth-child(3) {
+        display: none;
+    }
+
+    /* Colonne 4: Dossard */
+    .classement-table th:nth-child(4),
+    .classement-table td:nth-child(4) {
+        display: none;
+    }
+
+    /* Colonne 6: Club */
+    .classement-table th:nth-child(6),
+    .classement-table td:nth-child(6) {
+        display: none;
+    }
+
+    /* Correction pour le tableau de Détail (Masquer Date, Position si nécessaire) */
+    .details-table th:nth-child(1), .details-table td:nth-child(1), /* Date */
+    .details-table th:nth-child(3), .details-table td:nth-child(3) { /* Position */
+        display: none;
+    }
+    
+
     /* --- Tableau de Classement (Scrolling Horizontal) --- */
     
     .classement-table, .details-table {
         margin-top: 15px; 
-        /* Largeur minimale pour garantir la lisibilité des colonnes sur mobile */
-        min-width: 700px; 
+        /* Réduire la taille minimale pour la vue portrait */
+        min-width: 300px; 
     }
 }
