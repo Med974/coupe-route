@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v40 - FINAL : Recherche Détaillée Corrigée)
+// FICHIER : app.js (v39 - Correction Finale : Erreur 400 Résolue)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,7 +211,6 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Le lien doit passer le Dossard Numérique comme ID de recherche
                 displayContent = `<a href="#" class="coureur-link" data-dossard="${coureur.Dossard}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -292,7 +291,7 @@ async function showCoureurDetails(dossard, saisonKey) {
     const encodedDossard = encodeURIComponent(dossard);
     const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
     
-    // CORRECTION APPLIQUÉE : Utilise Dossard Numérique comme clé de recherche
+    // CORRECTION CRITIQUE : Utilisation de la clé Dossard et du Dossard encodé
     const searchUrl = `${WORKER_BASE_URL}search?Dossard=${encodedDossard}&sheet=${encodedSheetName}&apiId=${saisonConfig.apiId}`; 
 
     const container = document.getElementById('classement-container');
@@ -335,7 +334,6 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
-        // CORRECTION : Supprimer les caractères non numériques avant de parser
         const pointsA = parseFloat(String(a.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         const pointsB = parseFloat(String(b.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
@@ -525,7 +523,7 @@ async function init() {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
-                    // ATTENTION : La recherche se fait par Dossard Numérique
+                    // Utilisation du Dossard pour la recherche
                     const dossard = link.getAttribute('data-dossard'); 
                     const currentSaison = getSaisonFromURL(); 
                     
