@@ -1,18 +1,19 @@
 /* =======================================================================
    FICHIER : styles.css
    Design : "Pro Sport" - Réunion (Lagon/Volcan)
-   Version : Finale Complète (Header Immersif + Sans Ligne)
+   Version : Finale Complète (Header Immersif + App Look + Responsive)
 ======================================================================= */
 
+/* Import des polices : Montserrat (Titres) et Roboto (Texte) */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
 
 /* --- 1. VARIABLES & COULEURS --- */
 :root {
-    --color-lagon: #00A7BB;      
-    --color-lagon-dark: #008c9e; 
-    --color-volcan: #D94F00;     
-    --color-background: #F4F7F6; 
-    --color-text: #2c3e50;
+    --color-lagon: #00A7BB;       /* Bleu Lagon */
+    --color-lagon-dark: #008c9e;  /* Lagon plus sombre pour survol */
+    --color-volcan: #D94F00;      /* Rouge-Orange (Action/Emphase) */
+    --color-background: #F4F7F6;  /* Gris très pâle (plus moderne que F8F8F8) */
+    --color-text: #2c3e50;        /* Gris foncé */
     --color-light: #ffffff;
     --color-gold: #f1c40f;
     --color-silver: #95a5a6;
@@ -35,41 +36,39 @@ h1, h2, h3, h4, th {
     letter-spacing: 0.5px;
 }
 
-/* --- 3. HEADER IMMERSIF (Modifié pour plus de visibilité de l'image) --- */
+/* --- 3. HEADER IMMERSIF (Image Locale) --- */
 header {
-    /* Superposition : Dégradé plus transparent (75% et 60%) + Image de fond */
-    background: 
-        linear-gradient(135deg, rgba(0, 77, 153, 0.75) 0%, rgba(0, 167, 187, 0.60) 100%),
-        url('https://images.unsplash.com/photo-1519681393784-d8e5b5a4570e?q=80&w=2070&auto=format&fit=crop'); /* Image route */
+    /* Superposition : Dégradé (85% à 70% opacité) + Image Locale */
+    background-image: 
+        linear-gradient(135deg, rgba(0, 77, 153, 0.85) 0%, rgba(0, 167, 187, 0.70) 100%),
+        url('header-bg.jpg'); /* Image locale à la racine */
     
-    background-size: cover;      /* L'image couvre tout le header */
-    background-position: center; /* Centrer l'image */
-    background-attachment: fixed; /* Effet Parallaxe (l'image reste fixe au scroll) */
+    background-size: cover;      
+    background-position: center; 
+    background-repeat: no-repeat;
+    background-attachment: scroll; /* Scroll pour meilleure compatibilité mobile */
     
     color: var(--color-light);
-    padding: 40px 20px 50px;
+    padding: 40px 20px 60px;
     text-align: center;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
-    
-    /* Bonus : Ajout d'un léger flou sur l'image pour mieux faire ressortir le texte */
     position: relative;
     overflow: hidden;
 }
 
-/* Ajout pour augmenter le contraste du texte sur l'image */
-h1, h2, h4 {
-    text-shadow: 0 2px 8px rgba(0,0,0,0.6); /* Ombre plus marquée sous le texte */
+/* Ombre sous le texte pour lisibilité sur image */
+h1, h2 {
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
     position: relative;
-    z-index: 2; /* S'assure que le texte est au-dessus */
+    z-index: 2;
 }
 
 h1 { 
     margin: 0 0 5px 0;
     font-size: 2.5em;
     font-weight: 800;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Ombre portée pour lisibilité */
 }
 
 h2 { 
@@ -83,12 +82,12 @@ h2 {
 main {
     padding: 20px;
     max-width: 1200px;
-    margin: -40px auto 40px; /* Remonte sur le header pour effet de profondeur */
+    margin: -50px auto 40px; /* Remonte sur le header */
     z-index: 10;
     position: relative;
 }
 
-/* --- 5. NAVIGATION --- */
+/* --- 5. NAVIGATION (STYLE "APP TABS") --- */
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
     display: block; 
@@ -100,8 +99,7 @@ main {
 #nav-seasons {
     margin-bottom: 15px;
     padding-bottom: 5px;
-    /* BORDURE RETIRÉE ICI COMME DEMANDÉ */
-    border-bottom: none; 
+    border-bottom: none; /* Pas de ligne comme demandé */
 }
 
 /* Style des boutons */
@@ -109,8 +107,8 @@ main {
     display: inline-block;
     text-decoration: none;
     color: var(--color-light);
-    background-color: rgba(255, 255, 255, 0.2); /* Plus transparent pour l'effet immersif */
-    backdrop-filter: blur(5px); /* Effet de flou derrière les boutons */
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
     padding: 8px 20px;
     margin: 5px;
     border-radius: 50px;
@@ -118,6 +116,9 @@ main {
     font-weight: 600;
     transition: all 0.2s ease;
     border: 1px solid rgba(255, 255, 255, 0.3);
+    
+    /* Marge droite pour espacement */
+    margin-right: 10px; 
 }
 
 /* Survol */
@@ -136,7 +137,7 @@ main {
     border-color: var(--color-light);
 }
 
-/* --- 6. TABLEAUX --- */
+/* --- 6. TABLEAUX (STYLE "CARTES") --- */
 #classement-container {
     background-color: transparent;
 }
@@ -163,7 +164,7 @@ main {
     font-weight: 700;
     font-size: 0.8em;
     padding: 10px 15px;
-    text-align: center;
+    text-align: center; /* Centré par défaut */
     border: none;
 }
 
@@ -188,9 +189,10 @@ main {
     font-size: 0.95em;
     vertical-align: middle;
     color: var(--color-text);
-    text-align: center;
+    text-align: center; /* Centré par défaut */
 }
 
+/* Alignement spécifique Desktop (Nom et Club à gauche) */
 .classement-table td:nth-child(5), .classement-table td:nth-child(6) {
     text-align: left; 
 }
@@ -218,6 +220,7 @@ main {
 
 /* --- 8. ÉLÉMENTS SPÉCIFIQUES --- */
 
+/* Liens Cliquables */
 a.coureur-link, a.club-link {
     color: var(--color-text); 
     text-decoration: none; 
@@ -231,6 +234,7 @@ a.coureur-link:hover, a.club-link:hover {
     border-bottom-color: var(--color-lagon);
 }
 
+/* Bouton Retour */
 button {
     background-color: var(--color-text);
     color: var(--color-light);
@@ -254,6 +258,7 @@ button:hover {
     box-shadow: 0 4px 10px rgba(217, 79, 0, 0.3);
 }
 
+/* Séparateur de Catégorie (Vue Club) */
 tr.category-separator td {
     background-color: #eef6f8;
     color: var(--color-lagon-dark);
@@ -289,48 +294,72 @@ tr.category-separator td {
 .gap-card strong { display: block; font-size: 1.2em; margin-bottom: 5px; }
 .gap-name { font-size: 0.85em; color: #888; }
 
+
 /* --- 9. RESPONSIVE (MOBILE) --- */
 @media (max-width: 768px) {
+    
     header { padding: 20px 10px 30px; }
     h1 { font-size: 1.8em; }
-    main { padding: 10px; margin-top: -20px; }
+    main { padding: 10px; margin-top: -30px; }
 
+    /* Boutons Mobile : plus compacts */
     #nav-seasons a, #nav-categories a, #nav-masters a {
         width: calc(50% - 14px); 
         margin: 4px; 
         padding: 8px 0;
         font-size: 0.75em;
+        margin-right: 4px; /* Reset marge droite desktop */
     }
     
-    /* Masquage Colonnes Portrait */
-    .classement-table th:nth-child(1), .classement-table td:nth-child(1),
-    .classement-table th:nth-child(2), .classement-table td:nth-child(2),
-    .classement-table th:nth-child(3), .classement-table td:nth-child(3),
-    .classement-table th:nth-child(4), .classement-table td:nth-child(4) {
+    /* --- Masquage Colonnes (Vue Portrait) --- */
+    /* Affiche: Nom (5), Club (6), Points (7), Cls (8) */
+    .classement-table th:nth-child(1), .classement-table td:nth-child(1), /* Sous Cat */
+    .classement-table th:nth-child(2), .classement-table td:nth-child(2), /* Master */
+    .classement-table th:nth-child(3), .classement-table td:nth-child(3), /* Nb Courses */
+    .classement-table th:nth-child(4), .classement-table td:nth-child(4) { /* Dossard */
         display: none;
     }
 
+    /* Alignement spécifique mobile */
     .classement-table td, .classement-table th {
         padding: 10px 8px;
         font-size: 0.85em;
     }
     
-    .details-table th:nth-child(1), .details-table td:nth-child(1),
-    .details-table th:nth-child(3), .details-table td:nth-child(3),
-    .details-table th:nth-child(4), .details-table td:nth-child(4) {
+    /* Force l'alignement Gauche pour Nom et Club */
+    .classement-table td:nth-child(5), .classement-table td:nth-child(6) {
+        text-align: left;
+    }
+    /* Force l'alignement Droite pour Points et Classement */
+    .classement-table td:nth-child(7), .classement-table td:nth-child(8) {
+        text-align: right;
+    }
+    
+    /* Détails Tableau Mobile */
+    .details-table th:nth-child(1), .details-table td:nth-child(1), /* Date */
+    .details-table th:nth-child(3), .details-table td:nth-child(3), /* Position */
+    .details-table th:nth-child(4), .details-table td:nth-child(4) { /* Catégorie */
         display: none;
     }
 
     .classement-table, .details-table {
-        min-width: 100%;
+        min-width: 100%; /* Prend la largeur dispo */
     }
     
-    .gap-container { flex-direction: column; align-items: center; }
-    .gap-card { width: 100%; }
+    /* Gap cards en colonne */
+    .gap-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .gap-card {
+        width: 100%;
+    }
 }
 
-/* --- 10. RÉTABLISSEMENT DESKTOP --- */
+/* --- 10. RÉTABLISSEMENT DESKTOP (Annule le masquage Mobile) --- */
 @media (min-width: 769px) {
-    th, td { display: table-cell !important; }
+    .classement-table th, .classement-table td,
+    .details-table th, .details-table td {
+        display: table-cell !important;
+    }
 }
-
