@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v40 - Correction Finale de l'URL de Recherche par Dossard)
+// FICHIER : app.js (v41 - Correction Finale de la Recherche Détail)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,8 +211,8 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Le lien utilise l'ID Dossard Numérique comme clé
-                displayContent = `<a href="#" class="coureur-link" data-dossard="${coureur.Dossard}">${content}</a>`;
+                // Le lien utilise le NOM comme clé de recherche (pour éviter les problèmes de dossard)
+                displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
             } else if (header === 'Classement') {
@@ -252,6 +252,7 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
+        // Parsing strict pour les entiers
         const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
@@ -284,19 +285,20 @@ function renderCoureurDetails(details) {
 }
 
 
-async function showCoureurDetails(dossard, saisonKey) {
+async function showCoureurDetails(nom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     
-    // 1. URL de recherche : Recherche par Dossard Numérique via Worker
-    const encodedDossard = encodeURIComponent(dossard);
+    // 1. URL de recherche : Recherche par Nom (Texte) via Worker
+    // CORRECTION CRITIQUE : L'URL utilise le Nom pour la recherche (qui est stable) et passe la saison
+    const encodedNom = encodeURIComponent(nom);
     const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
     
-    // CORRECTION APPLIQUÉE : L'URL de recherche est complète et inclut la SAISON pour le Worker
-    const searchUrl = `${WORKER_BASE_URL}search?Dossard=${encodedDossard}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
+    // NOUVELLE URL STABLE : Nom, Feuille, et Saison sont passés au Worker.
+    const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
 
     const container = document.getElementById('classement-container');
     if (container) {
-        container.innerHTML = `<p>Chargement des résultats pour le Dossard ${dossard}...</p>`;
+        container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
     }
     
     try {
@@ -334,6 +336,7 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
+        // CORRECTION : Supprimer les caractères non numériques avant de parser
         const pointsA = parseFloat(String(a.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         const pointsB = parseFloat(String(b.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
