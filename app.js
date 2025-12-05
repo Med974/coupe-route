@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v45 - Stabilisation Finale et Corrections)
+// FICHIER : app.js (v45 - FINAL : Filtre Détail Côté Client)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -37,6 +37,7 @@ const DEFAULT_SAISON = '2026';
 const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
+let globalRawData = {}; // NOUVEAU : Stocke les résultats bruts par saison
 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
@@ -98,6 +99,36 @@ function buildJsonUrl(saisonKey, categoryKey) {
     return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
 }
 
+
+/**
+ * Récupère TOUTES les données de la feuille Résultats Bruts (une fois par session de cache).
+ */
+async function loadAllRawResults(saisonKey) {
+    if (globalRawData[saisonKey] && globalRawData[saisonKey].length > 0) {
+        return globalRawData[saisonKey];
+    }
+    
+    const sheetName = "Résultats Bruts";
+    const saisonConfig = SAISONS_CONFIG[saisonKey];
+    
+    // NOTE : Le Worker est configuré pour mettre en cache cette feuille
+    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetName}`; 
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Worker/API: ${response.status}`);
+        }
+        const data = await response.json();
+        globalRawData[saisonKey] = data; // Stockage
+        return data;
+    } catch (e) {
+        console.error("Erreur critique lors du chargement des résultats bruts:", e);
+        return [];
+    }
+}
+
+
 /**
  * Crée les boutons de navigation (Saisons et Catégories).
  */
@@ -106,7 +137,7 @@ function createNavBar(currentSaison, currentCategory) {
     const categoriesContainer = document.getElementById('nav-categories');
     const mastersContainer = document.getElementById('nav-masters');
 
-    // 1. Navigation Saisons
+    // 1. Navigation Saisons (inchangée)
     let seasonsHtml = '';
     Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
         const saison = SAISONS_CONFIG[saisonKey];
@@ -117,7 +148,7 @@ function createNavBar(currentSaison, currentCategory) {
         seasonsContainer.innerHTML = seasonsHtml;
     }
 
-    // 2. Navigation Catégories
+    // 2. Navigation Catégories (inchangée)
     const currentCategories = SAISONS_CONFIG[currentSaison]?.categories;
     let categoriesHtml = '';
     if (currentCategories) {
@@ -131,7 +162,7 @@ function createNavBar(currentSaison, currentCategory) {
         categoriesContainer.innerHTML = categoriesHtml;
     }
     
-    // 3. Navigation Masters
+    // 3. Navigation Masters (inchangée)
     let mastersHtml = '';
     MASTERS_CONFIG.forEach(master => {
         const isActive = master.key === 'all' ? 'active' : '';
@@ -148,13 +179,11 @@ async function fetchClassementData(url) {
     const container = document.getElementById('classement-container');
     
     try {
-        console.log("Tentative de récupération de l'URL JSON :", url);
-        
         const response = await fetch(url);
         
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare/SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
+            throw new Error(`Erreur HTTP: ${response.status}. Réponse: ${errorBody.substring(0, 100)}...`);
         }
         
         const data = await response.json(); 
@@ -211,7 +240,7 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Rétablissement : Le lien utilise le Nom comme clé de recherche
+                // Le lien utilise le Nom comme clé de recherche (pour la vue détaillée)
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -252,7 +281,6 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // CORRECTION : Parsing strict pour les entiers
         const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
@@ -286,36 +314,24 @@ function renderCoureurDetails(details) {
 
 
 async function showCoureurDetails(nom, saisonKey) {
-    const saisonConfig = SAISONS_CONFIG[saisonKey];
-    
-    // 1. URL de recherche : Recherche par Nom (Texte) via Worker
-    const encodedNom = encodeURIComponent(nom);
-    const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
-    
-    // CORRECTION : La recherche se fait par Nom (Texte)
-    const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
-
     const container = document.getElementById('classement-container');
     if (container) {
         container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
     }
     
-    try {
-        const response = await fetch(searchUrl);
-        
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare.`);
-        }
-        
-        const data = await response.json();
-        
-        renderCoureurDetails(data); 
+    // CORRECTION CRITIQUE : Filtre côté client sur les données brutes stockées (pour éviter l'échec API)
+    
+    // 1. Assurez-vous que les résultats bruts sont chargés pour cette saison
+    const rawResults = await loadAllRawResults(saisonKey);
+    
+    // 2. Filtrer les résultats par le Nom du coureur cliqué
+    // NOTE : Le nom doit correspondre exactement, sinon le coureur sera invisible.
+    const filteredDetails = rawResults.filter(course => 
+        course.Nom && course.Nom.toString().trim() === nom.toString().trim()
+    );
 
-    } catch (error) {
-        if (container) {
-            container.innerHTML = `<p style="color: red;">Erreur lors de la récupération des détails : ${error.message}</p>`;
-        }
-    }
+    // 3. Afficher le résultat formaté
+    renderCoureurDetails(filteredDetails); 
 }
 
 
@@ -346,7 +362,6 @@ function renderClubDetails(members, clubNom) {
     // Calcul du Total des Points du Club
     let totalClubPoints = 0;
     members.forEach(member => {
-        // CORRECTION : Assurer la conversion en nombre strict
         totalClubPoints += parseFloat(String(member.PointsTotal).replace(/[^\d.]/g, '')) || 0;
     });
 
@@ -509,10 +524,14 @@ async function init() {
             container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
         }
         
+        // 1. Chargement des données de classement général
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // Initialisation des écouteurs
+        // 2. Chargement des résultats bruts pour le filtrage côté client (Cache HIT garanti)
+        const rawResultsPromise = loadAllRawResults(currentSaison);
+        
+        // 3. Initialisation des écouteurs
         const mastersContainer = document.getElementById('nav-masters');
         if (mastersContainer) {
             mastersContainer.addEventListener('click', handleMasterFilterChange);
@@ -521,14 +540,15 @@ async function init() {
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
             // Écouteur pour la vue détaillée (Nom du coureur)
-            classementContainer.addEventListener('click', (e) => {
+            classementContainer.addEventListener('click', async (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
                     const nom = link.getAttribute('data-nom'); 
                     const currentSaison = getSaisonFromURL(); 
                     
-                    showCoureurDetails(nom, currentSaison);
+                    // Lancement de la vue détaillée avec les résultats bruts déjà chargés
+                    showCoureurDetails(nom, currentSaison, await rawResultsPromise); 
                 }
             });
             
