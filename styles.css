@@ -1,6 +1,6 @@
 /* =======================================================================
    FICHIER : styles.css
-   Version : Finale Absolue (Centrage Mobile)
+   Version : Finale Absolue (Mobile Compact & Alignement Club Centré)
 ======================================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
@@ -140,7 +140,7 @@ main {
     font-size: 0.85em;
     padding: 15px;
     border-bottom: 2px solid #eee;
-    text-align: center; /* Centrage par défaut des en-têtes */
+    text-align: center; 
 }
 
 .classement-table td, .details-table td {
@@ -149,12 +149,12 @@ main {
     font-size: 0.95em;
     vertical-align: middle;
     color: var(--color-text);
-    text-align: center; /* Centrage par défaut des données */
+    text-align: center;
 }
 
 .classement-table tbody tr:hover, .details-table tbody tr:hover { background-color: #f0f8ff; }
 
-/* Alignement Gauche spécifique pour Nom (5) et Club (6) sur Desktop */
+/* Alignement Gauche spécifique pour Nom (5) et Club (6) sur DESKTOP */
 .classement-table td:nth-child(5), .classement-table td:nth-child(6) {
     text-align: left;
     padding-left: 20px;
@@ -232,18 +232,21 @@ tr.category-separator td {
 .gap-name { font-size: 0.85em; color: #888; }
 
 
+/* --- 9. RESPONSIVE (MOBILE) --- */
 @media (max-width: 768px) {
     header { padding: 20px 10px 100px; }
     h1 { font-size: 1.8em; }
     main { margin-top: -60px; padding: 0 10px; }
     #classement-container { padding: 20px 15px; border-radius: 20px; }
 
+    /* CORRECTION : BOUTONS COMPACTS (CHIPS) */
     #nav-seasons a, #nav-categories a, #nav-masters a {
-        width: calc(50% - 14px); 
-        margin: 4px; 
-        padding: 8px 0;
+        display: inline-block;
+        width: auto; /* S'adapte au texte */
+        margin: 3px 2px;
+        padding: 6px 12px;
         font-size: 0.75em;
-        margin-right: 4px;
+        margin-right: 2px;
     }
     
     /* Masquage Colonnes Portrait */
@@ -254,13 +257,10 @@ tr.category-separator td {
 
     .classement-table td, .classement-table th { padding: 10px 5px; font-size: 0.85em; text-align: center; }
     
-    /* SUR MOBILE : SEUL LE NOM (COL 5) RESTE ALIGNÉ À GAUCHE */
+    /* CORRECTION : Alignement Gauche UNIQUEMENT pour le NOM (5) */
     .classement-table td:nth-child(5) { text-align: left; padding-left: 5px; }
     
-    /* Club (Col 6), Points (Col 7) et Pos (Col 8) sont centrés par la règle par défaut */
-    .classement-table td:nth-child(6), .classement-table td:nth-child(7), .classement-table td:nth-child(8) { 
-        text-align: center; 
-    }
+    /* Le Club (6) sera centré par la règle par défaut ci-dessus */
     
     .classement-table th:last-child, .classement-table td:last-child { width: 30px; white-space: nowrap; }
 
@@ -278,6 +278,7 @@ tr.category-separator td {
     .gap-card { width: 100%; max-width: none; }
 }
 
+/* --- 10. RÉTABLISSEMENT DESKTOP --- */
 @media (min-width: 769px) {
     th, td { display: table-cell !important; }
 }
