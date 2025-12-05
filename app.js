@@ -258,75 +258,78 @@ async function showCoureurDetails(nom, saisonKey, allRawResults) {
 
 // --- 5. Logique Club ---
 
-// --- 5. Logique Club ---
-
 function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
     if (!container) return;
     
-    // Définition de l'ordre d'affichage souhaité
-    // Assurez-vous que les noms correspondent exactement à ceux de votre colonne "Catégorie" dans Sheet
+    // --- 1. Tri (Ordre personnalisé + Points) ---
     const categoryOrder = [
-        "OPEN", 
-        "Access 1/2", 
-        "Access 3/4", 
-        "Femmes", 
-        "U17", 
-        "U15", 
-        "U15/U17 Filles",
-        "U15U17F" // Sécurité si le nom varie
+        "OPEN", "Access 1/2", "Access 3/4", "Femmes", "U17", "U15", "U15/U17 Filles", "U15U17F"
     ];
 
-    // Fonction utilitaire pour obtenir le rang
     const getCategoryRank = (catName) => {
         const index = categoryOrder.indexOf(catName);
-        // Si la catégorie n'est pas dans la liste, on la met à la fin (999)
         return index === -1 ? 999 : index;
     };
 
-    // 1. Tri Avancé
     members.sort((a, b) => {
-        // Tri par Ordre Personnalisé
         const rankA = getCategoryRank(a.Catégorie);
         const rankB = getCategoryRank(b.Catégorie);
         
-        if (rankA !== rankB) {
-            return rankA - rankB; // Plus le rang est petit, plus il est haut
-        }
+        if (rankA !== rankB) return rankA - rankB;
         
-        // Si même catégorie, Tri par Points Total (Décroissant)
         const pointsA = parseInt(a["Points Total"]) || 0; 
         const pointsB = parseInt(b["Points Total"]) || 0; 
-        
         return pointsB - pointsA; 
     });
     
-    let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
-    
-    // 2. Calcul du Total
+    // --- 2. Calculs des Totaux et des Effectifs par Catégorie ---
     let totalClubPoints = 0;
+    let categoryCounts = {}; // Objet pour stocker le nombre de coureurs par catégorie
+
     members.forEach(member => {
+        // Calcul Points
         totalClubPoints += parseInt(member["Points Total"]) || 0;
+        
+        // Calcul Effectifs par catégorie
+        const cat = member.Catégorie;
+        if (categoryCounts[cat]) {
+            categoryCounts[cat]++;
+        } else {
+            categoryCounts[cat] = 1;
+        }
     });
 
-    html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Points du Club: ${totalClubPoints}</p>`;
+    // --- 3. Affichage ---
+    let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
-    // 3. Rendu Tableau Unique avec Séparateurs
+    // Affichage des deux totaux globaux
+    html += `<p style="font-size: 1.1em; margin-bottom: 20px;">
+                <strong>Points Total :</strong> ${totalClubPoints} <span style="margin: 0 10px;">|</span> 
+                <strong>Nombre de Coureurs :</strong> ${members.length}
+             </p>`;
+    
     let currentCategory = '';
     
+    // Ouverture du tableau unique
     html += '<table class="details-table club-table">';
     html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
     
     members.forEach(member => {
         const points = parseInt(member["Points Total"]) || 0;
         
-        // Si la catégorie change, on insère une ligne de titre dans le tableau
+        // Changement de Catégorie
         if (member.Catégorie !== currentCategory) {
             currentCategory = member.Catégorie;
             
-            // Ligne de séparation
+            // Récupération du nombre de coureurs pour cette catégorie spécifique
+            const countInCat = categoryCounts[currentCategory] || 0;
+            
+            // Ligne de séparation avec le Nom de la catégorie ET le Nombre de coureurs
             html += `<tr class="category-separator">
-                        <td colspan="2">${currentCategory}</td>
+                        <td colspan="2">
+                            ${currentCategory} <span style="font-size:0.8em; font-weight:normal;">(${countInCat} coureurs)</span>
+                        </td>
                      </tr>`;
         }
         
@@ -466,5 +469,6 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
 
 
