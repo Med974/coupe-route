@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v55 - VERSION MAÎTRE STABLE)
+// FICHIER : app.js (v56 - VERSION COMPLÈTE ET VÉRIFIÉE)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -37,7 +37,7 @@ const DEFAULT_SAISON = '2026';
 const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
-let globalRawData = {}; // Stockage des résultats bruts pour le détail coureur
+let globalRawData = {}; // Stockage des résultats bruts
 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
@@ -326,7 +326,7 @@ async function showCoureurDetails(nom, saisonKey, allRawResults) {
 }
 
 
-// --- 5. Logique Club (Avec Correction Totaux) ---
+// --- 5. Logique Club (Avec Correction Totaux et Regroupement) ---
 
 function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
@@ -369,7 +369,7 @@ function renderClubDetails(members, clubNom) {
             }
             currentCategory = member.Catégorie;
             
-            html += `<h4 class="category-group-title">${currentCategory}</h4>`; 
+            html += `<h4 class="category-group-title" style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">${currentCategory}</h4>`; 
             html += '<table class="details-table club-category-table">';
             html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
         }
@@ -439,45 +439,37 @@ function handleMasterFilterChange(event) {
     button.classList.add('active');
     
     let filteredData = globalClassementData;
-
     if (selectedMaster !== 'all') {
         filteredData = globalClassementData.filter(coureur => {
             return coureur.Master === selectedMaster; 
         });
     }
-
     renderTable(filteredData);
 }
 
 // --- 7. Fonction Principale ---
 
 async function init() {
-    
     const container = document.getElementById('classement-container');
-    
     let currentSaison = getSaisonFromURL(); 
     const currentCategoryKey = getCategoryFromURL();
     
     if (!SAISONS_CONFIG[currentSaison]) {
         currentSaison = DEFAULT_SAISON; 
     }
-
     const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey); 
-
     const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
     
     document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
-
     createNavBar(currentSaison, currentCategoryKey);
     
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
-    
     const categoryTitleElement = document.getElementById('category-title');
     if (categoryTitleElement) {
         categoryTitleElement.textContent = ""; 
     }
-
+    
     if (jsonUrl) {
         if (container) {
             container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
@@ -486,7 +478,7 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // Lancement du chargement des résultats bruts (pour le détail coureur)
+        // Chargement des résultats bruts pour le filtrage local
         const rawResultsPromise = loadAllRawResults(currentSaison);
         
         const mastersContainer = document.getElementById('nav-masters');
@@ -496,31 +488,26 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
-            // Détail Coureur : Utilise le chargement local
             classementContainer.addEventListener('click', async (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
                     const nom = link.getAttribute('data-nom'); 
                     const currentSaison = getSaisonFromURL(); 
-                    
                     showCoureurDetails(nom, currentSaison, await rawResultsPromise); 
                 }
             });
             
-            // Détail Club : Utilise l'API
             classementContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('.club-link');
                 if (link) {
                     e.preventDefault();
                     const clubNom = link.getAttribute('data-club'); 
                     const currentSaison = getSaisonFromURL(); 
-                    
                     showClubClassement(clubNom, currentSaison);
                 }
             });
         }
-        
         renderTable(rawData);
     } else {
         if (container) {
