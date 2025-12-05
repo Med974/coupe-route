@@ -1,16 +1,14 @@
 /* =======================================================================
    FICHIER : styles.css
-   Design : "Pro Sport" - Réunion (Final + Mobile Compact)
+   Design : "Pro Sport" - Finale Complète
 ======================================================================= */
 
-/* Import des polices : Montserrat (Titres) et Roboto (Texte) */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
 
-/* --- 1. VARIABLES & COULEURS --- */
 :root {
-    --color-lagon: #00A7BB;       /* Bleu Lagon */
-    --color-lagon-dark: #008c9e;  /* Lagon plus sombre pour survol */
-    --color-volcan: #D94F00;      /* Rouge-Orange (Action/Emphase) */
+    --color-lagon: #00A7BB;       
+    --color-lagon-dark: #008c9e;  
+    --color-volcan: #D94F00;      
     --color-background-page: #121212;  
     --color-background-card: #ffffff; 
     --color-text: #2c3e50;            
@@ -21,7 +19,6 @@
     --color-bronze: #cd7f32;
 }
 
-/* --- 2. CONFIGURATION GÉNÉRALE --- */
 body {
     font-family: 'Roboto', 'Arial', sans-serif;
     margin: 0;
@@ -37,7 +34,6 @@ h1, h2, h3, h4, th {
     letter-spacing: 0.5px;
 }
 
-/* --- 3. HEADER IMMERSIF (Image Seule) --- */
 header {
     background-image: url('header-bg.jpg'); 
     background-size: cover;      
@@ -61,20 +57,9 @@ h1, h2 {
     z-index: 2;
 }
 
-h1 { 
-    margin: 0 0 10px 0;
-    font-size: 2.5em;
-    font-weight: 800;
-}
+h1 { margin: 0 0 10px 0; font-size: 2.5em; font-weight: 800; }
+h2 { margin: 5px 0 20px 0; font-size: 1.2em; font-weight: 400; opacity: 1; }
 
-h2 { 
-    margin: 5px 0 20px 0;
-    font-size: 1.2em;
-    font-weight: 400;
-    opacity: 1;
-}
-
-/* --- 4. CONTENEUR PRINCIPAL --- */
 main {
     padding: 0 20px;
     max-width: 1200px;
@@ -90,14 +75,9 @@ main {
     box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
 }
 
-#classement-container h3 {
-    color: var(--color-lagon-dark);
-    margin-top: 0;
-    font-size: 1.5em;
-}
+#classement-container h3 { color: var(--color-lagon-dark); margin-top: 0; font-size: 1.5em; }
 #classement-container p { color: var(--color-text-light); }
 
-/* --- 5. NAVIGATION --- */
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
     display: block; 
@@ -107,7 +87,6 @@ main {
     position: relative;
     z-index: 10; 
 }
-
 #nav-seasons { margin-bottom: 15px; }
 
 #nav-seasons a, #nav-categories a, #nav-masters a {
@@ -133,7 +112,6 @@ main {
     border-color: var(--color-lagon);
     transform: translateY(-2px);
 }
-
 #nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
     background-color: var(--color-volcan);
     color: white;
@@ -141,7 +119,6 @@ main {
     box-shadow: 0 4px 15px rgba(217, 79, 0, 0.4);
 }
 
-/* --- 6. TABLEAUX --- */
 .table-responsive {
     overflow-x: auto;
     width: 100%;
@@ -174,23 +151,19 @@ main {
     text-align: center;
 }
 
-.classement-table tbody tr:hover, .details-table tbody tr:hover {
-    background-color: #f0f8ff; 
-}
+.classement-table tbody tr:hover, .details-table tbody tr:hover { background-color: #f0f8ff; }
 
-/* Alignement Gauche pour Nom et Club (Desktop) */
 .classement-table td:nth-child(5), .classement-table td:nth-child(6) {
     text-align: left;
     padding-left: 20px;
 }
 
-/* Podium */
+/* PODIUM */
 .classement-table tbody tr:nth-child(1) td:last-child strong { color: var(--color-gold); font-size: 1.6em; }
 .classement-table tbody tr:nth-child(2) td:last-child strong { color: var(--color-silver); font-size: 1.5em; }
 .classement-table tbody tr:nth-child(3) td:last-child strong { color: var(--color-bronze); font-size: 1.4em; }
 .classement-table tr td:last-child strong { font-weight: 800; }
 
-/* --- 8. ÉLÉMENTS SPÉCIFIQUES --- */
 a.coureur-link, a.club-link {
     color: var(--color-text); 
     text-decoration: none; 
@@ -220,10 +193,7 @@ button {
     margin-right: auto;
     box-shadow: 0 4px 15px rgba(0, 167, 187, 0.3);
 }
-button:hover {
-    background-color: var(--color-lagon-dark);
-    transform: translateY(-2px);
-}
+button:hover { background-color: var(--color-lagon-dark); transform: translateY(-2px); }
 
 tr.category-separator td {
     background-color: #eef6f8;
@@ -260,77 +230,49 @@ tr.category-separator td {
 .gap-name { font-size: 0.85em; color: #888; }
 
 
-/* --- 9. RESPONSIVE (MOBILE) --- */
 @media (max-width: 768px) {
-    
     header { padding: 20px 10px 100px; }
     h1 { font-size: 1.8em; }
-    
     main { margin-top: -60px; padding: 0 10px; }
     #classement-container { padding: 20px 15px; border-radius: 20px; }
 
-    /* MODIFICATION BOUTONS MOBILE : COMPACTS */
     #nav-seasons a, #nav-categories a, #nav-masters a {
-        display: inline-block;
-        width: auto; /* S'adapte au texte, plus de 50% forcé */
-        margin: 3px 2px; /* Marges réduites */
-        padding: 6px 12px; /* Bouton plus petit */
-        font-size: 0.75em; /* Texte plus petit */
-        margin-right: 2px;
+        width: calc(50% - 14px); 
+        margin: 4px; 
+        padding: 8px 0;
+        font-size: 0.75em;
+        margin-right: 4px;
     }
     
     /* Masquage Colonnes Portrait */
     .classement-table th:nth-child(1), .classement-table td:nth-child(1),
     .classement-table th:nth-child(2), .classement-table td:nth-child(2),
     .classement-table th:nth-child(3), .classement-table td:nth-child(3),
-    .classement-table th:nth-child(4), .classement-table td:nth-child(4) {
-        display: none;
-    }
+    .classement-table th:nth-child(4), .classement-table td:nth-child(4) { display: none; }
 
-    .classement-table td, .classement-table th {
-        padding: 10px 5px;
-        font-size: 0.8em;
-    }
+    .classement-table td, .classement-table th { padding: 10px 5px; font-size: 0.85em; text-align: center; }
     
-    .classement-table td:nth-child(5), .classement-table td:nth-child(6) {
-        text-align: left;
-        padding-left: 5px;
-    }
-    .classement-table td:nth-child(7), .classement-table td:nth-child(8) {
-        text-align: right;
-        padding-right: 5px;
-    }
+    /* NOM aligné à gauche */
+    .classement-table td:nth-child(5) { text-align: left; padding-left: 5px; }
     
-    /* Force la dernière colonne (Pos.) à être petite */
-    .classement-table th:last-child, .classement-table td:last-child {
-        width: 30px;
-        white-space: nowrap;
-    }
+    /* Pos. petite */
+    .classement-table th:last-child, .classement-table td:last-child { width: 30px; white-space: nowrap; }
 
-    /* Vue Détail : Masquage colonnes inutiles */
+    /* Vue Détail Mobile */
     .details-table:not(.club-table) th:nth-child(1), .details-table:not(.club-table) td:nth-child(1),
     .details-table th:nth-child(3), .details-table td:nth-child(3),
-    .details-table th:nth-child(4), .details-table td:nth-child(4) {
-        display: none;
-    }
+    .details-table th:nth-child(4), .details-table td:nth-child(4) { display: none; }
     
-    /* Vue Club : Affiche Nom et Points */
+    /* Vue Club Mobile : Affiche Nom(1) et Points */
     .club-table th:nth-child(1), .club-table td:nth-child(1),
-    .club-table th:nth-child(2), .club-table td:nth-child(2) {
-        display: table-cell;
-        text-align: left;
-    }
+    .club-table th:nth-child(2), .club-table td:nth-child(2) { display: table-cell; }
+    .club-table td:nth-child(1) { text-align: left; }
 
-    .classement-table, .details-table {
-        min-width: 100%;
-        margin-top: 15px;
-    }
-    
+    .classement-table, .details-table { min-width: 100%; margin-top: 15px; }
     .gap-container { flex-direction: column; gap: 10px; padding: 10px; }
     .gap-card { width: 100%; max-width: none; }
 }
 
-/* --- 10. RÉTABLISSEMENT DESKTOP --- */
 @media (min-width: 769px) {
     th, td { display: table-cell !important; }
 }
