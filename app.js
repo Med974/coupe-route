@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v49 - Correction Totaux Club Stricts)
+// FICHIER : app.js (v49 - Correction SyntaxError Finale)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -125,11 +125,17 @@ function createNavBar(currentSaison, currentCategory) {
             const category = currentCategories[categoryKey];
             const isActive = categoryKey === currentCategory ? 'active' : '';
             categoriesHtml += `<a href="?saison=${currentSaison}&cat=${categoryKey}" class="${isActive}">${category.name}</a>`;
+        });
+    }
+    if (categoriesContainer) {
+        categoriesContainer.innerHTML = categoriesHtml;
+    }
+    
     // 3. Navigation Masters
     let mastersHtml = '';
     MASTERS_CONFIG.forEach(master => {
         const isActive = master.key === 'all' ? 'active' : '';
-        mastersHtml += `<a href="#" data-master="${master.key}" class="${isActive}">${master.name}</a>`;
+        mastersHtml += `<a href="#" data-master="${master.key}" class="master-button ${isActive}">${master.name}</a>`;
     });
     if (mastersContainer) {
         mastersContainer.innerHTML = mastersHtml;
@@ -205,7 +211,6 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Le lien utilise le Nom comme clé de recherche (pour la vue détaillée)
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -247,7 +252,7 @@ function renderCoureurDetails(details) {
     let totalPoints = 0;
     details.forEach(course => {
         // CORRECTION : Parsing strict pour les entiers
-        const points = parseInt(String(course.Points)) || 0; 
+        const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
         }
@@ -286,7 +291,7 @@ async function showCoureurDetails(nom, saisonKey) {
     const encodedNom = encodeURIComponent(nom);
     const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
     
-    // Utilise la clé Nom pour la recherche (stable)
+    // CORRECTION CRITIQUE : L'URL utilise la casse correcte "Nom=" pour la recherche API
     const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
 
     const container = document.getElementById('classement-container');
@@ -329,8 +334,8 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
-        const pointsA = parseInt(String(a.PointsTotal)) || 0; // CORRECTION : Utilise parseInt
-        const pointsB = parseInt(String(b.PointsTotal)) || 0; // CORRECTION : Utilise parseInt
+        const pointsA = parseFloat(String(a.PointsTotal).replace(/[^\d.]/g, '')) || 0;
+        const pointsB = parseFloat(String(b.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
         return pointsB - pointsA; 
     });
@@ -340,8 +345,7 @@ function renderClubDetails(members, clubNom) {
     // Calcul du Total des Points du Club
     let totalClubPoints = 0;
     members.forEach(member => {
-        // CORRECTION : Utilise la conversion numérique simple
-        totalClubPoints += parseInt(String(member.PointsTotal)) || 0;
+        totalClubPoints += parseFloat(String(member.PointsTotal).replace(/[^\d.]/g, '')) || 0;
     });
 
     html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Points du Club: ${totalClubPoints}</p>`;
@@ -354,7 +358,7 @@ function renderClubDetails(members, clubNom) {
     
     members.forEach(member => {
         // Conversion en nombre strict pour l'affichage dans le tableau
-        const points = parseInt(String(member.PointsTotal)) || 0;
+        const points = parseFloat(String(member.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
         // NOUVEAU : Changement de Catégorie (Début du Regroupement)
         if (member.Catégorie !== currentCategory) {
