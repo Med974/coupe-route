@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v34 - Correction Totaux Club et Regroupement Final)
+// FICHIER : app.js (v34 - Correction Totaux Club et Erreur 400)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -288,7 +288,7 @@ async function showCoureurDetails(nom, saisonKey) {
     
     // 1. URL de recherche : Recherche par Nom (Texte) via Worker
     const encodedNom = encodeURIComponent(nom);
-    const searchUrl = `${WORKER_BASE_URL}search?nom=${encodedNom}&sheet=Résultats Bruts&apiId=${saisonConfig.apiId}`; 
+    const searchUrl = `https://morning-darkness-4a2d.med97400.workers.dev/search?nom=${encodedNom}&sheet=Résultats Bruts&apiId=${saisonConfig.apiId}`; 
 
     const container = document.getElementById('classement-container');
     if (container) {
