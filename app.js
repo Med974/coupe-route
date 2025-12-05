@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v52 - Correction Finale Filtre Club)
+// FICHIER : app.js (v58 - FINAL : Toutes corrections appliquées)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -37,7 +37,7 @@ const DEFAULT_SAISON = '2026';
 const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
-let globalRawData = {}; 
+let globalRawData = {}; // Stocke les résultats bruts pour le filtrage local
 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
@@ -85,6 +85,9 @@ function buildJsonUrl(saisonKey, categoryKey) {
     return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
 }
 
+/**
+ * Charge tous les résultats bruts au démarrage pour la vue détail.
+ */
 async function loadAllRawResults(saisonKey) {
     if (globalRawData[saisonKey] && globalRawData[saisonKey].length > 0) {
         return globalRawData[saisonKey];
@@ -94,14 +97,12 @@ async function loadAllRawResults(saisonKey) {
 
     try {
         const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Worker/API: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Worker/API: ${response.status}`);
         const data = await response.json();
         globalRawData[saisonKey] = data; 
         return data;
     } catch (e) {
-        console.error("Erreur critique lors du chargement des résultats bruts:", e);
+        console.error("Erreur chargement résultats bruts:", e);
         return [];
     }
 }
@@ -143,18 +144,18 @@ function createNavBar(currentSaison, currentCategory) {
     }
 }
 
+// --- 3. Fonctions de Données et Rendu ---
+
 async function fetchClassementData(url) {
     const container = document.getElementById('classement-container');
     try {
         const response = await fetch(url);
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Erreur HTTP: ${response.status}. Réponse: ${errorBody.substring(0, 100)}...`);
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare.`);
         }
         const data = await response.json(); 
-        if (data && data.error) {
-             throw new Error(`Erreur API: ${data.error}`);
-        }
+        if (data && data.error) throw new Error(`Erreur API: ${data.error}`);
         return data;
     } catch (error) {
         if (container) {
@@ -166,24 +167,29 @@ async function fetchClassementData(url) {
 
 function renderTable(data) {
     const container = document.getElementById('classement-container');
+
     if (data.length === 0 || typeof data[0] !== 'object') {
         if (container) {
             container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie.</p>';
         }
         return;
     }
+
     const headers = Object.keys(data[0]);
+
     let html = '<table class="classement-table">';
     html += '<thead><tr>';
     headers.forEach(header => {
-        const displayHeader = header.replace('PointsTotal', 'Total Pts')
+        // RENOMMAGE : 'Points' et 'Pos.'
+        const displayHeader = header.replace('PointsTotal', 'Points')
                                     .replace('NbCourses', 'Nb Courses')
-                                    .replace('SousCategorie', 'Catégorie')
-                                    .replace('Master', 'Cat. Master')
-                                    .replace('Classement', 'Pos.'); 
+                                    .replace('SousCategorie', 'Sous Catégorie')
+                                    .replace('Master', 'Catégorie Master')
+                                    .replace('Classement', 'Pos.');
         html += `<th>${displayHeader}</th>`;
     });
     html += '</tr></thead>';
+
     html += '<tbody>';
     data.forEach(coureur => {
         html += '<tr>';
@@ -212,91 +218,62 @@ function renderTable(data) {
     }
 }
 
+
 // --- 4. Logique Détaillée du Coureur ---
 
 function renderCoureurDetails(details) {
     const container = document.getElementById('classement-container');
     if (!container) return;
-    
     if (details.length === 0) {
         container.innerHTML = '<p>Aucun résultat de course trouvé pour ce coureur.</p>';
         return;
     }
-    
     const coureurNom = details[0].Nom;
     const coureurDossardRecherche = details[0].Dossard; 
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
 
-    // Calcul du total des points (Détail)
     let totalPoints = 0;
     details.forEach(course => {
+        // parseInt strict
         const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
         }
     });
-
-// --- NOUVEAU : LOGIQUE DE COMPARAISON (ÉCARTS CORRIGÉE) ---
-    let gapsHtml = '<div class="gap-container">';
     
-    // Fonction locale pour extraire proprement les points d'une ligne de classement
+    // Gap Logic
+    let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
-        // On cherche la clé avec ou sans espace
         const val = row.PointsTotal || row["Points Total"] || "0";
-        // On ne garde que les chiffres et on convertit
         return parseInt(String(val).replace(/[^\d]/g, '')) || 0;
     };
-
-    // On cherche le coureur dans le classement global
     const rankIndex = globalClassementData.findIndex(c => c.Nom === coureurNom);
-
     if (rankIndex !== -1) {
         const currentPoints = getPointsSafe(globalClassementData[rankIndex]);
-
-        // 1. Coureur devant (Rang inférieur, donc index - 1)
         if (rankIndex > 0) {
             const runnerAhead = globalClassementData[rankIndex - 1];
             const pointsAhead = getPointsSafe(runnerAhead);
             const diff = pointsAhead - currentPoints;
-            
-            gapsHtml += `
-                <div class="gap-card chase">
-                    <strong>🛑 Retard : -${diff} pts</strong>
-                    <span class="gap-name">sur ${runnerAhead.Nom} (#${runnerAhead.Classement})</span>
-                </div>`;
+            gapsHtml += `<div class="gap-card chase"><strong>🛑 Retard : -${diff} pts</strong><span class="gap-name">sur ${runnerAhead.Nom} (#${runnerAhead.Classement})</span></div>`;
         } else {
-            // C'est le premier !
-             gapsHtml += `
-                <div class="gap-card lead">
-                    <strong>👑 Leader du classement</strong>
-                </div>`;
+             gapsHtml += `<div class="gap-card lead"><strong>👑 Leader du classement</strong></div>`;
         }
-
-        // 2. Coureur derrière (Rang supérieur, donc index + 1)
         if (rankIndex < globalClassementData.length - 1) {
             const runnerBehind = globalClassementData[rankIndex + 1];
             const pointsBehind = getPointsSafe(runnerBehind);
             const diff = currentPoints - pointsBehind;
-
-            gapsHtml += `
-                <div class="gap-card lead">
-                    <strong>✅ Avance : +${diff} pts</strong>
-                    <span class="gap-name">sur ${runnerBehind.Nom} (#${runnerBehind.Classement})</span>
-                </div>`;
+            gapsHtml += `<div class="gap-card lead"><strong>✅ Avance : +${diff} pts</strong><span class="gap-name">sur ${runnerBehind.Nom} (#${runnerBehind.Classement})</span></div>`;
         }
     }
     gapsHtml += '</div>';
-    // ---------------------------------------------------
 
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 10px;">TOTAL DES POINTS: ${totalPoints}</p>`;
-    
-    // Insertion des badges d'écart
     html += gapsHtml;
 
+    // RENOMMAGE : 'Pos.'
     html += '<table class="details-table">';
-    html += '<thead><tr><th>Date</th><th>Course</th><th>Position</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
-
+    html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
     details.forEach(course => {
         html += `<tr>
                     <td>${course.Date}</td> 
@@ -306,7 +283,6 @@ function renderCoureurDetails(details) {
                     <td><strong>${course.Points}</strong></td>
                  </tr>`;
     });
-    
     html += '</tbody></table>';
     html += `<button onclick="init()">Retour au Classement Général</button>`;
     container.innerHTML = html;
@@ -317,6 +293,8 @@ async function showCoureurDetails(nom, saisonKey, allRawResults) {
     if (container) {
         container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
     }
+    
+    // Filtrage côté client
     const rawResults = await allRawResults;
     const filteredDetails = rawResults.filter(course => 
         course.Nom && course.Nom.toString().trim() === nom.toString().trim()
@@ -331,75 +309,44 @@ function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
     if (!container) return;
     
-    // --- 1. Tri (Ordre personnalisé + Points) ---
-    const categoryOrder = [
-        "OPEN", "Access 1/2", "Access 3/4", "Femmes", "U17", "U15", "U15/U17 Filles", "U15U17F"
-    ];
-
-    const getCategoryRank = (catName) => {
-        const index = categoryOrder.indexOf(catName);
-        return index === -1 ? 999 : index;
-    };
+    // Tri personnalisé
+    const categoryOrder = ["OPEN", "Access 1/2", "Access 3/4", "Femmes", "U17", "U15", "U15/U17 Filles", "U15U17F"];
+    const getCategoryRank = (catName) => { const index = categoryOrder.indexOf(catName); return index === -1 ? 999 : index; };
 
     members.sort((a, b) => {
         const rankA = getCategoryRank(a.Catégorie);
         const rankB = getCategoryRank(b.Catégorie);
-        
         if (rankA !== rankB) return rankA - rankB;
         
-        const pointsA = parseInt(a["Points Total"]) || 0; 
-        const pointsB = parseInt(b["Points Total"]) || 0; 
-        return pointsB - pointsA; 
+        // Parsing strict pour le tri
+        const valA = a["Points Total"] || a.PointsTotal || "0";
+        const valB = b["Points Total"] || b.PointsTotal || "0";
+        return (parseInt(valB) || 0) - (parseInt(valA) || 0); 
     });
     
-    // --- 2. Calculs des Totaux et des Effectifs par Catégorie ---
-    let totalClubPoints = 0;
-    let categoryCounts = {}; // Objet pour stocker le nombre de coureurs par catégorie
-
-    members.forEach(member => {
-        // Calcul Points
-        totalClubPoints += parseInt(member["Points Total"]) || 0;
-        
-        // Calcul Effectifs par catégorie
-        const cat = member.Catégorie;
-        if (categoryCounts[cat]) {
-            categoryCounts[cat]++;
-        } else {
-            categoryCounts[cat] = 1;
-        }
-    });
-
-    // --- 3. Affichage ---
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
-    // Affichage des deux totaux globaux
-    html += `<p style="font-size: 1.1em; margin-bottom: 20px;">
-                <strong>Points Total :</strong> ${totalClubPoints} <span style="margin: 0 10px;">|</span> 
-                <strong>Nombre de Coureurs :</strong> ${members.length}
-             </p>`;
+    // Calcul Totaux
+    let totalClubPoints = 0;
+    members.forEach(member => {
+        const rawPoints = member["Points Total"] || member.PointsTotal || "0";
+        totalClubPoints += parseInt(rawPoints) || 0;
+    });
+
+    html += `<p style="font-size: 1.1em; margin-bottom: 20px;"><strong>Points Total :</strong> ${totalClubPoints} <span style="margin: 0 10px;">|</span> <strong>Nombre de Coureurs :</strong> ${members.length}</p>`;
     
+    // Tableau unique avec classe 'club-table' pour le CSS
     let currentCategory = '';
-    
-    // Ouverture du tableau unique
     html += '<table class="details-table club-table">';
     html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
     
     members.forEach(member => {
-        const points = parseInt(member["Points Total"]) || 0;
+        const rawPoints = member["Points Total"] || member.PointsTotal || "0";
+        const points = parseInt(rawPoints) || 0;
         
-        // Changement de Catégorie
         if (member.Catégorie !== currentCategory) {
             currentCategory = member.Catégorie;
-            
-            // Récupération du nombre de coureurs pour cette catégorie spécifique
-            const countInCat = categoryCounts[currentCategory] || 0;
-            
-            // Ligne de séparation avec le Nom de la catégorie ET le Nombre de coureurs
-            html += `<tr class="category-separator">
-                        <td colspan="2">
-                            ${currentCategory} <span style="font-size:0.8em; font-weight:normal;">(${countInCat} coureurs)</span>
-                        </td>
-                     </tr>`;
+            html += `<tr class="category-separator"><td colspan="2">${currentCategory}</td></tr>`;
         }
         
         html += `<tr>
@@ -410,14 +357,11 @@ function renderClubDetails(members, clubNom) {
     
     html += '</tbody></table>'; 
     html += `<button onclick="init()">Retour au Classement Général</button>`;
-
     container.innerHTML = html;
 }
 
 async function showClubClassement(clubNom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
-    const sheetdbApiId = saisonConfig.apiId;
-    
     const encodedClub = encodeURIComponent(clubNom);
     const searchUrl = `${WORKER_BASE_URL}search?Club=${encodedClub}&sheet=Coureurs&saison=${saisonKey}`;
 
@@ -428,22 +372,15 @@ async function showClubClassement(clubNom, saisonKey) {
     
     try {
         const response = await fetch(searchUrl);
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}.`);
-        }
+        if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}.`);
         const data = await response.json();
         
-        // CORRECTION CRITIQUE : Filtrer les données reçues pour ne garder que le club concerné
-        // et éliminer les lignes vides éventuelles.
-        const filteredMembers = data.filter(member => 
-            member.Club && member.Club.trim() === clubNom.trim()
-        );
-
+        // Filtre de sécurité
+        const filteredMembers = data.filter(member => member.Club && member.Club.trim() === clubNom.trim());
         renderClubDetails(filteredMembers, clubNom); 
-
     } catch (error) {
         if (container) {
-            container.innerHTML = `<p style="color: red;">Erreur lors de la récupération des membres du club : ${error.message}</p>`;
+            container.innerHTML = `<p style="color: red;">Erreur lors de la récupération des membres du club.</p>`;
         }
     }
 }
@@ -456,12 +393,10 @@ function handleMasterFilterChange(event) {
     const button = event.target.closest('a.master-button');
     if (!button) return;
     const selectedMaster = button.getAttribute('data-master');
-    
     document.querySelectorAll('#nav-masters .master-button').forEach(btn => {
         btn.classList.remove('active');
     });
     button.classList.add('active');
-    
     let filteredData = globalClassementData;
     if (selectedMaster !== 'all') {
         filteredData = globalClassementData.filter(coureur => {
@@ -489,7 +424,7 @@ async function init() {
     
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
-    const categoryTitleElement = document.getElementById('category-title');
+    const categoryTitleElement = document.querySelector('header h2');
     if (categoryTitleElement) {
         categoryTitleElement.textContent = ""; 
     }
@@ -498,6 +433,7 @@ async function init() {
         if (container) {
             container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
         }
+        
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         const rawResultsPromise = loadAllRawResults(currentSaison);
@@ -538,9 +474,3 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
-
-
-
-
-
-
