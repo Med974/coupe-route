@@ -208,16 +208,22 @@ function renderTable(data) {
     }
 }
 
+// --- 4. Logique Détaillée du Coureur ---
+
 function renderCoureurDetails(details) {
     const container = document.getElementById('classement-container');
     if (!container) return;
+    
     if (details.length === 0) {
         container.innerHTML = '<p>Aucun résultat de course trouvé pour ce coureur.</p>';
         return;
     }
+    
     const coureurNom = details[0].Nom;
     const coureurDossardRecherche = details[0].Dossard; 
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
+
+    // Calcul du total des points (Détail)
     let totalPoints = 0;
     details.forEach(course => {
         const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
@@ -225,10 +231,62 @@ function renderCoureurDetails(details) {
             totalPoints += points;
         }
     });
+
+    // --- NOUVEAU : LOGIQUE DE COMPARAISON (ÉCARTS) ---
+    let gapsHtml = '<div class="gap-container">';
+    
+    // On cherche le coureur dans le classement global (qui est trié)
+    // Note: On utilise le Nom comme clé de comparaison car c'est la donnée stable ici
+    const rankIndex = globalClassementData.findIndex(c => c.Nom === coureurNom);
+
+    if (rankIndex !== -1) {
+        const currentPoints = parseInt(globalClassementData[rankIndex].PointsTotal) || 0;
+
+        // 1. Coureur devant (Rang inférieur, donc index - 1)
+        if (rankIndex > 0) {
+            const runnerAhead = globalClassementData[rankIndex - 1];
+            const pointsAhead = parseInt(runnerAhead.PointsTotal) || 0;
+            const diff = pointsAhead - currentPoints;
+            
+            gapsHtml += `
+                <div class="gap-card chase">
+                    <strong>🛑 Retard : -${diff} pts</strong>
+                    <span class="gap-name">sur ${runnerAhead.Nom} (#${runnerAhead.Classement})</span>
+                </div>`;
+        } else {
+            // C'est le premier !
+             gapsHtml += `
+                <div class="gap-card lead">
+                    <strong>👑 Leader du classement</strong>
+                </div>`;
+        }
+
+        // 2. Coureur derrière (Rang supérieur, donc index + 1)
+        if (rankIndex < globalClassementData.length - 1) {
+            const runnerBehind = globalClassementData[rankIndex + 1];
+            const pointsBehind = parseInt(runnerBehind.PointsTotal) || 0;
+            const diff = currentPoints - pointsBehind;
+
+            gapsHtml += `
+                <div class="gap-card lead">
+                    <strong>✅ Avance : +${diff} pts</strong>
+                    <span class="gap-name">sur ${runnerBehind.Nom} (#${runnerBehind.Classement})</span>
+                </div>`;
+        }
+    }
+    gapsHtml += '</div>';
+    // ---------------------------------------------------
+
+
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
-    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 10px;">TOTAL DES POINTS: ${totalPoints}</p>`;
+    
+    // Insertion des badges d'écart
+    html += gapsHtml;
+
     html += '<table class="details-table">';
     html += '<thead><tr><th>Date</th><th>Course</th><th>Position</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
+
     details.forEach(course => {
         html += `<tr>
                     <td>${course.Date}</td> 
@@ -238,6 +296,7 @@ function renderCoureurDetails(details) {
                     <td><strong>${course.Points}</strong></td>
                  </tr>`;
     });
+    
     html += '</tbody></table>';
     html += `<button onclick="init()">Retour au Classement Général</button>`;
     container.innerHTML = html;
@@ -469,6 +528,7 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
 
 
 
