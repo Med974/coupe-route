@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v41 - Correction Finale : Worker et Totaux Stables)
+// FICHIER : app.js (v44 - Recherche par Nom Rétablie et Totaux Corrigés)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,7 +211,7 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Le lien utilise le NOM comme clé de recherche
+                // Utilise le Nom comme clé de recherche (pour éviter les problèmes de format dossard)
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -292,7 +292,7 @@ async function showCoureurDetails(nom, saisonKey) {
     const encodedNom = encodeURIComponent(nom);
     const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
     
-    // CORRECTION CRITIQUE : Utilise la clé Nom et le Dossard encodé (C'est la solution la plus stable)
+    // CORRECTION CRITIQUE : Utilise la casse correcte "Nom=" pour la recherche API
     const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
 
     const container = document.getElementById('classement-container');
@@ -335,7 +335,6 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
-        // CORRECTION : Supprimer les caractères non numériques avant de parser
         const pointsA = parseFloat(String(a.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         const pointsB = parseFloat(String(b.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
@@ -520,7 +519,7 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
-            // Écouteur pour la vue détaillée (Nom du coureur)
+            // Écouteur pour la vue détaillée (Dossard Numérique)
             classementContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
