@@ -1,7 +1,7 @@
 /* =======================================================================
    FICHIER : styles.css
-   Design : "Pro Sport" - Réunion (Photo Brute)
-   Version : Finale Complète (Header Photo + App Look + Responsive)
+   Design : "Pro Sport" - Réunion (Lisibilité Maximale)
+   Version : Finale Complète
 ======================================================================= */
 
 /* Import des polices : Montserrat (Titres) et Roboto (Texte) */
@@ -36,54 +36,39 @@ h1, h2, h3, h4, th {
     letter-spacing: 0.5px;
 }
 
-/* --- 3. HEADER IMMERSIF (Image Seule) --- */
+/* --- 3. HEADER (RETOUR AU DÉGRADÉ LISIBLE) --- */
 header {
-    /* Modification : Image seule, sans dégradé par-dessus */
-    background-image: url('header-bg.jpg'); 
-    
-    background-size: cover;      
-    background-position: center; /* Centre l'image pour bien voir les sujets */
-    background-repeat: no-repeat;
-    background-attachment: scroll; 
+    /* Dégradé diagonal : Bleu Nuit -> Bleu Lagon */
+    background: linear-gradient(135deg, #003366 0%, var(--color-lagon) 100%);
     
     color: var(--color-light);
-    padding: 40px 20px 80px; /* Espace en bas pour le chevauchement du menu */
+    padding: 40px 20px 60px; /* Espace en bas pour le chevauchement */
     text-align: center;
-    
-    /* Ombre portée sous le header pour le détacher du fond */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
     position: relative;
-    overflow: hidden;
-}
-
-/* Ombre forte sous le texte pour garantir la lisibilité sur une photo */
-h1, h2 {
-    text-shadow: 0 2px 10px rgba(0,0,0,0.9); 
-    position: relative;
-    z-index: 2;
 }
 
 h1 { 
     margin: 0 0 5px 0;
-    font-size: 2.5em;
+    font-size: 2.4em;
     font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 h2 { 
     margin: 5px 0 20px 0;
     font-size: 1.2em;
     font-weight: 400;
-    opacity: 1;
+    opacity: 0.9;
 }
 
 /* --- 4. CONTENEUR PRINCIPAL --- */
 main {
     padding: 20px;
     max-width: 1200px;
-    margin: -50px auto 40px; /* Remonte sur le header */
+    margin: -40px auto 40px; /* Remonte sur le header */
     z-index: 10;
     position: relative;
 }
@@ -108,12 +93,11 @@ main {
     display: inline-block;
     text-decoration: none;
     color: var(--color-light);
-    /* Fond semi-transparent foncé pour lisibilité sur la photo */
-    background-color: rgba(0, 0, 0, 0.3); 
-    backdrop-filter: blur(5px);
+    /* Fond blanc très transparent pour se fondre dans le dégradé */
+    background-color: rgba(255, 255, 255, 0.15); 
     padding: 8px 20px;
     margin: 5px;
-    border-radius: 50px;
+    border-radius: 50px; /* Pill shape */
     font-size: 0.85em;
     font-weight: 600;
     transition: all 0.2s ease;
@@ -132,8 +116,8 @@ main {
 /* Bouton Actif */
 #nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
     background-color: var(--color-light);
-    color: #004d99;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    color: #003366; /* Bleu nuit pour le contraste */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     font-weight: 800;
     border-color: var(--color-light);
 }
@@ -293,6 +277,7 @@ tr.category-separator td {
 .gap-card strong { display: block; font-size: 1.2em; margin-bottom: 5px; }
 .gap-name { font-size: 0.85em; color: #888; }
 
+
 /* --- 9. RESPONSIVE (MOBILE) --- */
 @media (max-width: 768px) {
     
@@ -300,16 +285,17 @@ tr.category-separator td {
     h1 { font-size: 1.8em; }
     main { padding: 10px; margin-top: -20px; }
 
-    /* Boutons Mobile : plus compacts, 2 par ligne */
+    /* Boutons Mobile : plus compacts */
     #nav-seasons a, #nav-categories a, #nav-masters a {
         width: calc(50% - 14px); 
         margin: 4px; 
         padding: 8px 0;
         font-size: 0.75em;
+        margin-right: 4px;
     }
     
     /* --- Masquage Colonnes (Vue Portrait) --- */
-    /* On garde : Nom (5), Club (6), Points (7), Cls (8) */
+    /* Affiche: Nom (5), Club (6), Points (7), Cls (8) */
     .classement-table th:nth-child(1), .classement-table td:nth-child(1), /* Sous Cat */
     .classement-table th:nth-child(2), .classement-table td:nth-child(2), /* Master */
     .classement-table th:nth-child(3), .classement-table td:nth-child(3), /* Nb Courses */
