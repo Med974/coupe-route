@@ -258,15 +258,43 @@ async function showCoureurDetails(nom, saisonKey, allRawResults) {
 
 // --- 5. Logique Club ---
 
+// --- 5. Logique Club ---
+
 function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
     if (!container) return;
     
-    // 1. Tri (Inchangé)
+    // Définition de l'ordre d'affichage souhaité
+    // Assurez-vous que les noms correspondent exactement à ceux de votre colonne "Catégorie" dans Sheet
+    const categoryOrder = [
+        "OPEN", 
+        "Access 1/2", 
+        "Access 3/4", 
+        "Femmes", 
+        "U17", 
+        "U15", 
+        "U15/U17 Filles",
+        "U15U17F" // Sécurité si le nom varie
+    ];
+
+    // Fonction utilitaire pour obtenir le rang
+    const getCategoryRank = (catName) => {
+        const index = categoryOrder.indexOf(catName);
+        // Si la catégorie n'est pas dans la liste, on la met à la fin (999)
+        return index === -1 ? 999 : index;
+    };
+
+    // 1. Tri Avancé
     members.sort((a, b) => {
-        if (a.Catégorie < b.Catégorie) return -1;
-        if (a.Catégorie > b.Catégorie) return 1;
+        // Tri par Ordre Personnalisé
+        const rankA = getCategoryRank(a.Catégorie);
+        const rankB = getCategoryRank(b.Catégorie);
         
+        if (rankA !== rankB) {
+            return rankA - rankB; // Plus le rang est petit, plus il est haut
+        }
+        
+        // Si même catégorie, Tri par Points Total (Décroissant)
         const pointsA = parseInt(a["Points Total"]) || 0; 
         const pointsB = parseInt(b["Points Total"]) || 0; 
         
@@ -275,7 +303,7 @@ function renderClubDetails(members, clubNom) {
     
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
-    // 2. Calcul du Total (Inchangé)
+    // 2. Calcul du Total
     let totalClubPoints = 0;
     members.forEach(member => {
         totalClubPoints += parseInt(member["Points Total"]) || 0;
@@ -283,10 +311,9 @@ function renderClubDetails(members, clubNom) {
 
     html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Points du Club: ${totalClubPoints}</p>`;
     
-    // 3. Regroupement (MODIFIÉ : Tableau Unique)
+    // 3. Rendu Tableau Unique avec Séparateurs
     let currentCategory = '';
     
-    // Ouverture du tableau unique AVANT la boucle
     html += '<table class="details-table club-table">';
     html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
     
@@ -297,7 +324,7 @@ function renderClubDetails(members, clubNom) {
         if (member.Catégorie !== currentCategory) {
             currentCategory = member.Catégorie;
             
-            // Ligne de séparation qui prend toute la largeur (colspan=2)
+            // Ligne de séparation
             html += `<tr class="category-separator">
                         <td colspan="2">${currentCategory}</td>
                      </tr>`;
@@ -309,7 +336,6 @@ function renderClubDetails(members, clubNom) {
                  </tr>`;
     });
     
-    // Fermeture du tableau unique APRÈS la boucle
     html += '</tbody></table>'; 
     html += `<button onclick="init()">Retour au Classement Général</button>`;
 
@@ -440,4 +466,5 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
 
