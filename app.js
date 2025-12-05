@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v34 - Correction Totaux Club et Erreur 400)
+// FICHIER : app.js (v35 - Correction Totaux Club et Regroupement Final)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -251,7 +251,8 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        const points = parseFloat(course.Points);
+        // Le code de l'étape 2 (club) est utilisé ici
+        const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
         }
@@ -288,7 +289,7 @@ async function showCoureurDetails(nom, saisonKey) {
     
     // 1. URL de recherche : Recherche par Nom (Texte) via Worker
     const encodedNom = encodeURIComponent(nom);
-    const searchUrl = `https://morning-darkness-4a2d.med97400.workers.dev/search?nom=${encodedNom}&sheet=Résultats Bruts&apiId=${saisonConfig.apiId}`; 
+    const searchUrl = `${WORKER_BASE_URL}search?nom=${encodedNom}&sheet=Résultats Bruts&apiId=${saisonConfig.apiId}`; 
 
     const container = document.getElementById('classement-container');
     if (container) {
@@ -330,7 +331,7 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
-        // CORRECTION : Supprimer les virgules avant de parser
+        // CORRECTION : Supprimer les caractères non numériques (espaces/virgules) avant de parser
         const pointsA = parseFloat(String(a.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         const pointsB = parseFloat(String(b.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
