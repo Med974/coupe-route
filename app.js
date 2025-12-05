@@ -449,4 +449,28 @@ async function init() {
                     e.preventDefault();
                     const nom = link.getAttribute('data-nom'); 
                     const currentSaison = getSaisonFromURL(); 
-                    showCoureurDetails(nom, currentS
+                    showCoureurDetails(nom, currentSaison, await rawResultsPromise); 
+                }
+            });
+            
+            // Clic Club
+            classementContainer.addEventListener('click', (e) => {
+                const link = e.target.closest('.club-link');
+                if (link) {
+                    e.preventDefault();
+                    const clubNom = link.getAttribute('data-club'); 
+                    const currentSaison = getSaisonFromURL(); 
+                    showClubClassement(clubNom, currentSaison);
+                }
+            });
+        }
+        
+        renderTable(rawData);
+    } else {
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Configuration des données manquante.</p>`;
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', init);
