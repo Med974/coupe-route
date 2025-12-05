@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v38 - Retour à la Recherche par Dossard Unique)
+// FICHIER : app.js (v39 - Recherche par Dossard Numérique Rétablie)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,8 +211,8 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Le Nom est la clé de recherche, mais nous passons le Dossard pour la vue détaillée
-                displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}" data-dossard="${coureur.Dossard}">${content}</a>`;
+                // CORRECTION : Le lien DOIT passer le Dossard pour la recherche
+                displayContent = `<a href="#" class="coureur-link" data-dossard="${coureur.Dossard}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
             } else if (header === 'Classement') {
@@ -285,25 +285,16 @@ function renderCoureurDetails(details) {
 }
 
 
-async function showCoureurDetails(nom, saisonKey) {
+async function showCoureurDetails(dossard, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     
-    // 1. URL de recherche : Utilisation du Dossard (Numérique Pur) comme clé de recherche
-    // Problème : La fonction renderTable passe le NOM, pas le Dossard.
-    // Solution 1 (Simple) : Rechercher par Nom (mais risque d'homonymes)
-    // Solution 2 (Meilleure) : Rechercher par Dossard (mais l'écouteur est sur le nom).
-
-    // NOUS UTILISONS LE NOM COMME CLÉ DE RECHERCHE, EN S'ASSURANT QUE LA CASSE DE LA COLONNE EST CORRECTE.
-    
-    const encodedNom = encodeURIComponent(nom);
-    const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
-    
-    // CORRECTION CRITIQUE : Utilise la casse correcte "Nom="
-    const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&apiId=${saisonConfig.apiId}`; 
+    // 1. URL de recherche : Recherche par Dossard Numérique via Worker
+    // Utilisation de la clé Dossard pour la recherche, comme convenu
+    const searchUrl = `${WORKER_BASE_URL}search?Dossard=${dossard}&sheet=Résultats Bruts&apiId=${saisonConfig.apiId}`; 
 
     const container = document.getElementById('classement-container');
     if (container) {
-        container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
+        container.innerHTML = `<p>Chargement des résultats pour le Dossard ${dossard}...</p>`;
     }
     
     try {
@@ -341,7 +332,6 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
-        // CORRECTION : Supprimer les caractères non numériques avant de parser
         const pointsA = parseFloat(String(a.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         const pointsB = parseFloat(String(b.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
@@ -350,10 +340,9 @@ function renderClubDetails(members, clubNom) {
     
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
-    // NOUVEAU : Calcul du total des points du club pour l'affichage
+    // Calcul du Total des Points du Club
     let totalClubPoints = 0;
     members.forEach(member => {
-        // On s'assure que la conversion est faite ici aussi
         totalClubPoints += parseFloat(String(member.PointsTotal).replace(/[^\d.]/g, '')) || 0;
     });
 
@@ -532,11 +521,11 @@ async function init() {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
-                    // La recherche se fait par NOM (Texte)
-                    const nom = link.getAttribute('data-nom'); 
+                    // ATTENTION : Le lien doit passer le Dossard (Numérique Pur)
+                    const dossard = link.getAttribute('data-dossard'); 
                     const currentSaison = getSaisonFromURL(); 
                     
-                    showCoureurDetails(nom, currentSaison);
+                    showCoureurDetails(dossard, currentSaison);
                 }
             });
             
