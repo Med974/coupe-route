@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v39 - Correction Finale : Erreur 400 Résolue)
+// FICHIER : app.js (v40 - Correction Finale de l'URL de Recherche par Dossard)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,6 +211,7 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
+                // Le lien utilise l'ID Dossard Numérique comme clé
                 displayContent = `<a href="#" class="coureur-link" data-dossard="${coureur.Dossard}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -251,7 +252,6 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // Parsing strict pour les entiers
         const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
@@ -291,8 +291,8 @@ async function showCoureurDetails(dossard, saisonKey) {
     const encodedDossard = encodeURIComponent(dossard);
     const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
     
-    // CORRECTION CRITIQUE : Utilisation de la clé Dossard et du Dossard encodé
-    const searchUrl = `${WORKER_BASE_URL}search?Dossard=${encodedDossard}&sheet=${encodedSheetName}&apiId=${saisonConfig.apiId}`; 
+    // CORRECTION APPLIQUÉE : L'URL de recherche est complète et inclut la SAISON pour le Worker
+    const searchUrl = `${WORKER_BASE_URL}search?Dossard=${encodedDossard}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
 
     const container = document.getElementById('classement-container');
     if (container) {
@@ -523,7 +523,6 @@ async function init() {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
-                    // Utilisation du Dossard pour la recherche
                     const dossard = link.getAttribute('data-dossard'); 
                     const currentSaison = getSaisonFromURL(); 
                     
