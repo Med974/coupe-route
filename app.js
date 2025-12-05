@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v33 - Regroupement par Catégorie Club)
+// FICHIER : app.js (v34 - Correction Totaux Club et Regroupement Final)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,10 +211,8 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Le Nom est la clé de recherche pour la vue détaillée
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
-                 // Le Club est la clé de recherche pour le classement du club
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
             } else if (header === 'Classement') {
                 displayContent = `<strong>${content}</strong>`;
@@ -339,23 +337,43 @@ function renderClubDetails(members, clubNom) {
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Membres: ${members.length}</p>`;
     
-    html += '<table class="details-table">';
+    // 2. Regroupement et Rendu
+    let currentCategory = '';
     
-    // En-têtes (Nom, Catégorie, Points Total)
-    html += '<thead><tr><th>Nom</th><th>Catégorie</th><th>Points Total</th></tr></thead><tbody>';
-
-    // 2. Remplissage des lignes
+    // Début du conteneur pour le regroupement
+    html += '<div class="club-details-list">'; 
+    
     members.forEach(member => {
-        const points = parseFloat(member.PointsTotal) || 0;
+        // CORRECTION DU TOTAL DES POINTS : S'assurer qu'il est un nombre ou 0
+        const points = parseFloat(member.PointsTotal) || 0; 
         
+        // NOUVEAU : Changement de Catégorie (Début du Regroupement)
+        if (member.Catégorie !== currentCategory) {
+            currentCategory = member.Catégorie;
+            
+            // Si le tableau est déjà ouvert (n'est pas le tout premier titre)
+            if (currentCategory !== members[0].Catégorie) {
+                html += '</tbody></table>'; // Fermer le tableau précédent
+            }
+
+            // Insérer le titre de regroupement
+            html += `<h4 class="category-group-title">${currentCategory}</h4>`; 
+            
+            // Ouvrir un nouveau tableau pour cette catégorie
+            html += '<table class="details-table club-category-table">';
+            html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
+        }
+        
+        // Ligne du coureur
         html += `<tr>
                     <td>${member.Nom}</td> 
-                    <td>${member.Catégorie}</td>
                     <td><strong>${points}</strong></td>
                  </tr>`;
     });
     
-    html += '</tbody></table>';
+    // Fermeture finale du dernier tableau et du conteneur de regroupement
+    html += '</tbody></table>'; 
+    html += '</div>';
 
     // Bouton de retour au classement général
     html += `<button onclick="init()">Retour au Classement Général</button>`;
