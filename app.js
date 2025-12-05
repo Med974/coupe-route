@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v35 - Correction Totaux Club et Regroupement Final)
+// FICHIER : app.js (v31 - Test Cache Préparé)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -48,7 +48,7 @@ const MASTERS_CONFIG = [
     { key: 'M6', name: 'M6' },
 ];
 
-const WORKER_BASE_URL = 'https://morning-darkness-4a2d.med97400.workers.dev/';
+const WORKER_BASE_URL = 'https://morning-darkness-4a2d.med97400.workers.dev/'; 
 
 
 // --- 2. Fonctions Utilitaires ---
@@ -205,15 +205,15 @@ function renderTable(data) {
                 content = parseFloat(content) || content; 
             }
 
-            // Rendre le Nom et le Club cliquables
+            // Rendre le Nom cliquable (cette logique est correcte)
             let displayContent = content; 
             
             if (header === 'Dossard') {
+                // Applique la conversion pour l'affichage (Ex: 52000 -> 52)
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
+                // Le Nom est la clé de recherche pour la vue détaillée (Texte pur)
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
-            } else if (header === 'Club') {
-                 displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
             } else if (header === 'Classement') {
                 displayContent = `<strong>${content}</strong>`;
             } else {
@@ -246,13 +246,13 @@ function renderCoureurDetails(details) {
     const coureurNom = details[0].Nom;
     const coureurDossardRecherche = details[0].Dossard; 
     
+    // Afficher le dossard converti dans le titre
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
 
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // Le code de l'étape 2 (club) est utilisé ici
-        const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
+        const points = parseFloat(course.Points);
         if (!isNaN(points)) {
             totalPoints += points;
         }
@@ -315,117 +315,7 @@ async function showCoureurDetails(nom, saisonKey) {
 }
 
 
-// --- 5. Logique Club ---
-
-/**
- * Affiche la liste des coureurs du club triés par catégorie et points.
- */
-function renderClubDetails(members, clubNom) {
-    const container = document.getElementById('classement-container');
-    if (!container) return;
-    
-    // 1. Triez les membres
-    members.sort((a, b) => {
-        // Tri primaire par Catégorie Principale (Alphabetique)
-        if (a.Catégorie < b.Catégorie) return -1;
-        if (a.Catégorie > b.Catégorie) return 1;
-        
-        // Tri secondaire par Points Total (Décroissant)
-        // CORRECTION : Supprimer les caractères non numériques (espaces/virgules) avant de parser
-        const pointsA = parseFloat(String(a.PointsTotal).replace(/[^\d.]/g, '')) || 0;
-        const pointsB = parseFloat(String(b.PointsTotal).replace(/[^\d.]/g, '')) || 0;
-        
-        return pointsB - pointsA; 
-    });
-    
-    let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
-    html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Membres: ${members.length}</p>`;
-    
-    // 2. Regroupement et Rendu
-    let currentCategory = '';
-    
-    // Début du conteneur pour le regroupement
-    html += '<div class="club-details-list">'; 
-    
-    members.forEach(member => {
-        // CORRECTION DU TOTAL DES POINTS : Conversion en nombre avec suppression des caractères non numériques
-        const points = parseFloat(String(member.PointsTotal).replace(/[^\d.]/g, '')) || 0;
-        
-        // NOUVEAU : Changement de Catégorie (Début du Regroupement)
-        if (member.Catégorie !== currentCategory) {
-            // Fermer le tableau précédent (si ce n'est pas le tout premier titre)
-            if (currentCategory !== '') {
-                html += '</tbody></table>'; 
-            }
-            currentCategory = member.Catégorie;
-            
-            // Insérer le titre de regroupement
-            html += `<h4 class="category-group-title">${currentCategory}</h4>`; 
-            
-            // Ouvrir un nouveau tableau pour cette catégorie
-            html += '<table class="details-table club-category-table">';
-            html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
-        }
-        
-        // Ligne du coureur
-        html += `<tr>
-                    <td>${member.Nom}</td> 
-                    <td><strong>${points}</strong></td>
-                 </tr>`;
-    });
-    
-    // Fermeture finale du dernier tableau et du conteneur de regroupement
-    if (members.length > 0) {
-        html += '</tbody></table>'; 
-    }
-    
-    html += '</div>';
-
-    // Bouton de retour au classement général
-    html += `<button onclick="init()">Retour au Classement Général</button>`;
-
-    container.innerHTML = html;
-}
-
-/**
- * Gère le clic sur le nom du club et récupère tous ses membres.
- */
-async function showClubClassement(clubNom, saisonKey) {
-    const saisonConfig = SAISONS_CONFIG[saisonKey];
-    const sheetdbApiId = saisonConfig.apiId;
-    
-    // 1. Construire l'URL de recherche pour la feuille COUREURS
-    // On recherche par Nom du Club
-    const encodedClub = encodeURIComponent(clubNom);
-    const searchUrl = `https://sheetdb.io/api/v1/${sheetdbApiId}/search?Club=${encodedClub}&sheet=Coureurs`;
-
-    const container = document.getElementById('classement-container');
-    if (container) {
-        container.innerHTML = `<p>Chargement du classement pour le club ${clubNom}...</p>`;
-    }
-    
-    // 2. Récupérer les données
-    try {
-        const response = await fetch(searchUrl);
-        
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez que l'onglet 'Coureurs' est accessible.`);
-        }
-        
-        const data = await response.json();
-        
-        // 3. Afficher les détails du club
-        renderClubDetails(data, clubNom); 
-
-    } catch (error) {
-        if (container) {
-            container.innerHTML = `<p style="color: red;">Erreur lors de la récupération des membres du club : ${error.message}</p>`;
-        }
-    }
-}
-
-
-// --- 6. Logique Master ---
+// --- 5. Logique Master ---
 
 function handleMasterFilterChange(event) {
     event.preventDefault(); 
@@ -454,7 +344,7 @@ function handleMasterFilterChange(event) {
     renderTable(filteredData);
 }
 
-// --- 7. Fonction Principale ---
+// --- 6. Fonction Principale ---
 
 async function init() {
     
@@ -509,27 +399,15 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
-            // Écouteur pour la vue détaillée (Nom du coureur)
             classementContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
+                    // ATTENTION : La recherche se fait par NOM (Texte)
                     const nom = link.getAttribute('data-nom'); 
                     const currentSaison = getSaisonFromURL(); 
                     
                     showCoureurDetails(nom, currentSaison);
-                }
-            });
-            
-            // Écouteur pour le classement Club
-            classementContainer.addEventListener('click', (e) => {
-                const link = e.target.closest('.club-link');
-                if (link) {
-                    e.preventDefault();
-                    const clubNom = link.getAttribute('data-club'); 
-                    const currentSaison = getSaisonFromURL(); 
-                    
-                    showClubClassement(clubNom, currentSaison);
                 }
             });
         }
