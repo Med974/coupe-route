@@ -1,60 +1,75 @@
 /* =======================================================================
-FICHIER : styles.css (Design Réunionnais Moderne - FINAL STABILISÉ)
+   FICHIER : styles.css
+   Design : "Pro Sport" - Réunion (Lagon/Volcan)
+   Version : Finale Complète (Podium + App Look + Responsive Maintenu)
 ======================================================================= */
 
-/* Couleurs Clés */
+/* Import des polices : Montserrat (Titres) et Roboto (Texte) */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
+
+/* --- 1. VARIABLES & COULEURS --- */
 :root {
-    --color-lagon: #00A7BB;      /* Bleu Lagon/Océan */
-    --color-volcan: #D94F00;     /* Rouge-Orange (pour l'emphase) */
-    --color-background: #F8F8F8; /* Fond Tropical très clair */
-    --color-text: #2c3e50;
+    --color-lagon: #00A7BB;       /* Bleu Lagon */
+    --color-lagon-dark: #008c9e;  /* Lagon plus sombre pour survol */
+    --color-volcan: #D94F00;      /* Rouge-Orange (Action/Emphase) */
+    --color-background: #F4F7F6;  /* Gris très pâle (plus moderne que F8F8F8) */
+    --color-text: #2c3e50;        /* Gris foncé */
     --color-light: #ffffff;
+    --color-gold: #f1c40f;
+    --color-silver: #95a5a6;
+    --color-bronze: #cd7f32;
 }
 
+/* --- 2. CONFIGURATION GÉNÉRALE --- */
 body {
     font-family: 'Roboto', 'Arial', sans-serif;
     margin: 0;
     padding: 0;
     background-color: var(--color-background);
     color: var(--color-text);
+    line-height: 1.6;
 }
 
+h1, h2, h3, h4, th {
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- 3. HEADER (EN-TÊTE) --- */
 header {
-    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%); /* Dégradé Profond */
+    background: linear-gradient(135deg, #004d99 0%, var(--color-lagon) 100%);
     color: var(--color-light);
-    padding: 30px 20px;
+    padding: 30px 20px 40px; /* Un peu plus d'espace en bas */
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
 }
 
-h1 { /* Coupe de la Réunion Route */
+h1 { 
     margin: 0 0 5px 0;
-    font-size: 2.5em;
-    letter-spacing: 1px;
+    font-size: 2.2em;
+    font-weight: 800;
 }
 
-h2 { /* Catégorie dynamique */
-    margin: 0 0 15px 0;
-    font-size: 1.5em;
-    font-weight: 300;
+h2 { 
+    margin: 5px 0 20px 0;
+    font-size: 1.2em;
+    font-weight: 400;
+    opacity: 0.9;
 }
 
-p { /* Saison 2025/2026 */
-    margin-top: 10px;
-    font-size: 1.1em;
-}
-
+/* --- 4. CONTENEUR PRINCIPAL --- */
 main {
     padding: 20px;
-    max-width: 1300px;
-    margin: 30px auto;
-    background-color: var(--color-light);
-    border-radius: 10px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+    margin: -30px auto 40px; /* Remonte légèrement sur le header */
+    z-index: 10;
+    position: relative;
 }
 
-/* --- Style des Conteneurs de Navigation (omises pour la concision) --- */
-
+/* --- 5. NAVIGATION (STYLE "APP TABS") --- */
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
     display: block; 
@@ -64,222 +79,299 @@ main {
 }
 
 #nav-seasons {
-    margin-top: 20px;
-    margin-bottom: 10px;
-    display: block;
-    background-color: transparent; 
-    border-radius: 0;
-    padding: 0;
-    padding-bottom: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-#nav-categories {
-    margin-bottom: 10px;
-}
-
-#nav-masters {
-    margin-bottom: 20px;
-}
-
-
-/* --- Style des Boutons (Tuiles) (omises pour la concision) --- */
-
+/* Style des boutons */
 #nav-seasons a, #nav-categories a, #nav-masters a {
-    color: var(--color-light);
-    text-decoration: none;
-    padding: 8px 18px;
     display: inline-block;
-    font-weight: 500;
-    border-radius: 6px;
-    transition: background-color 0.3s, color 0.3s;
-    font-size: 0.95em;
-    background-color: rgba(255, 255, 255, 0.1); 
+    text-decoration: none;
+    color: var(--color-light); /* Texte blanc dans le header */
+    background-color: rgba(255, 255, 255, 0.15); /* Fond translucide */
+    padding: 8px 20px;
+    margin: 5px;
+    border-radius: 50px; /* Pill shape */
+    font-size: 0.85em;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     
-    margin-right: 10px; 
-    margin-bottom: 5px; 
+    /* Maintien de la marge droite de votre ancien code */
+    margin-right: 10px;
+    margin-bottom: 5px;
 }
 
-/* Style au survol */
+/* Survol */
 #nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
-    background-color: var(--color-volcan);
+    background-color: var(--color-light);
+    color: var(--color-lagon);
+    transform: translateY(-2px);
 }
 
-/* Style des boutons Actifs */
+/* Bouton Actif */
 #nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
     background-color: var(--color-light);
-    color: var(--color-lagon); 
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    color: #004d99; /* Bleu profond */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    font-weight: 800;
+    border-color: var(--color-light);
 }
 
-/* -------------------------------------------------------------------
-   STYLE DU TABLEAU : Alignement pour Desktop
-   ------------------------------------------------------------------- */
+/* --- 6. TABLEAUX (STYLE "CARTES") --- */
+/* Conteneur blanc pour le tableau */
+#classement-container {
+    background-color: transparent; /* Le fond est géré par les lignes */
+}
 
 .classement-table, .details-table { 
     width: 100%;
     border-collapse: separate; 
-    border-spacing: 0;
-    margin-top: 25px;
-    min-width: 900px; 
+    border-spacing: 0 8px; /* Espace entre les lignes */
+    margin-top: 10px;
+    min-width: 900px; /* Force le scroll sur mobile */
 }
 
-.classement-table th, .classement-table td, .details-table th, .details-table td {
-    padding: 12px 15px;
-    text-align: center; /* Centrage par défaut */
-    border-bottom: 1px solid #eee;
-    font-size: 0.9em;
+/* En-têtes */
+.classement-table th, .details-table th {
+    background-color: transparent;
+    color: #7f8c8d; /* Gris texte pour les titres */
+    font-weight: 700;
+    font-size: 0.8em;
+    padding: 10px 15px;
+    text-align: center; /* Centré par défaut */
+    border: none;
 }
 
-/* Aligner Nom (col 5) et Club (col 6) à gauche */
+/* Lignes de données (Cartes) */
+.classement-table tbody tr, .details-table tbody tr {
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.classement-table tbody tr:hover {
+    transform: scale(1.005);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    z-index: 2;
+    position: relative;
+}
+
+/* Cellules */
+.classement-table td, .details-table td {
+    padding: 15px;
+    border: none;
+    font-size: 0.95em;
+    vertical-align: middle;
+    color: var(--color-text);
+    text-align: center; /* Centré par défaut */
+}
+
+/* Alignement spécifique Desktop (Nom et Club à gauche) */
 .classement-table td:nth-child(5), .classement-table td:nth-child(6) {
     text-align: left; 
 }
 
-
-.classement-table th, .details-table th {
-    background-color: var(--color-lagon);
-    color: var(--color-light);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.85em;
-    position: sticky; 
-    top: 0;
-    z-index: 10;
+/* Arrondis des bords des lignes */
+.classement-table td:first-child, .details-table td:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+.classement-table td:last-child, .details-table td:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
-.classement-table tr:nth-child(even), .details-table tr:nth-child(even) {
-    background-color: #fcfcfc;
+/* --- 7. DESIGN PODIUM (TOP 3) --- */
+/* Or */
+.classement-table tbody tr:nth-child(1) {
+    border-left: 4px solid var(--color-gold);
+}
+.classement-table tbody tr:nth-child(1) td:last-child strong {
+    color: var(--color-gold);
+    font-size: 1.5em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-.classement-table tr:hover, .details-table tr:hover {
-    background-color: #f0f8ff; 
+/* Argent */
+.classement-table tbody tr:nth-child(2) {
+    border-left: 4px solid var(--color-silver);
+}
+.classement-table tbody tr:nth-child(2) td:last-child strong {
+    color: var(--color-silver);
+    font-size: 1.4em;
 }
 
-.classement-table tr td:first-child strong {
-    color: var(--color-volcan); 
-    font-size: 1.2em;
-    font-weight: 700;
+/* Bronze */
+.classement-table tbody tr:nth-child(3) {
+    border-left: 4px solid var(--color-bronze);
+}
+.classement-table tbody tr:nth-child(3) td:last-child strong {
+    color: var(--color-bronze);
+    font-size: 1.3em;
 }
 
-/* Style spécifique à la vue détaillée et au lien */
-.details-table h3 {
-    color: var(--color-lagon);
-    margin-top: 0;
+/* Les autres classements */
+.classement-table tr td:last-child strong {
+    color: var(--color-text);
 }
 
-button {
-    background-color: var(--color-volcan);
-    color: var(--color-light);
-    border: none;
-    padding: 10px 20px;
-    font-size: 0.9em;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-top: 20px;
-}
+/* --- 8. ÉLÉMENTS SPÉCIFIQUES (Liens, Boutons, Séparateurs) --- */
 
-button:hover {
-    background-color: #a83d00;
-}
-
-/* Style commun aux liens de Coureur et de Club */
-a.coureur-link, a.club-link { 
+/* Liens Cliquables (Coureur & Club) */
+a.coureur-link, a.club-link {
     color: var(--color-text); 
     text-decoration: none; 
-    font-weight: 500;
-    transition: color 0.3s;
+    font-weight: 600;
+    border-bottom: 1px dotted #ccc;
+    transition: color 0.2s, border-color 0.2s;
 }
 
 a.coureur-link:hover, a.club-link:hover {
-    color: var(--color-volcan); 
+    color: var(--color-lagon); 
+    border-bottom-color: var(--color-lagon);
 }
 
+/* Bouton Retour */
+button {
+    background-color: var(--color-text);
+    color: var(--color-light);
+    border: none;
+    padding: 12px 25px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.9em;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 30px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
 
-/* =======================================================================
-MEDIA QUERIES (Optimisation pour Mobile)
-======================================================================= */
+button:hover {
+    background-color: var(--color-volcan);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(217, 79, 0, 0.3);
+}
+
+/* Séparateur de Catégorie (Vue Club) */
+tr.category-separator td {
+    background-color: #eef6f8;
+    color: var(--color-lagon-dark);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* Badges Écarts (Vue Détaillée) */
+.gap-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.gap-card {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    font-size: 0.9em;
+    border-left: 5px solid #ccc;
+    flex: 1;
+    max-width: 300px;
+    text-align: center;
+}
+
+.gap-card.chase { border-left-color: #e74c3c; color: #c0392b; }
+.gap-card.lead { border-left-color: #27ae60; color: #219150; }
+.gap-card strong { display: block; font-size: 1.2em; margin-bottom: 5px; }
+.gap-name { font-size: 0.85em; color: #888; }
+
+
+/* --- 9. RESPONSIVE (MOBILE) --- */
 
 /* Conteneur pour le défilement horizontal du tableau */
 .table-responsive {
     overflow-x: auto;
     width: 100%;
     -webkit-overflow-scrolling: touch;
+    border-radius: 10px; /* Arrondi pour le conteneur sur mobile */
 }
 
 @media (max-width: 768px) {
     
-    /* --- Ajustements Généraux Mobile --- */
+    header { padding: 20px 10px 30px; }
+    h1 { font-size: 1.8em; }
     
-    header {
-        padding: 20px 10px;
-    }
-    
-    h1 {
-        font-size: 1.8em;
+    main { 
+        padding: 10px; 
+        margin-top: -20px; 
     }
 
-    main {
-        padding: 10px;
-        margin: 10px auto;
-        border-radius: 0;
-    }
-
-    /* Les boutons s'étendent pour prendre la moitié de la largeur (deux par ligne) */
+    /* Boutons Mobile : plus compacts, 2 par ligne */
     #nav-seasons a, #nav-categories a, #nav-masters a {
-        display: inline-block; 
-        width: calc(50% - 15px); 
-        margin: 5px 5px; 
-        padding: 8px 5px;
+        width: calc(50% - 14px); 
+        margin: 4px; 
+        padding: 8px 0;
+        font-size: 0.75em;
+    }
+    
+    /* --- Masquage Colonnes (Vue Portrait) --- */
+    /* On garde : Nom (5), Club (6), Points (7), Cls (8) */
+    .classement-table th:nth-child(1), .classement-table td:nth-child(1), /* Sous Cat */
+    .classement-table th:nth-child(2), .classement-table td:nth-child(2), /* Master */
+    .classement-table th:nth-child(3), .classement-table td:nth-child(3), /* Nb Courses */
+    .classement-table th:nth-child(4), .classement-table td:nth-child(4) { /* Dossard */
+        display: none;
+    }
+
+    /* Alignement spécifique mobile */
+    .classement-table td, .classement-table th {
+        padding: 10px 8px;
         font-size: 0.85em;
     }
     
-    /* ----------------------------------------------------
-       RÈGLE DE MASQUAGE EN VUE PORTRAIT (max-width: 768px)
-       Affiche: Nom (5), Club (6), Pts Total (7), Classement (8)
-       
-       (Nous masquons les colonnes 1, 2, 3, 4)
-    ---------------------------------------------------- */
+    /* Alignement Gauche forcé pour Nom et Club sur mobile */
+    .classement-table td:nth-child(5), .classement-table td:nth-child(6) {
+        text-align: left;
+    }
     
-    /* Colonne 1: Sous Catégorie */
-    .classement-table th:nth-child(1), .classement-table td:nth-child(1) { display: none; }
-    
-    /* Colonne 2: Catégorie Master */
-    .classement-table th:nth-child(2), .classement-table td:nth-child(2) { display: none; }
+    /* Alignement Droite pour Points et Classement sur mobile */
+    .classement-table td:nth-child(7), .classement-table td:nth-child(8) {
+        text-align: right;
+    }
 
-    /* Colonne 3: Nb Courses */
-    .classement-table th:nth-child(3), .classement-table td:nth-child(3) { display: none; }
-
-    /* Colonne 4: Dossard */
-    .classement-table th:nth-child(4), .classement-table td:nth-child(4) { display: none; }
     
-    /* Masquage des colonnes du tableau de DÉTAILS pour le rendre plus compact */
+    /* Détails Tableau Mobile */
     .details-table th:nth-child(1), .details-table td:nth-child(1), /* Date */
     .details-table th:nth-child(3), .details-table td:nth-child(3), /* Position */
     .details-table th:nth-child(4), .details-table td:nth-child(4) { /* Catégorie */
         display: none;
     }
-    
-    /* RÈGLE CRITIQUE : Alignement pour la vue portrait */
-    .classement-table td:nth-child(5) { text-align: left; } /* Nom (Col 5) reste aligné à gauche */
-    .classement-table td:nth-child(6) { text-align: left; } /* Club (Col 6) reste aligné à gauche */
-    .classement-table td:nth-child(7) { text-align: right; } /* Pts Total (Col 7) aligné à droite */
-    .classement-table td:nth-child(8) { text-align: right; } /* Classement (Col 8) aligné à droite */
-    
-    /* Correction pour la taille minimale */
+
     .classement-table, .details-table {
-        margin-top: 15px; 
-        min-width: 380px; /* Augmentation de la largeur minimale pour Club/Nom/Pts/Classement */
+        min-width: 100%; /* Prend la largeur dispo */
+    }
+    
+    /* Gap cards en colonne */
+    .gap-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .gap-card {
+        width: 100%;
     }
 }
 
-
-/* =======================================================================
-RÈGLE D'ANNULATION (min-width: 769px) => Rétablit TOUTES les colonnes
-======================================================================= */
-
+/* --- 10. RÉTABLISSEMENT DESKTOP --- */
 @media (min-width: 769px) {
-    /* Rétablit l'affichage de toutes les colonnes masquées - Utilisation de !important pour forcer */
+    /* Force l'affichage de toutes les colonnes sur grand écran */
     
     /* Colonnes 1, 2, 3, 4, 6 de classement */
     .classement-table th:nth-child(1), .classement-table td:nth-child(1),
@@ -296,59 +388,4 @@ RÈGLE D'ANNULATION (min-width: 769px) => Rétablit TOUTES les colonnes
     .details-table th:nth-child(4), .details-table td:nth-child(4) {
         display: table-cell !important;
     }
-}
-
-/* Style pour les lignes de séparation de catégorie dans le tableau Club */
-tr.category-separator td {
-    background-color: #eef6f8; /* Fond très léger couleur lagon */
-    color: var(--color-lagon);
-    font-weight: bold;
-    text-transform: uppercase;
-    text-align: center; /* Centrer le titre de la catégorie */
-    padding: 12px;
-    border-top: 2px solid #fff; /* Petite séparation blanche */
-}
-
-/* --- Styles pour les Écarts de Points (Vue Détaillée) --- */
-
-.gap-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
-    margin-top: -10px;
-}
-
-.gap-card {
-    background-color: white;
-    padding: 10px 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    font-size: 0.95em;
-    border-left: 5px solid #ccc;
-    min-width: 200px;
-}
-
-/* Style pour le coureur devant (Cible) */
-.gap-card.chase {
-    border-left-color: #e74c3c; /* Rouge */
-    color: #c0392b;
-}
-
-/* Style pour le coureur derrière (Menace) */
-.gap-card.lead {
-    border-left-color: #27ae60; /* Vert */
-    color: #219150;
-}
-
-.gap-card strong {
-    display: block;
-    font-size: 1.1em;
-    margin-bottom: 3px;
-}
-
-.gap-name {
-    font-size: 0.85em;
-    color: #666;
 }
