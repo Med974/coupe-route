@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v35 - Correction Totaux Club et Regroupement Final)
+// FICHIER : app.js (v36 - Correction Totaux Club et Erreur 400)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -251,7 +251,7 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // Le code de l'étape 2 (club) est utilisé ici
+        // NOTE: Utilisation du parsing strict pour les totaux
         const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
