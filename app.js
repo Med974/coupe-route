@@ -1,8 +1,11 @@
 // =======================================================================
-// FICHIER : app.js (v29 - Code Stable Avant Worker)
+// FICHIER : app.js (v30 - Final avec Worker Cloudflare)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
+
+// URL de base du Worker Cloudflare (Utilisée pour toutes les requêtes API)
+const WORKER_BASE_URL = 'https://morning-darkness-4a2d.med97400.workers.dev/'; 
 
 const SAISONS_CONFIG = {
     '2025': {
@@ -70,7 +73,6 @@ function getDisplayDossard(dossardRecherche) {
     // Conversion explicite en String avant l'opération de suffixe
     const dossardStr = String(dossardRecherche); 
 
-    // Règles de conversion des suffixes (du plus long au plus court pour éviter les conflits)
     const suffixes = ['1517', '000', '170', '150'];
     
     for (const suffix of suffixes) {
@@ -86,7 +88,7 @@ function getDisplayDossard(dossardRecherche) {
 
 
 /**
- * Construit l'URL complète pour la récupération des données JSON via SheetDB.
+ * Construit l'URL complète pour la récupération des données JSON via le WORKER.
  */
 function buildJsonUrl(saisonKey, categoryKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
@@ -95,11 +97,10 @@ function buildJsonUrl(saisonKey, categoryKey) {
     const categoryInfo = saisonConfig.categories[categoryKey];
     if (!categoryInfo) return null;
     
-    const SHEETDB_API_ID = saisonConfig.apiId; // Utilise l'ID de SheetDB
-
     const sheetParam = encodeURIComponent(categoryInfo.sheetName);
     
-    return `https://sheetdb.io/api/v1/${SHEETDB_API_ID}?sheet=${sheetParam}`;
+    // Format Worker pour classement général
+    return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
 }
 
 /**
@@ -158,7 +159,8 @@ async function fetchClassementData(url) {
         
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez les noms de feuilles dans SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
+            // L'erreur provient du Worker, mais le message peut aider au débogage
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare/SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
         }
         
         const data = await response.json(); 
@@ -171,7 +173,7 @@ async function fetchClassementData(url) {
 
     } catch (error) {
         if (container) {
-            container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. L'API SheetDB a échoué. Détails : ${error.message}</p>`;
+            container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. L'API (Worker/SheetDB) a échoué. Détails : ${error.message}</p>`;
         }
         console.error("Erreur de récupération :", error);
         return [];
@@ -290,11 +292,11 @@ function renderCoureurDetails(details) {
 
 async function showCoureurDetails(nom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
-    const sheetdbApiId = saisonConfig.apiId;
     
-    // 1. URL de recherche : Recherche par Nom (Texte)
+    // 1. URL de recherche : Recherche par Nom (Texte) via Worker
     const encodedNom = encodeURIComponent(nom);
-    const searchUrl = `https://sheetdb.io/api/v1/${sheetdbApiId}/search?Nom=${encodedNom}&sheet=Résultats Bruts`;
+    // Le Worker gère le routing de l'API ID et le nom de la feuille
+    const searchUrl = `${WORKER_BASE_URL}search?nom=${encodedNom}&sheet=Résultats Bruts&apiId=${saisonConfig.apiId}`; 
 
     const container = document.getElementById('classement-container');
     if (container) {
@@ -305,7 +307,7 @@ async function showCoureurDetails(nom, saisonKey) {
         const response = await fetch(searchUrl);
         
         if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez que l'onglet 'Résultats Bruts' est accessible.`);
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare.`);
         }
         
         const data = await response.json();
