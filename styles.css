@@ -1,17 +1,17 @@
 /* =======================================================================
    FICHIER : styles.css
-   Design : "Pro Sport" - Fond Noir, Menus Blancs, Bloc Tableau Central
-   Version : Finale Absolue
+   Design : "Pro Sport" - Réunion (Photo Brute & Espacement Corrigé)
+   Version : Finale Complète
 ======================================================================= */
 
-/* Import des polices */
+/* Import des polices : Montserrat (Titres) et Roboto (Texte) */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
 
 /* --- 1. VARIABLES & COULEURS --- */
 :root {
-    --color-lagon: #00A7BB;       /* Bleu Lagon (Action/Survol) */
-    --color-lagon-dark: #008c9e;  
-    --color-volcan: #D94F00;      /* Rouge-Orange (Active) */
+    --color-lagon: #00A7BB;       /* Bleu Lagon */
+    --color-lagon-dark: #008c9e;  /* Lagon plus sombre pour survol */
+    --color-volcan: #D94F00;      /* Rouge-Orange (Action/Emphase) */
     
     /* FOND GÉNERAL : Noir Anthracite */
     --color-background-page: #121212;  
@@ -36,7 +36,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--color-background-page); /* La page est noire */
-    color: var(--color-text); /* Le texte par défaut est foncé (pour le bloc blanc) */
+    color: var(--color-text); /* Le texte par défaut est foncé */
     line-height: 1.6;
 }
 
@@ -46,96 +46,69 @@ h1, h2, h3, h4, th {
     letter-spacing: 0.5px;
 }
 
-/* --- 3. HEADER IMMERSIF (Image + Menus Visibles) --- */
+/* --- 3. HEADER IMMERSIF (Image Seule) --- */
 header {
-    background-image: url('header-bg.jpg'); /* Image seule */
+    /* Image seule sans filtre couleur */
+    background-image: url('header-bg.jpg'); 
+    
     background-size: cover;      
-    background-position: center; 
+    background-position: center; /* Centre l'image */
     background-repeat: no-repeat;
     background-attachment: scroll; 
     
     color: var(--color-header-text);
-    /* Grande marge en bas pour que le bloc blanc vienne chevaucher */
-    padding: 30px 20px 110px; 
+    
+    /* ESPACEMENT CRITIQUE : 140px en bas pour laisser la place au tableau qui remonte */
+    padding: 40px 20px 140px; 
+    
     text-align: center;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
     position: relative;
+    overflow: hidden;
 }
 
-/* Ombre forte pour lisibilité du titre sur photo */
+/* Ombre forte pour lisibilité sur photo */
+h1, h2 {
+    text-shadow: 0 3px 15px rgba(0,0,0,1); 
+    position: relative;
+    z-index: 2;
+}
+
 h1 { 
-    margin: 0 0 20px 0;
-    font-size: 2.2em;
+    margin: 0 0 10px 0;
+    font-size: 2.5em;
     font-weight: 800;
-    text-shadow: 0 3px 15px rgba(0,0,0,0.9); 
 }
 
-/* --- 4. NAVIGATION (NOUVEAU STYLE : BOUTONS BLANCS OPAQUES) --- */
-#nav-seasons, #nav-categories, #nav-masters {
-    margin: 10px auto; 
-    display: block; 
-    background-color: transparent; 
-    padding: 0;
-    text-align: center; 
-    position: relative;
-    z-index: 10; /* S'assure que les menus sont au-dessus de tout */
+h2 { 
+    margin: 5px 0 20px 0;
+    font-size: 1.2em;
+    font-weight: 400;
+    opacity: 1;
 }
 
-#nav-seasons { margin-bottom: 15px; }
-
-/* Style des boutons : Blancs, très opaques, texte foncé */
-#nav-seasons a, #nav-categories a, #nav-masters a {
-    display: inline-block;
-    text-decoration: none;
-    
-    /* COULEURS INVERSÉES POUR LA VISIBILITÉ */
-    color: var(--color-text); /* Texte foncé */
-    background-color: rgba(255, 255, 255, 0.9); /* Fond blanc quasi opaque */
-    backdrop-filter: blur(5px); /* Effet verre dépoli */
-    border: 1px solid #ffffff; /* Bordure blanche nette */
-    
-    padding: 10px 22px; /* Un peu plus grands */
-    margin: 5px;
-    border-radius: 50px;
-    font-size: 0.85em;
-    font-weight: 700; /* Gras pour bien ressortir */
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Légère ombre pour le volume */
-}
-
-/* Survol : Devient Bleu Lagon */
-#nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
-    background-color: var(--color-lagon);
-    color: white;
-    border-color: var(--color-lagon);
-    transform: translateY(-2px);
-}
-
-/* Bouton Actif : Devient Rouge Volcan pour bien marquer la sélection */
-#nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
-    background-color: var(--color-volcan);
-    color: white;
-    border-color: var(--color-volcan);
-    box-shadow: 0 4px 15px rgba(217, 79, 0, 0.4);
-}
-
-
-/* --- 5. CONTENEUR PRINCIPAL (LE BLOC BLANC CENTRAL) --- */
+/* --- 4. CONTENEUR PRINCIPAL --- */
 main {
+    padding: 0 20px;
     max-width: 1200px;
-    margin: -60px auto 50px; /* Remonte sur le header de 60px */
-    position: relative;
+    
+    /* ESPACEMENT CRITIQUE : Remonte de 80px sur le header */
+    /* Le header ayant 140px de padding-bottom, il reste 60px de marge pour ne pas toucher les boutons */
+    margin: -80px auto 50px; 
+    
     z-index: 20;
-    padding: 0 20px; /* Marge latérale sur petits écrans */
+    position: relative;
 }
 
 /* Le conteneur blanc lui-même */
 #classement-container {
     background-color: var(--color-background-card); /* FOND BLANC */
-    padding: 40px; /* Espace intérieur confortable */
-    border-radius: 25px; /* Coins bien arrondis */
-    /* Grosse ombre portée sur le fond noir */
+    padding: 40px; 
+    border-radius: 25px; 
     box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
 }
 
@@ -149,8 +122,54 @@ main {
     color: var(--color-text-light);
 }
 
+/* --- 5. NAVIGATION (STYLE "APP TABS") --- */
+#nav-seasons, #nav-categories, #nav-masters {
+    margin: 10px auto; 
+    display: block; 
+    background-color: transparent; 
+    padding: 0;
+    text-align: center; 
+    position: relative;
+    z-index: 10; 
+}
 
-/* --- 6. TABLEAUX (STYLE CLASSIQUE ÉPURÉ DANS LE BLOC BLANC) --- */
+#nav-seasons { margin-bottom: 15px; }
+
+/* Style des boutons : Blancs opaques */
+#nav-seasons a, #nav-categories a, #nav-masters a {
+    display: inline-block;
+    text-decoration: none;
+    color: var(--color-text); 
+    background-color: rgba(255, 255, 255, 0.9); 
+    backdrop-filter: blur(5px);
+    border: 1px solid #ffffff;
+    
+    padding: 10px 22px; 
+    margin: 5px;
+    border-radius: 50px;
+    font-size: 0.85em;
+    font-weight: 700; 
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+}
+
+/* Survol */
+#nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
+    background-color: var(--color-lagon);
+    color: white;
+    border-color: var(--color-lagon);
+    transform: translateY(-2px);
+}
+
+/* Bouton Actif */
+#nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
+    background-color: var(--color-volcan);
+    color: white;
+    border-color: var(--color-volcan);
+    box-shadow: 0 4px 15px rgba(217, 79, 0, 0.4);
+}
+
+/* --- 6. TABLEAUX --- */
 .table-responsive {
     overflow-x: auto;
     width: 100%;
@@ -160,33 +179,32 @@ main {
 
 .classement-table, .details-table { 
     width: 100%;
-    border-collapse: collapse; /* Bordures collées style classique */
+    border-collapse: collapse; 
     min-width: 900px;
     text-align: center;
 }
 
 /* En-têtes */
 .classement-table th, .details-table th {
-    background-color: #f8f9fa; /* Gris très léger */
+    background-color: #f8f9fa;
     color: var(--color-text-light);
     font-weight: 700;
     font-size: 0.85em;
     padding: 15px;
-    border-bottom: 2px solid #eee; /* Séparateur plus épais sous les titres */
+    border-bottom: 2px solid #eee;
 }
 
 /* Lignes et Cellules */
 .classement-table td, .details-table td {
     padding: 15px 10px;
-    border-bottom: 1px solid #eee; /* Séparateur fin entre les lignes */
+    border-bottom: 1px solid #eee;
     font-size: 0.95em;
     vertical-align: middle;
     color: var(--color-text);
 }
 
-/* Effet de survol simple sur la ligne */
 .classement-table tbody tr:hover, .details-table tbody tr:hover {
-    background-color: #f0f8ff; /* Bleu très pâle */
+    background-color: #f0f8ff; 
 }
 
 /* Alignement Gauche pour Nom et Club */
@@ -195,12 +213,11 @@ main {
     padding-left: 20px;
 }
 
-/* --- 7. DESIGN PODIUM (Juste le texte en couleur) --- */
+/* --- 7. DESIGN PODIUM --- */
 .classement-table tbody tr:nth-child(1) td:last-child strong { color: var(--color-gold); font-size: 1.6em; }
 .classement-table tbody tr:nth-child(2) td:last-child strong { color: var(--color-silver); font-size: 1.5em; }
 .classement-table tbody tr:nth-child(3) td:last-child strong { color: var(--color-bronze); font-size: 1.4em; }
 .classement-table tr td:last-child strong { font-weight: 800; }
-
 
 /* --- 8. ÉLÉMENTS SPÉCIFIQUES --- */
 
@@ -276,14 +293,13 @@ tr.category-separator td {
 .gap-card strong { display: block; font-size: 1.2em; margin-bottom: 5px; color: var(--color-text); }
 .gap-name { font-size: 0.85em; color: #888; }
 
-
 /* --- 9. RESPONSIVE (MOBILE) --- */
 @media (max-width: 768px) {
-    header { padding: 20px 10px 80px; }
+    header { padding: 20px 10px 100px; } /* Encore plus d'espace sur mobile */
     h1 { font-size: 1.8em; }
     
     /* Ajustement du bloc blanc sur mobile */
-    main { margin-top: -40px; padding: 0 10px; }
+    main { margin-top: -60px; padding: 0 10px; }
     #classement-container { padding: 20px 15px; border-radius: 20px; }
 
     /* Boutons plus petits sur mobile */
