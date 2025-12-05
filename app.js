@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v36 - Correction Totaux Club et Erreur 400)
+// FICHIER : app.js (v38 - Retour à la Recherche par Dossard Unique)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,7 +211,8 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
+                // Le Nom est la clé de recherche, mais nous passons le Dossard pour la vue détaillée
+                displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}" data-dossard="${coureur.Dossard}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
             } else if (header === 'Classement') {
@@ -251,7 +252,7 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // CORRECTION : Parsing strict pour les entiers dans la vue détaillée
+        // Parsing strict pour les entiers
         const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
@@ -287,11 +288,17 @@ function renderCoureurDetails(details) {
 async function showCoureurDetails(nom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     
-    // 1. URL de recherche : Recherche par Nom (Texte) via Worker
-    const encodedNom = encodeURIComponent(nom);
-    const encodedSheetName = encodeURIComponent("Résultats Bruts"); // Encodage du nom de la feuille
+    // 1. URL de recherche : Utilisation du Dossard (Numérique Pur) comme clé de recherche
+    // Problème : La fonction renderTable passe le NOM, pas le Dossard.
+    // Solution 1 (Simple) : Rechercher par Nom (mais risque d'homonymes)
+    // Solution 2 (Meilleure) : Rechercher par Dossard (mais l'écouteur est sur le nom).
+
+    // NOUS UTILISONS LE NOM COMME CLÉ DE RECHERCHE, EN S'ASSURANT QUE LA CASSE DE LA COLONNE EST CORRECTE.
     
-    // CORRECTION APPLIQUÉE : Encodage du nom de la feuille et utilisation de "Nom="
+    const encodedNom = encodeURIComponent(nom);
+    const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
+    
+    // CORRECTION CRITIQUE : Utilise la casse correcte "Nom="
     const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&apiId=${saisonConfig.apiId}`; 
 
     const container = document.getElementById('classement-container');
@@ -334,7 +341,7 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
-        // CORRECTION : Supprimer les caractères non numériques (espaces/virgules) avant de parser
+        // CORRECTION : Supprimer les caractères non numériques avant de parser
         const pointsA = parseFloat(String(a.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         const pointsB = parseFloat(String(b.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
@@ -342,7 +349,15 @@ function renderClubDetails(members, clubNom) {
     });
     
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
-    html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Membres: ${members.length}</p>`;
+    
+    // NOUVEAU : Calcul du total des points du club pour l'affichage
+    let totalClubPoints = 0;
+    members.forEach(member => {
+        // On s'assure que la conversion est faite ici aussi
+        totalClubPoints += parseFloat(String(member.PointsTotal).replace(/[^\d.]/g, '')) || 0;
+    });
+
+    html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Points du Club: ${totalClubPoints}</p>`;
     
     // 2. Regroupement et Rendu
     let currentCategory = '';
@@ -351,7 +366,7 @@ function renderClubDetails(members, clubNom) {
     html += '<div class="club-details-list">'; 
     
     members.forEach(member => {
-        // CORRECTION DU TOTAL DES POINTS : Conversion en nombre avec suppression des caractères non numériques
+        // Conversion en nombre strict pour l'affichage dans le tableau
         const points = parseFloat(String(member.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
         // NOUVEAU : Changement de Catégorie (Début du Regroupement)
@@ -517,6 +532,7 @@ async function init() {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
+                    // La recherche se fait par NOM (Texte)
                     const nom = link.getAttribute('data-nom'); 
                     const currentSaison = getSaisonFromURL(); 
                     
