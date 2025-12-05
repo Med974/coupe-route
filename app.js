@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v32 - Intégration Finale du Classement Club)
+// FICHIER : app.js (v33 - Regroupement par Catégorie Club)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -95,7 +95,6 @@ function buildJsonUrl(saisonKey, categoryKey) {
     
     const sheetParam = encodeURIComponent(categoryInfo.sheetName);
     
-    // Le Worker gère l'ID d'API via la saison
     return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
 }
 
@@ -206,7 +205,7 @@ function renderTable(data) {
                 content = parseFloat(content) || content; 
             }
 
-            // --- Logique du rendu cliquable ---
+            // Rendre le Nom et le Club cliquables
             let displayContent = content; 
             
             if (header === 'Dossard') {
@@ -498,7 +497,7 @@ async function init() {
                 }
             });
             
-            // NOUVEAU : Écouteur pour le classement Club
+            // Écouteur pour le classement Club
             classementContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('.club-link');
                 if (link) {
