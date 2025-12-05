@@ -1,11 +1,8 @@
 // =======================================================================
-// FICHIER : app.js (v30 - Final avec Worker Cloudflare)
+// FICHIER : app.js (v31 - Test Cache Préparé)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
-
-// URL de base du Worker Cloudflare (Utilisée pour toutes les requêtes API)
-const WORKER_BASE_URL = 'https://morning-darkness-4a2d.med97400.workers.dev/'; 
 
 const SAISONS_CONFIG = {
     '2025': {
@@ -51,6 +48,8 @@ const MASTERS_CONFIG = [
     { key: 'M6', name: 'M6' },
 ];
 
+const WORKER_BASE_URL = 'https://morning-darkness-4a2d.med97400.workers.dev/'; 
+
 
 // --- 2. Fonctions Utilitaires ---
 
@@ -70,19 +69,16 @@ function getCategoryFromURL() {
 function getDisplayDossard(dossardRecherche) {
     if (!dossardRecherche) return dossardRecherche;
     
-    // Conversion explicite en String avant l'opération de suffixe
     const dossardStr = String(dossardRecherche); 
 
     const suffixes = ['1517', '000', '170', '150'];
     
     for (const suffix of suffixes) {
         if (dossardStr.endsWith(suffix)) {
-            // Retire le suffixe spécifique
             return dossardStr.slice(0, -suffix.length);
         }
     }
     
-    // Retourne le dossard original si aucune règle ne s'applique 
     return dossardRecherche; 
 }
 
@@ -99,7 +95,6 @@ function buildJsonUrl(saisonKey, categoryKey) {
     
     const sheetParam = encodeURIComponent(categoryInfo.sheetName);
     
-    // Format Worker pour classement général
     return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
 }
 
@@ -159,7 +154,6 @@ async function fetchClassementData(url) {
         
         if (!response.ok) {
             const errorBody = await response.text();
-            // L'erreur provient du Worker, mais le message peut aider au débogage
             throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare/SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
         }
         
@@ -295,7 +289,6 @@ async function showCoureurDetails(nom, saisonKey) {
     
     // 1. URL de recherche : Recherche par Nom (Texte) via Worker
     const encodedNom = encodeURIComponent(nom);
-    // Le Worker gère le routing de l'API ID et le nom de la feuille
     const searchUrl = `${WORKER_BASE_URL}search?nom=${encodedNom}&sheet=Résultats Bruts&apiId=${saisonConfig.apiId}`; 
 
     const container = document.getElementById('classement-container');
