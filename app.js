@@ -181,8 +181,8 @@ function renderTable(data) {
         const displayHeader = header.replace('PointsTotal', 'Points')
                                     .replace('Points Total', 'Points')
                                     .replace('NbCourses', 'Nb Courses')
-                                    .replace('SousCategorie', 'Catégorie')  // Sous Catégorie -> Catégorie
-                                    .replace('Master', 'Cat. Master')       // Master -> Cat. Master
+                                    .replace('Sous Categorie', 'Catégorie')
+                                    .replace('Master', 'Cat. Master')     
                                     .replace('Classement', 'Pos.');
         html += `<th>${displayHeader}</th>`;
     });
@@ -472,3 +472,4 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
