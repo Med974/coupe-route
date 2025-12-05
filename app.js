@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v41 - Correction Finale de la Recherche Détail)
+// FICHIER : app.js (v41 - Correction Finale : Worker et Totaux Stables)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,7 +211,7 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Le lien utilise le NOM comme clé de recherche (pour éviter les problèmes de dossard)
+                // Le lien utilise le NOM comme clé de recherche
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -252,7 +252,7 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // Parsing strict pour les entiers
+        // CORRECTION : Parsing strict pour les entiers
         const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
@@ -289,11 +289,10 @@ async function showCoureurDetails(nom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     
     // 1. URL de recherche : Recherche par Nom (Texte) via Worker
-    // CORRECTION CRITIQUE : L'URL utilise le Nom pour la recherche (qui est stable) et passe la saison
     const encodedNom = encodeURIComponent(nom);
     const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
     
-    // NOUVELLE URL STABLE : Nom, Feuille, et Saison sont passés au Worker.
+    // CORRECTION CRITIQUE : Utilise la clé Nom et le Dossard encodé (C'est la solution la plus stable)
     const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
 
     const container = document.getElementById('classement-container');
@@ -521,15 +520,15 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
-            // Écouteur pour la vue détaillée (Dossard Numérique)
+            // Écouteur pour la vue détaillée (Nom du coureur)
             classementContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
-                    const dossard = link.getAttribute('data-dossard'); 
+                    const nom = link.getAttribute('data-nom'); 
                     const currentSaison = getSaisonFromURL(); 
                     
-                    showCoureurDetails(dossard, currentSaison);
+                    showCoureurDetails(nom, currentSaison);
                 }
             });
             
