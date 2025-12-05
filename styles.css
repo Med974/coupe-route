@@ -1,20 +1,23 @@
 /* =======================================================================
    FICHIER : styles.css
-   Design : "Pro Sport" - Réunion (Photo Brute & Espacement Corrigé)
+   Design : "Pro Sport" - Dark Mode & Photo Header
    Version : Finale Complète
 ======================================================================= */
 
-/* Import des polices : Montserrat (Titres) et Roboto (Texte) */
+/* Import des polices */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
 
 /* --- 1. VARIABLES & COULEURS --- */
 :root {
     --color-lagon: #00A7BB;       /* Bleu Lagon */
-    --color-lagon-dark: #008c9e;  /* Lagon plus sombre pour survol */
-    --color-volcan: #D94F00;      /* Rouge-Orange (Action/Emphase) */
-    --color-background: #F4F7F6;  /* Gris très pâle */
-    --color-text: #2c3e50;        /* Gris foncé */
-    --color-light: #ffffff;
+    --color-lagon-dark: #008c9e;  
+    --color-volcan: #D94F00;      /* Rouge-Orange */
+    
+    /* FOND NOIR (Dark Mode) */
+    --color-background: #121212;  
+    
+    --color-text-table: #2c3e50;  /* Texte gris foncé (pour l'intérieur des cases blanches) */
+    --color-light: #ffffff;       /* Texte blanc (pour le fond noir) */
     --color-gold: #f1c40f;
     --color-silver: #95a5a6;
     --color-bronze: #cd7f32;
@@ -26,7 +29,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--color-background);
-    color: var(--color-text);
+    color: var(--color-light); /* Texte par défaut en blanc sur le fond noir */
     line-height: 1.6;
 }
 
@@ -38,24 +41,21 @@ h1, h2, h3, h4, th {
 
 /* --- 3. HEADER IMMERSIF (Image Seule) --- */
 header {
-    /* MODIFICATION : Image seule, plus de filtre bleu */
+    /* Image seule sans filtre couleur */
     background-image: url('header-bg.jpg'); 
     
     background-size: cover;      
-    background-position: center; /* Centre l'image */
+    background-position: center; 
     background-repeat: no-repeat;
     background-attachment: scroll; 
     
     color: var(--color-light);
-    
-    /* MODIFICATION ESPACEMENT : */
-    /* On augmente le padding du bas (100px) pour laisser de la place au tableau qui remonte */
+    /* ESPACEMENT : 100px en bas pour laisser la place au tableau */
     padding: 40px 20px 100px; 
-    
     text-align: center;
     
-    /* Ombre portée sous le header */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); /* Ombre plus forte sur fond noir */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     
     border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
@@ -63,9 +63,9 @@ header {
     overflow: hidden;
 }
 
-/* Ombre forte sous le texte (indispensable sur une photo brute) */
+/* Ombre forte pour lisibilité sur photo */
 h1, h2 {
-    text-shadow: 0 2px 15px rgba(0,0,0,0.9); 
+    text-shadow: 0 2px 15px rgba(0,0,0,1); 
     position: relative;
     z-index: 2;
 }
@@ -87,25 +87,19 @@ h2 {
 main {
     padding: 20px;
     max-width: 1200px;
-    
-    /* MODIFICATION ESPACEMENT : */
-    /* On remonte le tableau de 50px sur le header (effet carte) */
-    /* Comme le header a 100px de padding-bottom, le tableau ne cachera pas le texte */
+    /* Remonte de 50px sur le header */
     margin: -50px auto 40px; 
-    
     z-index: 10;
     position: relative;
 }
 
-/* --- 5. NAVIGATION (STYLE "APP TABS") --- */
+/* --- 5. NAVIGATION --- */
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
     display: block; 
     background-color: transparent; 
     padding: 0;
     text-align: center; 
-    position: relative;
-    z-index: 5;
 }
 
 #nav-seasons {
@@ -119,9 +113,9 @@ main {
     display: inline-block;
     text-decoration: none;
     color: var(--color-light);
-    /* Fond sombre semi-transparent pour lisibilité sur la photo */
-    background-color: rgba(0, 0, 0, 0.5); 
-    backdrop-filter: blur(5px);
+    /* Fond sombre translucide */
+    background-color: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(4px);
     padding: 8px 20px;
     margin: 5px;
     border-radius: 50px;
@@ -129,7 +123,6 @@ main {
     font-weight: 600;
     transition: all 0.2s ease;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
     
     margin-right: 10px; 
 }
@@ -138,45 +131,53 @@ main {
 #nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
     background-color: var(--color-light);
     color: var(--color-lagon);
-    text-shadow: none;
     transform: translateY(-2px);
 }
 
 /* Bouton Actif */
 #nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
-    background-color: var(--color-lagon); /* Fond Lagon pour bien ressortir */
+    background-color: var(--color-lagon);
     color: white;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 167, 187, 0.6);
     font-weight: 800;
     border-color: var(--color-lagon);
-    text-shadow: none;
 }
 
 /* --- 6. TABLEAUX (STYLE "CARTES") --- */
 #classement-container {
     background-color: transparent;
-    padding-top: 10px; 
+    padding-top: 20px; /* Espace interne */
+}
+
+/* Titres générés par JS (Vue Club/Détail) */
+#classement-container h3, #classement-container p {
+    color: var(--color-light); /* Texte blanc sur fond noir */
+}
+#classement-container h3 {
+    color: var(--color-lagon); /* Titres en bleu lagon */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .table-responsive {
     overflow-x: auto;
     width: 100%;
     -webkit-overflow-scrolling: touch;
-    border-radius: 10px;
+    border-radius: 15px;
+    /* Pas de fond blanc pour le conteneur, on laisse le noir */
 }
 
 .classement-table, .details-table { 
     width: 100%;
     border-collapse: separate; 
-    border-spacing: 0 8px;
-    margin-top: 0; /* Collé au haut du conteneur */
+    border-spacing: 0 8px; /* Espacement entre les lignes */
+    margin-top: 20px;
     min-width: 900px;
 }
 
 /* En-têtes */
 .classement-table th, .details-table th {
     background-color: transparent;
-    color: #7f8c8d;
+    color: #888; /* Gris clair pour les titres de colonnes */
     font-weight: 700;
     font-size: 0.8em;
     padding: 10px 15px;
@@ -184,27 +185,26 @@ main {
     border: none;
 }
 
-/* Lignes de données */
+/* Lignes de données (Cartes Blanches) */
 .classement-table tbody tr, .details-table tbody tr {
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-    transition: transform 0.2s, box-shadow 0.2s;
+    background-color: white; /* Ligne blanche sur fond noir */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* Ombre pour détacher du fond noir */
+    transition: transform 0.2s;
 }
 
 .classement-table tbody tr:hover {
     transform: scale(1.005);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
     z-index: 2;
     position: relative;
 }
 
-/* Cellules */
+/* Cellules (Texte foncé dans les lignes blanches) */
 .classement-table td, .details-table td {
     padding: 15px;
     border: none;
     font-size: 0.95em;
     vertical-align: middle;
-    color: var(--color-text);
+    color: var(--color-text-table); /* Texte gris foncé */
     text-align: center;
 }
 
@@ -223,25 +223,26 @@ main {
 }
 
 /* --- 7. DESIGN PODIUM --- */
-.classement-table tbody tr:nth-child(1) { border-left: 4px solid var(--color-gold); }
-.classement-table tbody tr:nth-child(1) td:last-child strong { color: var(--color-gold); font-size: 1.5em; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+.classement-table tbody tr:nth-child(1) { border-left: 5px solid var(--color-gold); }
+.classement-table tbody tr:nth-child(1) td:last-child strong { color: var(--color-gold); font-size: 1.5em; }
 
-.classement-table tbody tr:nth-child(2) { border-left: 4px solid var(--color-silver); }
+.classement-table tbody tr:nth-child(2) { border-left: 5px solid var(--color-silver); }
 .classement-table tbody tr:nth-child(2) td:last-child strong { color: var(--color-silver); font-size: 1.4em; }
 
-.classement-table tbody tr:nth-child(3) { border-left: 4px solid var(--color-bronze); }
+.classement-table tbody tr:nth-child(3) { border-left: 5px solid var(--color-bronze); }
 .classement-table tbody tr:nth-child(3) td:last-child strong { color: var(--color-bronze); font-size: 1.3em; }
 
-.classement-table tr td:last-child strong { color: var(--color-text); }
+.classement-table tr td:last-child strong { color: var(--color-text-table); }
 
 /* --- 8. ÉLÉMENTS SPÉCIFIQUES --- */
 
+/* Liens Cliquables */
 a.coureur-link, a.club-link {
-    color: var(--color-text); 
+    color: var(--color-text-table); 
     text-decoration: none; 
     font-weight: 600;
     border-bottom: 1px dotted #ccc;
-    transition: color 0.2s, border-color 0.2s;
+    transition: color 0.2s;
 }
 
 a.coureur-link:hover, a.club-link:hover {
@@ -249,13 +250,14 @@ a.coureur-link:hover, a.club-link:hover {
     border-bottom-color: var(--color-lagon);
 }
 
+/* Bouton Retour */
 button {
-    background-color: var(--color-text);
-    color: var(--color-light);
+    background-color: white;
+    color: var(--color-text-table);
     border: none;
     padding: 12px 25px;
     font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.9em;
     border-radius: 50px;
     cursor: pointer;
@@ -264,25 +266,29 @@ button {
     display: block;
     margin-left: auto;
     margin-right: auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
 
 button:hover {
-    background-color: var(--color-volcan);
+    background-color: var(--color-lagon);
+    color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(217, 79, 0, 0.3);
 }
 
+/* Séparateur de Catégorie (Vue Club) */
 tr.category-separator td {
-    background-color: #eef6f8;
-    color: var(--color-lagon-dark);
+    background-color: #2c3e50; /* Fond sombre pour les titres intermédiaires */
+    color: white;
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     text-align: center;
     border-radius: 8px;
-    margin-top: 10px;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    display: table-cell; /* Assure l'affichage */
 }
 
-/* Badges Écarts */
+/* Badges Écarts (Vue Détaillée) */
 .gap-container {
     display: flex;
     justify-content: center;
@@ -291,10 +297,11 @@ tr.category-separator td {
 }
 
 .gap-card {
-    background: white;
+    background: #222; /* Fond carte sombre */
+    color: white;
     padding: 15px 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     font-size: 0.9em;
     border-left: 5px solid #ccc;
     flex: 1;
@@ -302,16 +309,16 @@ tr.category-separator td {
     text-align: center;
 }
 
-.gap-card.chase { border-left-color: #e74c3c; color: #c0392b; }
-.gap-card.lead { border-left-color: #27ae60; color: #219150; }
+.gap-card.chase { border-left-color: #e74c3c; }
+.gap-card.lead { border-left-color: #27ae60; }
 .gap-card strong { display: block; font-size: 1.2em; margin-bottom: 5px; }
-.gap-name { font-size: 0.85em; color: #888; }
+.gap-name { font-size: 0.85em; color: #aaa; }
 
 
 /* --- 9. RESPONSIVE (MOBILE) --- */
 @media (max-width: 768px) {
     
-    header { padding: 20px 10px 60px; } /* Plus d'espace en bas sur mobile */
+    header { padding: 20px 10px 60px; }
     h1 { font-size: 1.8em; }
     main { padding: 10px; margin-top: -40px; }
 
