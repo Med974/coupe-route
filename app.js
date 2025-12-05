@@ -262,49 +262,45 @@ function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
     if (!container) return;
     
-    // 1. Tri
+    // 1. Tri (Inchangé)
     members.sort((a, b) => {
         if (a.Catégorie < b.Catégorie) return -1;
         if (a.Catégorie > b.Catégorie) return 1;
         
-        // Accès propriété avec espace
-        const valA = a["Points Total"] || a.PointsTotal || "0";
-        const valB = b["Points Total"] || b.PointsTotal || "0";
-        
-        const pointsA = parseInt(String(valA).replace(/[^\d]/g, '')) || 0;
-        const pointsB = parseInt(String(valB).replace(/[^\d]/g, '')) || 0;
+        const pointsA = parseInt(a["Points Total"]) || 0; 
+        const pointsB = parseInt(b["Points Total"]) || 0; 
         
         return pointsB - pointsA; 
     });
     
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
-    // 2. Calcul du Total
+    // 2. Calcul du Total (Inchangé)
     let totalClubPoints = 0;
     members.forEach(member => {
-        const rawPoints = member["Points Total"] || member.PointsTotal || "0";
-        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
-        totalClubPoints += points;
+        totalClubPoints += parseInt(member["Points Total"]) || 0;
     });
 
     html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Points du Club: ${totalClubPoints}</p>`;
     
-    // 3. Regroupement
+    // 3. Regroupement (MODIFIÉ : Tableau Unique)
     let currentCategory = '';
-    html += '<div class="club-details-list">'; 
+    
+    // Ouverture du tableau unique AVANT la boucle
+    html += '<table class="details-table club-table">';
+    html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
     
     members.forEach(member => {
-        const rawPoints = member["Points Total"] || member.PointsTotal || "0";
-        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
+        const points = parseInt(member["Points Total"]) || 0;
         
+        // Si la catégorie change, on insère une ligne de titre dans le tableau
         if (member.Catégorie !== currentCategory) {
-            if (currentCategory !== '') {
-                html += '</tbody></table>'; 
-            }
             currentCategory = member.Catégorie;
-            html += `<h4 class="category-group-title" style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">${currentCategory}</h4>`; 
-            html += '<table class="details-table club-category-table">';
-            html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
+            
+            // Ligne de séparation qui prend toute la largeur (colspan=2)
+            html += `<tr class="category-separator">
+                        <td colspan="2">${currentCategory}</td>
+                     </tr>`;
         }
         
         html += `<tr>
@@ -313,11 +309,10 @@ function renderClubDetails(members, clubNom) {
                  </tr>`;
     });
     
-    if (members.length > 0) {
-        html += '</tbody></table>'; 
-    }
-    html += '</div>';
+    // Fermeture du tableau unique APRÈS la boucle
+    html += '</tbody></table>'; 
     html += `<button onclick="init()">Retour au Classement Général</button>`;
+
     container.innerHTML = html;
 }
 
@@ -445,3 +440,4 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
