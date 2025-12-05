@@ -1,6 +1,6 @@
 /* =======================================================================
    FICHIER : styles.css
-   Design : "Pro Sport" - Finale Complète
+   Version : Finale (Mobile Fix)
 ======================================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
@@ -158,7 +158,6 @@ main {
     padding-left: 20px;
 }
 
-/* PODIUM */
 .classement-table tbody tr:nth-child(1) td:last-child strong { color: var(--color-gold); font-size: 1.6em; }
 .classement-table tbody tr:nth-child(2) td:last-child strong { color: var(--color-silver); font-size: 1.5em; }
 .classement-table tbody tr:nth-child(3) td:last-child strong { color: var(--color-bronze); font-size: 1.4em; }
@@ -230,6 +229,7 @@ tr.category-separator td {
 .gap-name { font-size: 0.85em; color: #888; }
 
 
+/* --- 9. RESPONSIVE (MOBILE) --- */
 @media (max-width: 768px) {
     header { padding: 20px 10px 100px; }
     h1 { font-size: 1.8em; }
@@ -252,18 +252,17 @@ tr.category-separator td {
 
     .classement-table td, .classement-table th { padding: 10px 5px; font-size: 0.85em; text-align: center; }
     
-    /* NOM aligné à gauche */
-    .classement-table td:nth-child(5) { text-align: left; padding-left: 5px; }
+    .classement-table td:nth-child(5), .classement-table td:nth-child(6) { text-align: left; padding-left: 5px; }
+    .classement-table td:nth-child(7), .classement-table td:nth-child(8) { text-align: right; padding-right: 5px; }
     
-    /* Pos. petite */
     .classement-table th:last-child, .classement-table td:last-child { width: 30px; white-space: nowrap; }
 
-    /* Vue Détail Mobile */
+    /* Vue Détail Mobile : Affiche Position (col 3) et Points (col 5) */
+    /* On cache Date(1) et Catégorie(4) */
     .details-table:not(.club-table) th:nth-child(1), .details-table:not(.club-table) td:nth-child(1),
-    .details-table th:nth-child(3), .details-table td:nth-child(3),
     .details-table th:nth-child(4), .details-table td:nth-child(4) { display: none; }
     
-    /* Vue Club Mobile : Affiche Nom(1) et Points */
+    /* Vue Club Mobile */
     .club-table th:nth-child(1), .club-table td:nth-child(1),
     .club-table th:nth-child(2), .club-table td:nth-child(2) { display: table-cell; }
     .club-table td:nth-child(1) { text-align: left; }
@@ -273,6 +272,7 @@ tr.category-separator td {
     .gap-card { width: 100%; max-width: none; }
 }
 
+/* --- 10. RÉTABLISSEMENT DESKTOP --- */
 @media (min-width: 769px) {
     th, td { display: table-cell !important; }
 }
