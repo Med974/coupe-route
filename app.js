@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v37 - Correction Finale : Encoded Sheet Name)
+// FICHIER : app.js (v36 - Correction Totaux Club et Erreur 400)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -251,7 +251,7 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // Le parsing strict est utilisé ici
+        // CORRECTION : Parsing strict pour les entiers dans la vue détaillée
         const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
@@ -289,8 +289,9 @@ async function showCoureurDetails(nom, saisonKey) {
     
     // 1. URL de recherche : Recherche par Nom (Texte) via Worker
     const encodedNom = encodeURIComponent(nom);
-    // CORRECTION APPLIQUÉE : Encodage du nom de la feuille (Résultats Bruts) et utilisation de "Nom="
-    const encodedSheetName = encodeURIComponent("Résultats Bruts");
+    const encodedSheetName = encodeURIComponent("Résultats Bruts"); // Encodage du nom de la feuille
+    
+    // CORRECTION APPLIQUÉE : Encodage du nom de la feuille et utilisation de "Nom="
     const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&apiId=${saisonConfig.apiId}`; 
 
     const container = document.getElementById('classement-container');
