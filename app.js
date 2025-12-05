@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v45 - Stable + Ajout Logs de Débogage)
+// FICHIER : app.js (v53 - Rétablissement Filtration Côté Client)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -37,6 +37,7 @@ const DEFAULT_SAISON = '2026';
 const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
+let globalRawData = {}; // Rétabli : Stocke les résultats bruts (Feuille Résultats Bruts)
 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
@@ -99,6 +100,34 @@ function buildJsonUrl(saisonKey, categoryKey) {
 }
 
 /**
+ * Récupère TOUTES les données de la feuille Résultats Bruts (une fois par session de cache).
+ */
+async function loadAllRawResults(saisonKey) {
+    if (globalRawData[saisonKey] && globalRawData[saisonKey].length > 0) {
+        return globalRawData[saisonKey];
+    }
+    
+    const sheetName = "Résultats Bruts";
+    
+    // Utilisation de la même logique d'API que pour les classements généraux (pour le cache Worker)
+    const url = buildJsonUrl(saisonKey, 'Résultats Bruts'); 
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Worker/API: ${response.status}`);
+        }
+        const data = await response.json();
+        globalRawData[saisonKey] = data; // Stockage
+        return data;
+    } catch (e) {
+        console.error("Erreur critique lors du chargement des résultats bruts:", e);
+        return [];
+    }
+}
+
+
+/**
  * Crée les boutons de navigation (Saisons et Catégories).
  */
 function createNavBar(currentSaison, currentCategory) {
@@ -148,8 +177,7 @@ async function fetchClassementData(url) {
     const container = document.getElementById('classement-container');
     
     try {
-        // AJOUT LOG : Début de la requête
-        console.log("DEBUG [API_FETCH]: Tentative de récupération de l'URL JSON :", url);
+        console.log("Tentative de récupération de l'URL JSON :", url);
         
         const response = await fetch(url);
         
@@ -253,7 +281,7 @@ function renderCoureurDetails(details) {
     let totalPoints = 0;
     details.forEach(course => {
         // CORRECTION : Parsing strict pour les entiers
-        const points = parseInt(String(course.Points).replace(/[^\d]/g, '')) || 0; 
+        const points = parseInt(String(course.Points)) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
         }
@@ -286,43 +314,23 @@ function renderCoureurDetails(details) {
 
 
 async function showCoureurDetails(nom, saisonKey) {
-    const saisonConfig = SAISONS_CONFIG[saisonKey];
-    
-    // 1. URL de recherche : Recherche par Nom (Texte) via Worker
-    const encodedNom = encodeURIComponent(nom);
-    const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
-    
-    // L'URL stable qui fonctionnait pour la recherche par Nom
-    const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
-
     const container = document.getElementById('classement-container');
     if (container) {
         container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
     }
     
-    try {
-        // AJOUT LOG : Afficher l'URL de recherche envoyée
-        console.log(`DEBUG [DETAILS]: Requête de recherche envoyée : ${searchUrl}`);
-        
-        const response = await fetch(searchUrl);
-        
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare.`);
-        }
-        
-        const data = await response.json();
-        
-        // AJOUT LOG : Afficher les données reçues
-        console.log(`DEBUG [DETAILS]: Données reçues (Count: ${data.length})`);
-        
-        renderCoureurDetails(data); 
+    // CORRECTION CRITIQUE : Filtre côté client sur les données brutes stockées (pour éviter l'échec API)
+    
+    // 1. Assurez-vous que les résultats bruts sont chargés pour cette saison
+    const rawResults = await loadAllRawResults(saisonKey);
+    
+    // 2. Filtrer les résultats par le Nom du coureur cliqué
+    const filteredDetails = rawResults.filter(course => 
+        course.Nom && course.Nom.toString().trim() === nom.toString().trim()
+    );
 
-    } catch (error) {
-        if (container) {
-            container.innerHTML = `<p style="color: red;">Erreur lors de la récupération des détails : ${error.message}</p>`;
-        }
-        console.error("Erreur lors de la récupération des détails :", error);
-    }
+    // 3. Afficher le résultat formaté
+    renderCoureurDetails(filteredDetails); 
 }
 
 
@@ -353,13 +361,9 @@ function renderClubDetails(members, clubNom) {
     // Calcul du Total des Points du Club
     let totalClubPoints = 0;
     members.forEach(member => {
-        // CORRECTION : Utilise la conversion numérique simple (parseInt)
+        // CORRECTION : Utilise la conversion numérique simple
         totalClubPoints += parseInt(member.PointsTotal) || 0;
     });
-
-    // AJOUT LOG : Afficher le total calculé
-    console.log(`DEBUG [CLUB]: Total Points Club Calculé: ${totalClubPoints}`);
-
 
     html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Points du Club: ${totalClubPoints}</p>`;
     
