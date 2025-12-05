@@ -232,20 +232,27 @@ function renderCoureurDetails(details) {
         }
     });
 
-    // --- NOUVEAU : LOGIQUE DE COMPARAISON (ÉCARTS) ---
+// --- NOUVEAU : LOGIQUE DE COMPARAISON (ÉCARTS CORRIGÉE) ---
     let gapsHtml = '<div class="gap-container">';
     
-    // On cherche le coureur dans le classement global (qui est trié)
-    // Note: On utilise le Nom comme clé de comparaison car c'est la donnée stable ici
+    // Fonction locale pour extraire proprement les points d'une ligne de classement
+    const getPointsSafe = (row) => {
+        // On cherche la clé avec ou sans espace
+        const val = row.PointsTotal || row["Points Total"] || "0";
+        // On ne garde que les chiffres et on convertit
+        return parseInt(String(val).replace(/[^\d]/g, '')) || 0;
+    };
+
+    // On cherche le coureur dans le classement global
     const rankIndex = globalClassementData.findIndex(c => c.Nom === coureurNom);
 
     if (rankIndex !== -1) {
-        const currentPoints = parseInt(globalClassementData[rankIndex].PointsTotal) || 0;
+        const currentPoints = getPointsSafe(globalClassementData[rankIndex]);
 
         // 1. Coureur devant (Rang inférieur, donc index - 1)
         if (rankIndex > 0) {
             const runnerAhead = globalClassementData[rankIndex - 1];
-            const pointsAhead = parseInt(runnerAhead.PointsTotal) || 0;
+            const pointsAhead = getPointsSafe(runnerAhead);
             const diff = pointsAhead - currentPoints;
             
             gapsHtml += `
@@ -264,7 +271,7 @@ function renderCoureurDetails(details) {
         // 2. Coureur derrière (Rang supérieur, donc index + 1)
         if (rankIndex < globalClassementData.length - 1) {
             const runnerBehind = globalClassementData[rankIndex + 1];
-            const pointsBehind = parseInt(runnerBehind.PointsTotal) || 0;
+            const pointsBehind = getPointsSafe(runnerBehind);
             const diff = currentPoints - pointsBehind;
 
             gapsHtml += `
@@ -276,7 +283,6 @@ function renderCoureurDetails(details) {
     }
     gapsHtml += '</div>';
     // ---------------------------------------------------
-
 
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 10px;">TOTAL DES POINTS: ${totalPoints}</p>`;
@@ -528,6 +534,7 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
 
 
 
