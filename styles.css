@@ -112,7 +112,7 @@ main {
 }
 
 /* -------------------------------------------------------------------
-   STYLE DU TABLEAU : Centrage Universel des Données
+   STYLE DU TABLEAU : Alignement pour Desktop
    ------------------------------------------------------------------- */
 
 .classement-table, .details-table { 
@@ -125,14 +125,14 @@ main {
 
 .classement-table th, .classement-table td, .details-table th, .details-table td {
     padding: 12px 15px;
-    text-align: center; /* NOUVEAU : Centrage par défaut de toutes les cellules */
+    text-align: center; /* Centrage par défaut */
     border-bottom: 1px solid #eee;
     font-size: 0.9em;
 }
 
-/* Règle pour l'alignement à gauche du NOM */
-.classement-table td:nth-child(5) {
-    text-align: left; /* Nom doit rester aligné à gauche */
+/* Aligner Nom (col 5) et Club (col 6) à gauche */
+.classement-table td:nth-child(5), .classement-table td:nth-child(6) {
+    text-align: left; 
 }
 
 
@@ -161,7 +161,7 @@ main {
     font-weight: 700;
 }
 
-/* Style spécifique à la vue détaillée et au lien (omises pour la concision) */
+/* Style spécifique à la vue détaillée et au lien */
 .details-table h3 {
     color: var(--color-lagon);
     margin-top: 0;
@@ -183,14 +183,15 @@ button:hover {
     background-color: #a83d00;
 }
 
-a.coureur-link {
+/* Style commun aux liens de Coureur et de Club */
+a.coureur-link, a.club-link { 
     color: var(--color-text); 
     text-decoration: none; 
     font-weight: 500;
     transition: color 0.3s;
 }
 
-a.coureur-link:hover {
+a.coureur-link:hover, a.club-link:hover {
     color: var(--color-volcan); 
 }
 
@@ -224,13 +225,7 @@ MEDIA QUERIES (Optimisation pour Mobile)
         border-radius: 0;
     }
 
-    /* --- Navigation et Boutons Mobile (omises pour la concision) --- */
-
-    #nav-seasons, #nav-categories, #nav-masters {
-        text-align: center;
-        padding: 0 5px; 
-    }
-
+    /* Les boutons s'étendent pour prendre la moitié de la largeur (deux par ligne) */
     #nav-seasons a, #nav-categories a, #nav-masters a {
         display: inline-block; 
         width: calc(50% - 15px); 
@@ -242,6 +237,8 @@ MEDIA QUERIES (Optimisation pour Mobile)
     /* ----------------------------------------------------
        RÈGLE DE MASQUAGE EN VUE PORTRAIT (max-width: 768px)
        Affiche: Nom (5), Club (6), Pts Total (7), Classement (8)
+       
+       (Nous masquons les colonnes 1, 2, 3, 4)
     ---------------------------------------------------- */
     
     /* Colonne 1: Sous Catégorie */
@@ -265,21 +262,24 @@ MEDIA QUERIES (Optimisation pour Mobile)
     
     /* RÈGLE CRITIQUE : Alignement pour la vue portrait */
     .classement-table td:nth-child(5) { text-align: left; } /* Nom (Col 5) reste aligné à gauche */
+    .classement-table td:nth-child(6) { text-align: left; } /* Club (Col 6) reste aligné à gauche */
+    .classement-table td:nth-child(7) { text-align: right; } /* Pts Total (Col 7) aligné à droite */
+    .classement-table td:nth-child(8) { text-align: right; } /* Classement (Col 8) aligné à droite */
     
     /* Correction pour la taille minimale */
     .classement-table, .details-table {
         margin-top: 15px; 
-        min-width: 320px; 
+        min-width: 380px; /* Augmentation de la largeur minimale pour Club/Nom/Pts/Classement */
     }
 }
 
 
 /* =======================================================================
-RÈGLE D'ANNULATION (Desktop / Paysage : min-width: 769px)
+RÈGLE D'ANNULATION (min-width: 769px) => Rétablit TOUTES les colonnes
 ======================================================================= */
 
 @media (min-width: 769px) {
-    /* Rétablit l'affichage de toutes les colonnes masquées */
+    /* Rétablit l'affichage de toutes les colonnes masquées - Utilisation de !important pour forcer */
     
     /* Colonnes 1, 2, 3, 4, 6 de classement */
     .classement-table th:nth-child(1), .classement-table td:nth-child(1),
