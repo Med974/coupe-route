@@ -1,7 +1,6 @@
 /* =======================================================================
    FICHIER : styles.css
-   Design : "Pro Sport" - Réunion (Photo Brute & Espacement Corrigé)
-   Version : Finale Complète (Mobile Optimisé)
+   Design : "Pro Sport" - Réunion (Final + Mobile Compact)
 ======================================================================= */
 
 /* Import des polices : Montserrat (Titres) et Roboto (Texte) */
@@ -12,19 +11,11 @@
     --color-lagon: #00A7BB;       /* Bleu Lagon */
     --color-lagon-dark: #008c9e;  /* Lagon plus sombre pour survol */
     --color-volcan: #D94F00;      /* Rouge-Orange (Action/Emphase) */
-    
-    /* FOND GÉNERAL : Noir Anthracite */
     --color-background-page: #121212;  
-    
-    /* COULEURS DU BLOC CENTRAL (Tableau) */
-    --color-background-card: #ffffff; /* Fond blanc du bloc */
-    --color-text: #2c3e50;            /* Texte foncé standard */
-    --color-text-light: #7f8c8d;      /* Texte gris clair (en-têtes) */
-    
-    /* COULEURS HEADER (Sur fond photo) */
+    --color-background-card: #ffffff; 
+    --color-text: #2c3e50;            
+    --color-text-light: #7f8c8d;      
     --color-header-text: #ffffff;
-
-    /* PODIUM */
     --color-gold: #f1c40f;
     --color-silver: #95a5a6;
     --color-bronze: #cd7f32;
@@ -48,30 +39,22 @@ h1, h2, h3, h4, th {
 
 /* --- 3. HEADER IMMERSIF (Image Seule) --- */
 header {
-    /* Image seule sans filtre couleur */
     background-image: url('header-bg.jpg'); 
-    
     background-size: cover;      
-    background-position: center; /* Centre l'image */
+    background-position: center; 
     background-repeat: no-repeat;
     background-attachment: scroll; 
-    
     color: var(--color-header-text);
-    
-    /* ESPACEMENT CRITIQUE : 140px en bas pour laisser la place au tableau qui remonte */
     padding: 40px 20px 140px; 
-    
     text-align: center;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    
     border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
     position: relative;
     overflow: hidden;
 }
 
-/* Ombre forte pour lisibilité sur photo */
 h1, h2 {
     text-shadow: 0 3px 15px rgba(0,0,0,1); 
     position: relative;
@@ -95,23 +78,18 @@ h2 {
 main {
     padding: 0 20px;
     max-width: 1200px;
-    
-    /* ESPACEMENT CRITIQUE : Remonte de 80px sur le header */
     margin: -80px auto 50px; 
-    
     z-index: 20;
     position: relative;
 }
 
-/* Le conteneur blanc lui-même */
 #classement-container {
-    background-color: var(--color-background-card); /* FOND BLANC */
+    background-color: var(--color-background-card); 
     padding: 40px; 
     border-radius: 25px; 
     box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
 }
 
-/* Titres à l'intérieur du bloc blanc */
 #classement-container h3 {
     color: var(--color-lagon-dark);
     margin-top: 0;
@@ -119,7 +97,7 @@ main {
 }
 #classement-container p { color: var(--color-text-light); }
 
-/* --- 5. NAVIGATION (STYLE "APP TABS") --- */
+/* --- 5. NAVIGATION --- */
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
     display: block; 
@@ -132,7 +110,6 @@ main {
 
 #nav-seasons { margin-bottom: 15px; }
 
-/* Style des boutons : Blancs opaques */
 #nav-seasons a, #nav-categories a, #nav-masters a {
     display: inline-block;
     text-decoration: none;
@@ -140,7 +117,6 @@ main {
     background-color: rgba(255, 255, 255, 0.9); 
     backdrop-filter: blur(5px);
     border: 1px solid #ffffff;
-    
     padding: 10px 22px; 
     margin: 5px;
     border-radius: 50px;
@@ -148,11 +124,9 @@ main {
     font-weight: 700; 
     transition: all 0.2s ease;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
-    
     margin-right: 10px; 
 }
 
-/* Survol */
 #nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
     background-color: var(--color-lagon);
     color: white;
@@ -160,7 +134,6 @@ main {
     transform: translateY(-2px);
 }
 
-/* Bouton Actif */
 #nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
     background-color: var(--color-volcan);
     color: white;
@@ -183,7 +156,6 @@ main {
     text-align: center;
 }
 
-/* En-têtes */
 .classement-table th, .details-table th {
     background-color: #f8f9fa;
     color: var(--color-text-light);
@@ -193,7 +165,6 @@ main {
     border-bottom: 2px solid #eee;
 }
 
-/* Lignes et Cellules */
 .classement-table td, .details-table td {
     padding: 15px 10px;
     border-bottom: 1px solid #eee;
@@ -207,21 +178,19 @@ main {
     background-color: #f0f8ff; 
 }
 
-/* Alignement Gauche pour Nom et Club */
+/* Alignement Gauche pour Nom et Club (Desktop) */
 .classement-table td:nth-child(5), .classement-table td:nth-child(6) {
     text-align: left;
     padding-left: 20px;
 }
 
-/* --- 7. DESIGN PODIUM --- */
+/* Podium */
 .classement-table tbody tr:nth-child(1) td:last-child strong { color: var(--color-gold); font-size: 1.6em; }
 .classement-table tbody tr:nth-child(2) td:last-child strong { color: var(--color-silver); font-size: 1.5em; }
 .classement-table tbody tr:nth-child(3) td:last-child strong { color: var(--color-bronze); font-size: 1.4em; }
 .classement-table tr td:last-child strong { font-weight: 800; }
 
 /* --- 8. ÉLÉMENTS SPÉCIFIQUES --- */
-
-/* Liens */
 a.coureur-link, a.club-link {
     color: var(--color-text); 
     text-decoration: none; 
@@ -234,7 +203,6 @@ a.coureur-link:hover, a.club-link:hover {
     border-bottom-color: var(--color-lagon);
 }
 
-/* Bouton Retour */
 button {
     background-color: var(--color-lagon);
     color: white;
@@ -257,7 +225,6 @@ button:hover {
     transform: translateY(-2px);
 }
 
-/* Séparateur (Vue Club) */
 tr.category-separator td {
     background-color: #eef6f8;
     color: var(--color-lagon-dark);
@@ -267,7 +234,6 @@ tr.category-separator td {
     padding-top: 20px;
 }
 
-/* Badges Écarts */
 .gap-container {
     display: flex;
     justify-content: center;
@@ -297,24 +263,23 @@ tr.category-separator td {
 /* --- 9. RESPONSIVE (MOBILE) --- */
 @media (max-width: 768px) {
     
-    header { padding: 20px 10px 100px; } /* Espace sous le header */
+    header { padding: 20px 10px 100px; }
     h1 { font-size: 1.8em; }
     
-    /* Ajustement du bloc blanc sur mobile */
     main { margin-top: -60px; padding: 0 10px; }
     #classement-container { padding: 20px 15px; border-radius: 20px; }
 
-    /* Boutons plus petits sur mobile */
+    /* MODIFICATION BOUTONS MOBILE : COMPACTS */
     #nav-seasons a, #nav-categories a, #nav-masters a {
-        width: calc(50% - 14px); 
-        margin: 4px; 
-        padding: 8px 0;
-        font-size: 0.75em;
-        margin-right: 4px;
+        display: inline-block;
+        width: auto; /* S'adapte au texte, plus de 50% forcé */
+        margin: 3px 2px; /* Marges réduites */
+        padding: 6px 12px; /* Bouton plus petit */
+        font-size: 0.75em; /* Texte plus petit */
+        margin-right: 2px;
     }
     
-    /* --- Masquage Colonnes Portrait --- */
-    /* On garde : Nom (5), Club (6), Points (7), Pos (8) */
+    /* Masquage Colonnes Portrait */
     .classement-table th:nth-child(1), .classement-table td:nth-child(1),
     .classement-table th:nth-child(2), .classement-table td:nth-child(2),
     .classement-table th:nth-child(3), .classement-table td:nth-child(3),
@@ -322,10 +287,9 @@ tr.category-separator td {
         display: none;
     }
 
-    /* Styles pour la version mobile */
     .classement-table td, .classement-table th {
         padding: 10px 5px;
-        font-size: 0.85em;
+        font-size: 0.8em;
     }
     
     .classement-table td:nth-child(5), .classement-table td:nth-child(6) {
@@ -343,24 +307,20 @@ tr.category-separator td {
         white-space: nowrap;
     }
 
-    /* --- Correction Vue Club Mobile --- */
-    /* On cache la colonne 1 (Date) pour les détails normaux, MAIS PAS pour le Club */
-    /* Le tableau Club a la classe .club-table */
-    
-    /* 1. Cache Date, Position, Catégorie pour le détail COUREUR */
+    /* Vue Détail : Masquage colonnes inutiles */
     .details-table:not(.club-table) th:nth-child(1), .details-table:not(.club-table) td:nth-child(1),
     .details-table th:nth-child(3), .details-table td:nth-child(3),
     .details-table th:nth-child(4), .details-table td:nth-child(4) {
         display: none;
     }
     
-    /* 2. Affiche Nom et Points pour le CLUB */
+    /* Vue Club : Affiche Nom et Points */
     .club-table th:nth-child(1), .club-table td:nth-child(1),
     .club-table th:nth-child(2), .club-table td:nth-child(2) {
         display: table-cell;
         text-align: left;
     }
-    
+
     .classement-table, .details-table {
         min-width: 100%;
         margin-top: 15px;
