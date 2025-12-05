@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v55 - Rétablissement Stabilité et Correction Totaux Club)
+// FICHIER : app.js (v45 - FINAL : Filtre Détail Côté Client)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -37,6 +37,7 @@ const DEFAULT_SAISON = '2026';
 const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
+let globalRawData = {}; // NOUVEAU : Stocke les résultats bruts par saison
 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
@@ -98,6 +99,36 @@ function buildJsonUrl(saisonKey, categoryKey) {
     return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
 }
 
+
+/**
+ * Récupère TOUTES les données de la feuille Résultats Bruts (une fois par session de cache).
+ */
+async function loadAllRawResults(saisonKey) {
+    if (globalRawData[saisonKey] && globalRawData[saisonKey].length > 0) {
+        return globalRawData[saisonKey];
+    }
+    
+    const sheetName = "Résultats Bruts";
+    const saisonConfig = SAISONS_CONFIG[saisonKey];
+    
+    // NOTE : Le Worker est configuré pour mettre en cache cette feuille
+    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetName}`; 
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Worker/API: ${response.status}`);
+        }
+        const data = await response.json();
+        globalRawData[saisonKey] = data; // Stockage
+        return data;
+    } catch (e) {
+        console.error("Erreur critique lors du chargement des résultats bruts:", e);
+        return [];
+    }
+}
+
+
 /**
  * Crée les boutons de navigation (Saisons et Catégories).
  */
@@ -106,7 +137,7 @@ function createNavBar(currentSaison, currentCategory) {
     const categoriesContainer = document.getElementById('nav-categories');
     const mastersContainer = document.getElementById('nav-masters');
 
-    // 1. Navigation Saisons
+    // 1. Navigation Saisons (inchangée)
     let seasonsHtml = '';
     Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
         const saison = SAISONS_CONFIG[saisonKey];
@@ -117,7 +148,7 @@ function createNavBar(currentSaison, currentCategory) {
         seasonsContainer.innerHTML = seasonsHtml;
     }
 
-    // 2. Navigation Catégories
+    // 2. Navigation Catégories (inchangée)
     const currentCategories = SAISONS_CONFIG[currentSaison]?.categories;
     let categoriesHtml = '';
     if (currentCategories) {
@@ -131,7 +162,7 @@ function createNavBar(currentSaison, currentCategory) {
         categoriesContainer.innerHTML = categoriesHtml;
     }
     
-    // 3. Navigation Masters
+    // 3. Navigation Masters (inchangée)
     let mastersHtml = '';
     MASTERS_CONFIG.forEach(master => {
         const isActive = master.key === 'all' ? 'active' : '';
@@ -148,13 +179,11 @@ async function fetchClassementData(url) {
     const container = document.getElementById('classement-container');
     
     try {
-        console.log("Tentative de récupération de l'URL JSON :", url);
-        
         const response = await fetch(url);
         
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare/SheetDB. Réponse: ${errorBody.substring(0, 100)}...`);
+            throw new Error(`Erreur HTTP: ${response.status}. Réponse: ${errorBody.substring(0, 100)}...`);
         }
         
         const data = await response.json(); 
@@ -211,6 +240,7 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
+                // Le lien utilise le Nom comme clé de recherche (pour la vue détaillée)
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -251,7 +281,6 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // Rétablissement de la logique stable v45 pour le calcul des points
         const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
@@ -290,12 +319,13 @@ async function showCoureurDetails(nom, saisonKey) {
         container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
     }
     
-    // Rétablissement de la logique de filtre client qui fonctionnait
+    // CORRECTION CRITIQUE : Filtre côté client sur les données brutes stockées (pour éviter l'échec API)
     
     // 1. Assurez-vous que les résultats bruts sont chargés pour cette saison
     const rawResults = await loadAllRawResults(saisonKey);
     
     // 2. Filtrer les résultats par le Nom du coureur cliqué
+    // NOTE : Le nom doit correspondre exactement, sinon le coureur sera invisible.
     const filteredDetails = rawResults.filter(course => 
         course.Nom && course.Nom.toString().trim() === nom.toString().trim()
     );
@@ -321,8 +351,9 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
-        const pointsA = parseInt(a.PointsTotal) || 0; // CORRECTION : Utilise parseInt
-        const pointsB = parseInt(b.PointsTotal) || 0; // CORRECTION : Utilise parseInt
+        // Utilisation de parseInt pour garantir un tri numérique correct
+        const pointsA = parseInt(a.PointsTotal) || 0; 
+        const pointsB = parseInt(b.PointsTotal) || 0; 
         
         return pointsB - pointsA; 
     });
@@ -332,7 +363,7 @@ function renderClubDetails(members, clubNom) {
     // Calcul du Total des Points du Club
     let totalClubPoints = 0;
     members.forEach(member => {
-        // CORRECTION : Utilise la conversion numérique simple (parseInt)
+        // Conversion stricte en entier pour le calcul
         totalClubPoints += parseInt(member.PointsTotal) || 0;
     });
 
@@ -345,10 +376,9 @@ function renderClubDetails(members, clubNom) {
     html += '<div class="club-details-list">'; 
     
     members.forEach(member => {
-        // Conversion en nombre strict pour l'affichage dans le tableau
         const points = parseInt(member.PointsTotal) || 0;
         
-        // NOUVEAU : Changement de Catégorie (Début du Regroupement)
+        // Changement de Catégorie (Début du Regroupement)
         if (member.Catégorie !== currentCategory) {
             // Fermer le tableau précédent (si ce n'est pas le tout premier titre)
             if (currentCategory !== '') {
@@ -357,7 +387,7 @@ function renderClubDetails(members, clubNom) {
             currentCategory = member.Catégorie;
             
             // Insérer le titre de regroupement
-            html += `<h4 class="category-group-title">${currentCategory}</h4>`; 
+            html += `<h4 class="category-group-title" style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">${currentCategory}</h4>`; 
             
             // Ouvrir un nouveau tableau pour cette catégorie
             html += '<table class="details-table club-category-table">';
@@ -499,10 +529,10 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // 2. Chargement des résultats bruts pour le filtrage côté client 
+        // 2. Chargement des résultats bruts pour le filtrage côté client (Cache HIT garanti)
         const rawResultsPromise = loadAllRawResults(currentSaison);
         
-        // Initialisation des écouteurs
+        // 3. Initialisation des écouteurs
         const mastersContainer = document.getElementById('nav-masters');
         if (mastersContainer) {
             mastersContainer.addEventListener('click', handleMasterFilterChange);
