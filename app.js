@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v57 - Final Stable + Logs)
+// FICHIER : app.js (v52 - Correction Finale Filtre Club)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -37,7 +37,7 @@ const DEFAULT_SAISON = '2026';
 const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
-let globalRawData = {}; // Stockage pour la vue coureur
+let globalRawData = {}; 
 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
@@ -85,9 +85,6 @@ function buildJsonUrl(saisonKey, categoryKey) {
     return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
 }
 
-/**
- * Charge les données brutes pour la vue détail COUREUR (filtrage local).
- */
 async function loadAllRawResults(saisonKey) {
     if (globalRawData[saisonKey] && globalRawData[saisonKey].length > 0) {
         return globalRawData[saisonKey];
@@ -97,12 +94,14 @@ async function loadAllRawResults(saisonKey) {
 
     try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`Worker/API: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`Worker/API: ${response.status}`);
+        }
         const data = await response.json();
         globalRawData[saisonKey] = data; 
         return data;
     } catch (e) {
-        console.error("Erreur chargement résultats bruts:", e);
+        console.error("Erreur critique lors du chargement des résultats bruts:", e);
         return [];
     }
 }
@@ -144,38 +143,35 @@ function createNavBar(currentSaison, currentCategory) {
     }
 }
 
-// --- 3. Fonctions de Données et Rendu ---
-
 async function fetchClassementData(url) {
     const container = document.getElementById('classement-container');
     try {
         const response = await fetch(url);
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare/SheetDB.`);
+            throw new Error(`Erreur HTTP: ${response.status}. Réponse: ${errorBody.substring(0, 100)}...`);
         }
         const data = await response.json(); 
-        if (data && data.error) throw new Error(`Erreur API: ${data.error}`);
+        if (data && data.error) {
+             throw new Error(`Erreur API: ${data.error}`);
+        }
         return data;
     } catch (error) {
         if (container) {
             container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. Détails : ${error.message}</p>`;
         }
-        console.error("Erreur de récupération :", error);
         return [];
     }
 }
 
 function renderTable(data) {
     const container = document.getElementById('classement-container');
-
     if (data.length === 0 || typeof data[0] !== 'object') {
         if (container) {
             container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie.</p>';
         }
         return;
     }
-
     const headers = Object.keys(data[0]);
     let html = '<table class="classement-table">';
     html += '<thead><tr>';
@@ -212,35 +208,27 @@ function renderTable(data) {
     }
 }
 
-
-// --- 4. Logique Détaillée du Coureur ---
-
 function renderCoureurDetails(details) {
     const container = document.getElementById('classement-container');
     if (!container) return;
-    
     if (details.length === 0) {
         container.innerHTML = '<p>Aucun résultat de course trouvé pour ce coureur.</p>';
         return;
     }
-    
     const coureurNom = details[0].Nom;
     const coureurDossardRecherche = details[0].Dossard; 
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
-
     let totalPoints = 0;
     details.forEach(course => {
-        const points = parseInt(String(course.Points)) || 0; 
+        const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
         }
     });
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
-
     html += '<table class="details-table">';
     html += '<thead><tr><th>Date</th><th>Course</th><th>Position</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
-
     details.forEach(course => {
         html += `<tr>
                     <td>${course.Date}</td> 
@@ -260,13 +248,10 @@ async function showCoureurDetails(nom, saisonKey, allRawResults) {
     if (container) {
         container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
     }
-    
-    // Filtre local sur les données brutes chargées au démarrage
     const rawResults = await allRawResults;
     const filteredDetails = rawResults.filter(course => 
         course.Nom && course.Nom.toString().trim() === nom.toString().trim()
     );
-
     renderCoureurDetails(filteredDetails); 
 }
 
@@ -277,54 +262,46 @@ function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
     if (!container) return;
     
-    if (members.length === 0) {
-        container.innerHTML = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3><p>Aucun membre trouvé.</p><button onclick="init()">Retour</button>`;
-        return;
-    }
-
-    // 1. Tri des membres
+    // 1. Tri
     members.sort((a, b) => {
         if (a.Catégorie < b.Catégorie) return -1;
         if (a.Catégorie > b.Catégorie) return 1;
         
-        // CORRECTION : Utilisation de la clé avec espace ["Points Total"]
-        const pointsA = parseInt(a["Points Total"]) || 0; 
-        const pointsB = parseInt(b["Points Total"]) || 0; 
+        // Accès propriété avec espace
+        const valA = a["Points Total"] || a.PointsTotal || "0";
+        const valB = b["Points Total"] || b.PointsTotal || "0";
+        
+        const pointsA = parseInt(String(valA).replace(/[^\d]/g, '')) || 0;
+        const pointsB = parseInt(String(valB).replace(/[^\d]/g, '')) || 0;
         
         return pointsB - pointsA; 
     });
     
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
-    // 2. Calcul du Total des Points du Club
+    // 2. Calcul du Total
     let totalClubPoints = 0;
     members.forEach(member => {
-        // LOG DEBUG : Afficher la valeur brute et parsée
-        const rawVal = member["Points Total"];
-        const points = parseInt(rawVal) || 0;
-        console.log(`DEBUG CLUB: ${member.Nom} - Brute: "${rawVal}" -> Parsé: ${points}`);
-        
+        const rawPoints = member["Points Total"] || member.PointsTotal || "0";
+        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
         totalClubPoints += points;
     });
 
-    // LOG DEBUG TOTAL
-    console.log(`DEBUG CLUB: Total Club Calculé: ${totalClubPoints}`);
-
     html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Points du Club: ${totalClubPoints}</p>`;
     
-    // 3. Regroupement et Rendu
+    // 3. Regroupement
     let currentCategory = '';
     html += '<div class="club-details-list">'; 
     
     members.forEach(member => {
-        const points = parseInt(member["Points Total"]) || 0;
+        const rawPoints = member["Points Total"] || member.PointsTotal || "0";
+        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
         
         if (member.Catégorie !== currentCategory) {
             if (currentCategory !== '') {
                 html += '</tbody></table>'; 
             }
             currentCategory = member.Catégorie;
-            
             html += `<h4 class="category-group-title" style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">${currentCategory}</h4>`; 
             html += '<table class="details-table club-category-table">';
             html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
@@ -348,7 +325,6 @@ async function showClubClassement(clubNom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     const sheetdbApiId = saisonConfig.apiId;
     
-    // Recherche API via Worker pour le Club
     const encodedClub = encodeURIComponent(clubNom);
     const searchUrl = `${WORKER_BASE_URL}search?Club=${encodedClub}&sheet=Coureurs&saison=${saisonKey}`;
 
@@ -359,17 +335,18 @@ async function showClubClassement(clubNom, saisonKey) {
     
     try {
         const response = await fetch(searchUrl);
-        if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}.`);
+        }
+        const data = await response.json();
         
-        const rawData = await response.json();
-        
-        // LOG DEBUG : Données reçues de l'API
-        console.log(`DEBUG CLUB: Données reçues brutes:`, rawData);
+        // CORRECTION CRITIQUE : Filtrer les données reçues pour ne garder que le club concerné
+        // et éliminer les lignes vides éventuelles.
+        const filteredMembers = data.filter(member => 
+            member.Club && member.Club.trim() === clubNom.trim()
+        );
 
-        // NETTOYAGE : Retirer les lignes vides (celles sans Nom)
-        const cleanData = rawData.filter(item => item.Nom && item.Nom.trim() !== "");
-        
-        renderClubDetails(cleanData, clubNom); 
+        renderClubDetails(filteredMembers, clubNom); 
 
     } catch (error) {
         if (container) {
@@ -428,11 +405,8 @@ async function init() {
         if (container) {
             container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
         }
-        
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
-        
-        // Chargement local pour la vue détail coureur
         const rawResultsPromise = loadAllRawResults(currentSaison);
         
         const mastersContainer = document.getElementById('nav-masters');
@@ -442,7 +416,6 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
-            // Clic Coureur
             classementContainer.addEventListener('click', async (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
@@ -453,7 +426,6 @@ async function init() {
                 }
             });
             
-            // Clic Club
             classementContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('.club-link');
                 if (link) {
@@ -464,7 +436,6 @@ async function init() {
                 }
             });
         }
-        
         renderTable(rawData);
     } else {
         if (container) {
