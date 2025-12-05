@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v52 - FINAL avec Débogage Console)
+// FICHIER : app.js (v53 - Rétablissement Vue Coureur Stable)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -28,7 +28,7 @@ const SAISONS_CONFIG = {
             'femmes': { name: 'Femmes', sheetName: 'Femmes' },
             'u17': { name: 'U17', sheetName: 'U17' },
             'u15': { name: 'U15', sheetName: 'U15' },
-            'u15u17f': { name: 'U15/U15U17 Filles', sheetName: 'U15U17Femmes' },
+            'u15u17f': { name: 'U15/U17 Filles', sheetName: 'U15U17Femmes' },
         }
     }
 };
@@ -253,7 +253,7 @@ function renderCoureurDetails(details) {
     let totalPoints = 0;
     details.forEach(course => {
         // CORRECTION : Parsing strict pour les entiers
-        const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
+        const points = parseInt(String(course.Points)) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
         }
@@ -292,7 +292,7 @@ async function showCoureurDetails(nom, saisonKey) {
     const encodedNom = encodeURIComponent(nom);
     const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
     
-    // Utilise la clé Nom pour la recherche (stable)
+    // Rétablissement de la version stable connue
     const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
 
     const container = document.getElementById('classement-container');
@@ -335,6 +335,7 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
+        // CORRECTION : Utilise parseInt() pour les points entiers
         const pointsA = parseInt(a.PointsTotal) || 0; 
         const pointsB = parseInt(b.PointsTotal) || 0; 
         
