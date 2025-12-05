@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v46 - Solution Totaux Club Côté Client)
+// FICHIER : app.js (v45 - Stabilisation Finale et Corrections)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,6 +211,7 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
+                // Rétablissement : Le lien utilise le Nom comme clé de recherche
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -291,7 +292,7 @@ async function showCoureurDetails(nom, saisonKey) {
     const encodedNom = encodeURIComponent(nom);
     const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
     
-    // CORRECTION CRITIQUE : L'URL utilise le Nom pour la recherche (stable)
+    // CORRECTION : La recherche se fait par Nom (Texte)
     const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
 
     const container = document.getElementById('classement-container');
@@ -345,6 +346,7 @@ function renderClubDetails(members, clubNom) {
     // Calcul du Total des Points du Club
     let totalClubPoints = 0;
     members.forEach(member => {
+        // CORRECTION : Assurer la conversion en nombre strict
         totalClubPoints += parseFloat(String(member.PointsTotal).replace(/[^\d.]/g, '')) || 0;
     });
 
