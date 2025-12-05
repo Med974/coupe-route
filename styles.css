@@ -309,3 +309,46 @@ tr.category-separator td {
     border-top: 2px solid #fff; /* Petite séparation blanche */
 }
 
+/* --- Styles pour les Écarts de Points (Vue Détaillée) --- */
+
+.gap-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    margin-top: -10px;
+}
+
+.gap-card {
+    background-color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 0.95em;
+    border-left: 5px solid #ccc;
+    min-width: 200px;
+}
+
+/* Style pour le coureur devant (Cible) */
+.gap-card.chase {
+    border-left-color: #e74c3c; /* Rouge */
+    color: #c0392b;
+}
+
+/* Style pour le coureur derrière (Menace) */
+.gap-card.lead {
+    border-left-color: #27ae60; /* Vert */
+    color: #219150;
+}
+
+.gap-card strong {
+    display: block;
+    font-size: 1.1em;
+    margin-bottom: 3px;
+}
+
+.gap-name {
+    font-size: 0.85em;
+    color: #666;
+}
