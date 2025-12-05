@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v58 - FINAL : Toutes corrections appliquées)
+// FICHIER : app.js (v59 - Final : Textes & Visibilité Mobile)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -37,7 +37,7 @@ const DEFAULT_SAISON = '2026';
 const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
-let globalRawData = {}; // Stocke les résultats bruts pour le filtrage local
+let globalRawData = {}; 
 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
@@ -85,9 +85,6 @@ function buildJsonUrl(saisonKey, categoryKey) {
     return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
 }
 
-/**
- * Charge tous les résultats bruts au démarrage pour la vue détail.
- */
 async function loadAllRawResults(saisonKey) {
     if (globalRawData[saisonKey] && globalRawData[saisonKey].length > 0) {
         return globalRawData[saisonKey];
@@ -234,14 +231,15 @@ function renderCoureurDetails(details) {
 
     let totalPoints = 0;
     details.forEach(course => {
-        // parseInt strict
         const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
         }
     });
-    
-    // Gap Logic
+    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
+
+    // --- GAP LOGIC ---
     let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
         const val = row.PointsTotal || row["Points Total"] || "0";
@@ -266,12 +264,9 @@ function renderCoureurDetails(details) {
         }
     }
     gapsHtml += '</div>';
-
-    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
-    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 10px;">TOTAL DES POINTS: ${totalPoints}</p>`;
     html += gapsHtml;
+    // -----------------
 
-    // RENOMMAGE : 'Pos.'
     html += '<table class="details-table">';
     html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
     details.forEach(course => {
@@ -293,15 +288,12 @@ async function showCoureurDetails(nom, saisonKey, allRawResults) {
     if (container) {
         container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
     }
-    
-    // Filtrage côté client
     const rawResults = await allRawResults;
     const filteredDetails = rawResults.filter(course => 
         course.Nom && course.Nom.toString().trim() === nom.toString().trim()
     );
     renderCoureurDetails(filteredDetails); 
 }
-
 
 // --- 5. Logique Club ---
 
@@ -318,35 +310,44 @@ function renderClubDetails(members, clubNom) {
         const rankB = getCategoryRank(b.Catégorie);
         if (rankA !== rankB) return rankA - rankB;
         
-        // Parsing strict pour le tri
         const valA = a["Points Total"] || a.PointsTotal || "0";
         const valB = b["Points Total"] || b.PointsTotal || "0";
-        return (parseInt(valB) || 0) - (parseInt(valA) || 0); 
+        
+        // parseInt strict
+        const pointsA = parseInt(String(valA).replace(/[^\d]/g, '')) || 0;
+        const pointsB = parseInt(String(valB).replace(/[^\d]/g, '')) || 0;
+        
+        return pointsB - pointsA; 
     });
     
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
-    // Calcul Totaux
     let totalClubPoints = 0;
+    let categoryCounts = {}; 
+
     members.forEach(member => {
         const rawPoints = member["Points Total"] || member.PointsTotal || "0";
-        totalClubPoints += parseInt(rawPoints) || 0;
+        totalClubPoints += parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
+        
+        const cat = member.Catégorie;
+        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
     });
 
     html += `<p style="font-size: 1.1em; margin-bottom: 20px;"><strong>Points Total :</strong> ${totalClubPoints} <span style="margin: 0 10px;">|</span> <strong>Nombre de Coureurs :</strong> ${members.length}</p>`;
     
-    // Tableau unique avec classe 'club-table' pour le CSS
     let currentCategory = '';
     html += '<table class="details-table club-table">';
-    html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
+    // MODIFICATION : "Points" au lieu de "Points Total"
+    html += '<thead><tr><th>Nom</th><th>Points</th></tr></thead><tbody>';
     
     members.forEach(member => {
         const rawPoints = member["Points Total"] || member.PointsTotal || "0";
-        const points = parseInt(rawPoints) || 0;
+        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
         
         if (member.Catégorie !== currentCategory) {
             currentCategory = member.Catégorie;
-            html += `<tr class="category-separator"><td colspan="2">${currentCategory}</td></tr>`;
+            const countInCat = categoryCounts[currentCategory] || 0;
+            html += `<tr class="category-separator"><td colspan="2">${currentCategory} <span style="font-size:0.8em; font-weight:normal;">(${countInCat} coureurs)</span></td></tr>`;
         }
         
         html += `<tr>
@@ -375,7 +376,6 @@ async function showClubClassement(clubNom, saisonKey) {
         if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}.`);
         const data = await response.json();
         
-        // Filtre de sécurité
         const filteredMembers = data.filter(member => member.Club && member.Club.trim() === clubNom.trim());
         renderClubDetails(filteredMembers, clubNom); 
     } catch (error) {
@@ -424,7 +424,7 @@ async function init() {
     
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
-    const categoryTitleElement = document.querySelector('header h2');
+    const categoryTitleElement = document.getElementById('category-title');
     if (categoryTitleElement) {
         categoryTitleElement.textContent = ""; 
     }
@@ -433,7 +433,6 @@ async function init() {
         if (container) {
             container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
         }
-        
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         const rawResultsPromise = loadAllRawResults(currentSaison);
