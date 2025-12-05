@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v59 - Final : Textes & Visibilité Mobile)
+// FICHIER : app.js (v60 - Final : Textes & Alignements)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -177,8 +177,9 @@ function renderTable(data) {
     let html = '<table class="classement-table">';
     html += '<thead><tr>';
     headers.forEach(header => {
-        // RENOMMAGE : 'Points' et 'Pos.'
-        const displayHeader = header.replace('PointsTotal', 'Points')
+        // RENOMMAGE : Gère "PointsTotal" et "Points Total"
+        const displayHeader = header.replace('Points Total', 'Points')
+                                    .replace('PointsTotal', 'Points')
                                     .replace('NbCourses', 'Nb Courses')
                                     .replace('SousCategorie', 'Sous Catégorie')
                                     .replace('Master', 'Catégorie Master')
@@ -301,19 +302,14 @@ function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
     if (!container) return;
     
-    // Tri personnalisé
-    const categoryOrder = ["OPEN", "Access 1/2", "Access 3/4", "Femmes", "U17", "U15", "U15/U17 Filles", "U15U17F"];
-    const getCategoryRank = (catName) => { const index = categoryOrder.indexOf(catName); return index === -1 ? 999 : index; };
-
+    // 1. Tri des membres
     members.sort((a, b) => {
-        const rankA = getCategoryRank(a.Catégorie);
-        const rankB = getCategoryRank(b.Catégorie);
-        if (rankA !== rankB) return rankA - rankB;
+        if (a.Catégorie < b.Catégorie) return -1;
+        if (a.Catégorie > b.Catégorie) return 1;
         
         const valA = a["Points Total"] || a.PointsTotal || "0";
         const valB = b["Points Total"] || b.PointsTotal || "0";
         
-        // parseInt strict
         const pointsA = parseInt(String(valA).replace(/[^\d]/g, '')) || 0;
         const pointsB = parseInt(String(valB).replace(/[^\d]/g, '')) || 0;
         
@@ -323,21 +319,16 @@ function renderClubDetails(members, clubNom) {
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
     let totalClubPoints = 0;
-    let categoryCounts = {}; 
-
     members.forEach(member => {
         const rawPoints = member["Points Total"] || member.PointsTotal || "0";
         totalClubPoints += parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
-        
-        const cat = member.Catégorie;
-        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
     });
 
     html += `<p style="font-size: 1.1em; margin-bottom: 20px;"><strong>Points Total :</strong> ${totalClubPoints} <span style="margin: 0 10px;">|</span> <strong>Nombre de Coureurs :</strong> ${members.length}</p>`;
     
     let currentCategory = '';
     html += '<table class="details-table club-table">';
-    // MODIFICATION : "Points" au lieu de "Points Total"
+    // MODIFICATION : 'Points' au lieu de 'Points Total'
     html += '<thead><tr><th>Nom</th><th>Points</th></tr></thead><tbody>';
     
     members.forEach(member => {
@@ -346,8 +337,7 @@ function renderClubDetails(members, clubNom) {
         
         if (member.Catégorie !== currentCategory) {
             currentCategory = member.Catégorie;
-            const countInCat = categoryCounts[currentCategory] || 0;
-            html += `<tr class="category-separator"><td colspan="2">${currentCategory} <span style="font-size:0.8em; font-weight:normal;">(${countInCat} coureurs)</span></td></tr>`;
+            html += `<tr class="category-separator"><td colspan="2">${currentCategory}</td></tr>`;
         }
         
         html += `<tr>
@@ -433,6 +423,7 @@ async function init() {
         if (container) {
             container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
         }
+        
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         const rawResultsPromise = loadAllRawResults(currentSaison);
