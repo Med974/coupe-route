@@ -297,3 +297,15 @@ RÈGLE D'ANNULATION (min-width: 769px) => Rétablit TOUTES les colonnes
         display: table-cell !important;
     }
 }
+
+/* Style pour les lignes de séparation de catégorie dans le tableau Club */
+tr.category-separator td {
+    background-color: #eef6f8; /* Fond très léger couleur lagon */
+    color: var(--color-lagon);
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center; /* Centrer le titre de la catégorie */
+    padding: 12px;
+    border-top: 2px solid #fff; /* Petite séparation blanche */
+}
+
