@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v53 - Rétablissement Vue Coureur Stable)
+// FICHIER : app.js (v45 - Stable + Ajout Logs de Débogage)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -148,7 +148,8 @@ async function fetchClassementData(url) {
     const container = document.getElementById('classement-container');
     
     try {
-        console.log("Tentative de récupération de l'URL JSON :", url);
+        // AJOUT LOG : Début de la requête
+        console.log("DEBUG [API_FETCH]: Tentative de récupération de l'URL JSON :", url);
         
         const response = await fetch(url);
         
@@ -211,7 +212,6 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Le lien utilise le Nom comme clé de recherche (pour la vue détaillée)
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -253,7 +253,7 @@ function renderCoureurDetails(details) {
     let totalPoints = 0;
     details.forEach(course => {
         // CORRECTION : Parsing strict pour les entiers
-        const points = parseInt(String(course.Points)) || 0; 
+        const points = parseInt(String(course.Points).replace(/[^\d]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
         }
@@ -292,7 +292,7 @@ async function showCoureurDetails(nom, saisonKey) {
     const encodedNom = encodeURIComponent(nom);
     const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
     
-    // Rétablissement de la version stable connue
+    // L'URL stable qui fonctionnait pour la recherche par Nom
     const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
 
     const container = document.getElementById('classement-container');
@@ -301,6 +301,9 @@ async function showCoureurDetails(nom, saisonKey) {
     }
     
     try {
+        // AJOUT LOG : Afficher l'URL de recherche envoyée
+        console.log(`DEBUG [DETAILS]: Requête de recherche envoyée : ${searchUrl}`);
+        
         const response = await fetch(searchUrl);
         
         if (!response.ok) {
@@ -309,12 +312,16 @@ async function showCoureurDetails(nom, saisonKey) {
         
         const data = await response.json();
         
+        // AJOUT LOG : Afficher les données reçues
+        console.log(`DEBUG [DETAILS]: Données reçues (Count: ${data.length})`);
+        
         renderCoureurDetails(data); 
 
     } catch (error) {
         if (container) {
             container.innerHTML = `<p style="color: red;">Erreur lors de la récupération des détails : ${error.message}</p>`;
         }
+        console.error("Erreur lors de la récupération des détails :", error);
     }
 }
 
@@ -335,7 +342,6 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
-        // CORRECTION : Utilise parseInt() pour les points entiers
         const pointsA = parseInt(a.PointsTotal) || 0; 
         const pointsB = parseInt(b.PointsTotal) || 0; 
         
@@ -347,9 +353,13 @@ function renderClubDetails(members, clubNom) {
     // Calcul du Total des Points du Club
     let totalClubPoints = 0;
     members.forEach(member => {
-        // CORRECTION : Utilise la conversion numérique simple
+        // CORRECTION : Utilise la conversion numérique simple (parseInt)
         totalClubPoints += parseInt(member.PointsTotal) || 0;
     });
+
+    // AJOUT LOG : Afficher le total calculé
+    console.log(`DEBUG [CLUB]: Total Points Club Calculé: ${totalClubPoints}`);
+
 
     html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Points du Club: ${totalClubPoints}</p>`;
     
