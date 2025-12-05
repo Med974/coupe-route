@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v36 - Correction Finale : Encodage et Totaux Club)
+// FICHIER : app.js (v37 - Correction Finale : Encoded Sheet Name)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -251,7 +251,7 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // CORRECTION : Parsing strict pour les entiers dans la vue détaillée
+        // Le parsing strict est utilisé ici
         const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
@@ -289,8 +289,9 @@ async function showCoureurDetails(nom, saisonKey) {
     
     // 1. URL de recherche : Recherche par Nom (Texte) via Worker
     const encodedNom = encodeURIComponent(nom);
-    const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=Résultats Bruts&apiId=${saisonConfig.apiId}`; 
-    // CORRECTION APPLIQUÉE : L'API SheetDB attend "Nom=" et non "nom="
+    // CORRECTION APPLIQUÉE : Encodage du nom de la feuille (Résultats Bruts) et utilisation de "Nom="
+    const encodedSheetName = encodeURIComponent("Résultats Bruts");
+    const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&apiId=${saisonConfig.apiId}`; 
 
     const container = document.getElementById('classement-container');
     if (container) {
