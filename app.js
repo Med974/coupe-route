@@ -181,7 +181,7 @@ function renderTable(data) {
         const displayHeader = header.replace('PointsTotal', 'Points')
                                     .replace('Points Total', 'Points')
                                     .replace('NbCourses', 'Nb Courses')
-                                    .replace('Sous Categorie', 'Catégorie')
+                                    .replace('Sous Catégorie', 'Catégorie')
                                     .replace('Master', 'Cat. Master')     
                                     .replace('Classement', 'Pos.');
         html += `<th>${displayHeader}</th>`;
@@ -472,4 +472,5 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
 
