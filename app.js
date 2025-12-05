@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v39 - Recherche par Dossard Numérique Rétablie)
+// FICHIER : app.js (v40 - FINAL : Recherche Détaillée Corrigée)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,7 +211,7 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // CORRECTION : Le lien DOIT passer le Dossard pour la recherche
+                // Le lien doit passer le Dossard Numérique comme ID de recherche
                 displayContent = `<a href="#" class="coureur-link" data-dossard="${coureur.Dossard}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -289,8 +289,11 @@ async function showCoureurDetails(dossard, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     
     // 1. URL de recherche : Recherche par Dossard Numérique via Worker
-    // Utilisation de la clé Dossard pour la recherche, comme convenu
-    const searchUrl = `${WORKER_BASE_URL}search?Dossard=${dossard}&sheet=Résultats Bruts&apiId=${saisonConfig.apiId}`; 
+    const encodedDossard = encodeURIComponent(dossard);
+    const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
+    
+    // CORRECTION APPLIQUÉE : Utilise Dossard Numérique comme clé de recherche
+    const searchUrl = `${WORKER_BASE_URL}search?Dossard=${encodedDossard}&sheet=${encodedSheetName}&apiId=${saisonConfig.apiId}`; 
 
     const container = document.getElementById('classement-container');
     if (container) {
@@ -332,6 +335,7 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
+        // CORRECTION : Supprimer les caractères non numériques avant de parser
         const pointsA = parseFloat(String(a.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         const pointsB = parseFloat(String(b.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
@@ -516,12 +520,12 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
-            // Écouteur pour la vue détaillée (Nom du coureur)
+            // Écouteur pour la vue détaillée (Dossard Numérique)
             classementContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
-                    // ATTENTION : Le lien doit passer le Dossard (Numérique Pur)
+                    // ATTENTION : La recherche se fait par Dossard Numérique
                     const dossard = link.getAttribute('data-dossard'); 
                     const currentSaison = getSaisonFromURL(); 
                     
