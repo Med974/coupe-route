@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v51 - FINAL STABLE ET FONCTIONNEL)
+// FICHIER : app.js (v50 - Rétablissement Vue Coureur Stabilité)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,7 +211,7 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Le lien utilise le Nom comme clé de recherche (pour la vue détaillée)
+                // Le lien utilise le Nom comme clé de recherche pour la vue détaillée
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -335,9 +335,8 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
-        // CORRECTION : Utilise parseInt() pour les points entiers
-        const pointsA = parseInt(a.PointsTotal) || 0; 
-        const pointsB = parseInt(b.PointsTotal) || 0; 
+        const pointsA = parseInt(a.PointsTotal) || 0; // CORRECTION : Utilise parseInt
+        const pointsB = parseInt(b.PointsTotal) || 0; // CORRECTION : Utilise parseInt
         
         return pointsB - pointsA; 
     });
@@ -502,56 +501,3 @@ async function init() {
 
     const seasonParagraph = document.querySelector('header p');
     if (seasonParagraph) {
-        seasonParagraph.textContent = `Saison ${currentSaison}`;
-    }
-
-    if (jsonUrl) {
-        if (container) {
-            container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
-        }
-        
-        const rawData = await fetchClassementData(jsonUrl); 
-        globalClassementData = rawData;
-        
-        // Initialisation des écouteurs
-        const mastersContainer = document.getElementById('nav-masters');
-        if (mastersContainer) {
-            mastersContainer.addEventListener('click', handleMasterFilterChange);
-        }
-        
-        const classementContainer = document.getElementById('classement-container');
-        if (classementContainer) {
-            // Écouteur pour la vue détaillée (Nom du coureur)
-            classementContainer.addEventListener('click', (e) => {
-                const link = e.target.closest('.coureur-link');
-                if (link) {
-                    e.preventDefault();
-                    const nom = link.getAttribute('data-nom'); 
-                    const currentSaison = getSaisonFromURL(); 
-                    
-                    showCoureurDetails(nom, currentSaison);
-                }
-            });
-            
-            // Écouteur pour le classement Club
-            classementContainer.addEventListener('click', (e) => {
-                const link = e.target.closest('.club-link');
-                if (link) {
-                    e.preventDefault();
-                    const clubNom = link.getAttribute('data-club'); 
-                    const currentSaison = getSaisonFromURL(); 
-                    
-                    showClubClassement(clubNom, currentSaison);
-                }
-            });
-        }
-        
-        renderTable(rawData);
-    } else {
-        if (container) {
-            container.innerHTML = `<p style="color: red;">Configuration des données manquante pour la saison ${currentSaison} ou la catégorie "${currentCategoryKey}".</p>`;
-        }
-    }
-}
-
-document.addEventListener('DOMContentLoaded', init);
