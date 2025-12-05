@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v45 - FINAL : Filtre Détail Côté Client)
+// FICHIER : app.js (v55 - VERSION MAÎTRE STABLE)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -37,7 +37,7 @@ const DEFAULT_SAISON = '2026';
 const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
-let globalRawData = {}; // NOUVEAU : Stocke les résultats bruts par saison
+let globalRawData = {}; // Stockage des résultats bruts pour le détail coureur
 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
@@ -99,9 +99,9 @@ function buildJsonUrl(saisonKey, categoryKey) {
     return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
 }
 
-
 /**
- * Récupère TOUTES les données de la feuille Résultats Bruts (une fois par session de cache).
+ * Récupère TOUTES les données de la feuille Résultats Bruts (une fois par session).
+ * C'est ce qui permet au détail coureur de fonctionner sans erreur.
  */
 async function loadAllRawResults(saisonKey) {
     if (globalRawData[saisonKey] && globalRawData[saisonKey].length > 0) {
@@ -109,10 +109,7 @@ async function loadAllRawResults(saisonKey) {
     }
     
     const sheetName = "Résultats Bruts";
-    const saisonConfig = SAISONS_CONFIG[saisonKey];
-    
-    // NOTE : Le Worker est configuré pour mettre en cache cette feuille
-    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetName}`; 
+    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${encodeURIComponent(sheetName)}`; 
 
     try {
         const response = await fetch(url);
@@ -130,14 +127,14 @@ async function loadAllRawResults(saisonKey) {
 
 
 /**
- * Crée les boutons de navigation (Saisons et Catégories).
+ * Crée les boutons de navigation.
  */
 function createNavBar(currentSaison, currentCategory) {
     const seasonsContainer = document.getElementById('nav-seasons');
     const categoriesContainer = document.getElementById('nav-categories');
     const mastersContainer = document.getElementById('nav-masters');
 
-    // 1. Navigation Saisons (inchangée)
+    // 1. Navigation Saisons
     let seasonsHtml = '';
     Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
         const saison = SAISONS_CONFIG[saisonKey];
@@ -148,7 +145,7 @@ function createNavBar(currentSaison, currentCategory) {
         seasonsContainer.innerHTML = seasonsHtml;
     }
 
-    // 2. Navigation Catégories (inchangée)
+    // 2. Navigation Catégories
     const currentCategories = SAISONS_CONFIG[currentSaison]?.categories;
     let categoriesHtml = '';
     if (currentCategories) {
@@ -162,7 +159,7 @@ function createNavBar(currentSaison, currentCategory) {
         categoriesContainer.innerHTML = categoriesHtml;
     }
     
-    // 3. Navigation Masters (inchangée)
+    // 3. Navigation Masters
     let mastersHtml = '';
     MASTERS_CONFIG.forEach(master => {
         const isActive = master.key === 'all' ? 'active' : '';
@@ -173,17 +170,20 @@ function createNavBar(currentSaison, currentCategory) {
     }
 }
 
-// --- 3. Fonctions de Données et Rendu ---
+
+// --- 3. Fonctions de Données et Rendu (Classement Général) ---
 
 async function fetchClassementData(url) {
     const container = document.getElementById('classement-container');
     
     try {
+        console.log("Tentative de récupération de l'URL JSON :", url);
+        
         const response = await fetch(url);
         
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Erreur HTTP: ${response.status}. Réponse: ${errorBody.substring(0, 100)}...`);
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare.`);
         }
         
         const data = await response.json(); 
@@ -196,9 +196,8 @@ async function fetchClassementData(url) {
 
     } catch (error) {
         if (container) {
-            container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. L'API (Worker/SheetDB) a échoué. Détails : ${error.message}</p>`;
+            container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. Détails : ${error.message}</p>`;
         }
-        console.error("Erreur de récupération :", error);
         return [];
     }
 }
@@ -208,7 +207,7 @@ function renderTable(data) {
 
     if (data.length === 0 || typeof data[0] !== 'object') {
         if (container) {
-            container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie. Vérifiez les données.</p>';
+            container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie.</p>';
         }
         return;
     }
@@ -234,13 +233,12 @@ function renderTable(data) {
                 content = parseFloat(content) || content; 
             }
 
-            // Rendre le Nom et le Club cliquables
+            // Logique des liens cliquables
             let displayContent = content; 
             
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
-                // Le lien utilise le Nom comme clé de recherche (pour la vue détaillée)
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -262,7 +260,7 @@ function renderTable(data) {
 }
 
 
-// --- 4. Logique Détaillée du Coureur ---
+// --- 4. Logique Détaillée du Coureur (Filtre Client) ---
 
 function renderCoureurDetails(details) {
     const container = document.getElementById('classement-container');
@@ -275,23 +273,21 @@ function renderCoureurDetails(details) {
     
     const coureurNom = details[0].Nom;
     const coureurDossardRecherche = details[0].Dossard; 
-    
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
 
-    // Calcul et Affichage du total des points
+    // Calcul du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
+        const points = parseInt(String(course.Points)) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
         }
     });
+    
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
-
     html += '<table class="details-table">';
-    
     html += '<thead><tr><th>Date</th><th>Course</th><th>Position</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
 
     details.forEach(course => {
@@ -305,53 +301,43 @@ function renderCoureurDetails(details) {
     });
     
     html += '</tbody></table>';
-
-    // Bouton de retour au classement général
     html += `<button onclick="init()">Retour au Classement Général</button>`;
-
     container.innerHTML = html;
 }
 
-
-async function showCoureurDetails(nom, saisonKey) {
+/**
+ * Affiche les détails en filtrant les données locales (Pas de requête API ici).
+ */
+async function showCoureurDetails(nom, saisonKey, allRawResults) {
     const container = document.getElementById('classement-container');
     if (container) {
         container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
     }
     
-    // CORRECTION CRITIQUE : Filtre côté client sur les données brutes stockées (pour éviter l'échec API)
+    // On attend que les données soient chargées
+    const rawResults = await allRawResults;
     
-    // 1. Assurez-vous que les résultats bruts sont chargés pour cette saison
-    const rawResults = await loadAllRawResults(saisonKey);
-    
-    // 2. Filtrer les résultats par le Nom du coureur cliqué
-    // NOTE : Le nom doit correspondre exactement, sinon le coureur sera invisible.
+    // Filtre par Nom
     const filteredDetails = rawResults.filter(course => 
         course.Nom && course.Nom.toString().trim() === nom.toString().trim()
     );
 
-    // 3. Afficher le résultat formaté
     renderCoureurDetails(filteredDetails); 
 }
 
 
-// --- 5. Logique Club ---
+// --- 5. Logique Club (Avec Correction Totaux) ---
 
-/**
- * Affiche la liste des coureurs du club triés par catégorie et points.
- */
 function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
     if (!container) return;
     
-    // 1. Triez les membres
+    // 1. Tri
     members.sort((a, b) => {
-        // Tri primaire par Catégorie Principale (Alphabetique)
         if (a.Catégorie < b.Catégorie) return -1;
         if (a.Catégorie > b.Catégorie) return 1;
         
-        // Tri secondaire par Points Total (Décroissant)
-        // Utilisation de parseInt pour garantir un tri numérique correct
+        // CORRECTION : Utilise parseInt pour le tri
         const pointsA = parseInt(a.PointsTotal) || 0; 
         const pointsB = parseInt(b.PointsTotal) || 0; 
         
@@ -360,88 +346,73 @@ function renderClubDetails(members, clubNom) {
     
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
-    // Calcul du Total des Points du Club
+    // 2. Calcul du Total Club (CORRECTION APPLIQUÉE)
     let totalClubPoints = 0;
     members.forEach(member => {
-        // Conversion stricte en entier pour le calcul
+        // Conversion stricte en entier pour éviter les erreurs de chaîne
         totalClubPoints += parseInt(member.PointsTotal) || 0;
     });
 
     html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Points du Club: ${totalClubPoints}</p>`;
     
-    // 2. Regroupement et Rendu
+    // 3. Regroupement
     let currentCategory = '';
     
-    // Début du conteneur pour le regroupement
     html += '<div class="club-details-list">'; 
     
     members.forEach(member => {
         const points = parseInt(member.PointsTotal) || 0;
         
-        // Changement de Catégorie (Début du Regroupement)
         if (member.Catégorie !== currentCategory) {
-            // Fermer le tableau précédent (si ce n'est pas le tout premier titre)
             if (currentCategory !== '') {
                 html += '</tbody></table>'; 
             }
             currentCategory = member.Catégorie;
             
-            // Insérer le titre de regroupement
-            html += `<h4 class="category-group-title" style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px;">${currentCategory}</h4>`; 
-            
-            // Ouvrir un nouveau tableau pour cette catégorie
+            html += `<h4 class="category-group-title">${currentCategory}</h4>`; 
             html += '<table class="details-table club-category-table">';
             html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
         }
         
-        // Ligne du coureur
         html += `<tr>
                     <td>${member.Nom}</td> 
                     <td><strong>${points}</strong></td>
                  </tr>`;
     });
     
-    // Fermeture finale du dernier tableau et du conteneur de regroupement
     if (members.length > 0) {
         html += '</tbody></table>'; 
     }
-    
     html += '</div>';
 
-    // Bouton de retour au classement général
     html += `<button onclick="init()">Retour au Classement Général</button>`;
-
     container.innerHTML = html;
 }
 
 /**
- * Gère le clic sur le nom du club et récupère tous ses membres.
+ * Récupère les données du club via API (Car on a besoin de toutes les catégories).
  */
 async function showClubClassement(clubNom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     const sheetdbApiId = saisonConfig.apiId;
     
-    // 1. Construire l'URL de recherche pour la feuille COUREURS
-    // On recherche par Nom du Club
+    // On utilise l'API pour le club car globalClassementData ne contient que la catégorie en cours
     const encodedClub = encodeURIComponent(clubNom);
-    const searchUrl = `https://sheetdb.io/api/v1/${sheetdbApiId}/search?Club=${encodedClub}&sheet=Coureurs`;
+    const searchUrl = `${WORKER_BASE_URL}search?Club=${encodedClub}&sheet=Coureurs&saison=${saisonKey}`;
 
     const container = document.getElementById('classement-container');
     if (container) {
         container.innerHTML = `<p>Chargement du classement pour le club ${clubNom}...</p>`;
     }
     
-    // 2. Récupérer les données
     try {
         const response = await fetch(searchUrl);
         
         if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez que l'onglet 'Coureurs' est accessible.`);
+            throw new Error(`Erreur HTTP: ${response.status}.`);
         }
         
         const data = await response.json();
-        
-        // 3. Afficher les détails du club
         renderClubDetails(data, clubNom); 
 
     } catch (error) {
@@ -462,13 +433,11 @@ function handleMasterFilterChange(event) {
 
     const selectedMaster = button.getAttribute('data-master');
     
-    // 1. Mise à jour du style des boutons Masters
     document.querySelectorAll('#nav-masters .master-button').forEach(btn => {
         btn.classList.remove('active');
     });
     button.classList.add('active');
     
-    // 2. Application du filtre
     let filteredData = globalClassementData;
 
     if (selectedMaster !== 'all') {
@@ -477,7 +446,6 @@ function handleMasterFilterChange(event) {
         });
     }
 
-    // 3. Affichage du tableau filtré
     renderTable(filteredData);
 }
 
@@ -490,9 +458,7 @@ async function init() {
     let currentSaison = getSaisonFromURL(); 
     const currentCategoryKey = getCategoryFromURL();
     
-    // Vérifie si la saison demandée existe, sinon utilise la saison par défaut
     if (!SAISONS_CONFIG[currentSaison]) {
-        console.warn(`Saison ${currentSaison} non configurée. Chargement de ${DEFAULT_SAISON}.`);
         currentSaison = DEFAULT_SAISON; 
     }
 
@@ -500,24 +466,16 @@ async function init() {
 
     const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
     
-    // Mise à jour de l'année dans le titre du navigateur
     document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
 
-    // Créer les barres de navigation (Saisons et Catégories)
     createNavBar(currentSaison, currentCategoryKey);
     
-    // Mise à jour des éléments de titre
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     
-    const categoryTitleElement = document.querySelector('header h2');
+    const categoryTitleElement = document.getElementById('category-title');
     if (categoryTitleElement) {
         categoryTitleElement.textContent = ""; 
-    }
-
-    const seasonParagraph = document.querySelector('header p');
-    if (seasonParagraph) {
-        seasonParagraph.textContent = `Saison ${currentSaison}`;
     }
 
     if (jsonUrl) {
@@ -525,14 +483,12 @@ async function init() {
             container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
         }
         
-        // 1. Chargement des données de classement général
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // 2. Chargement des résultats bruts pour le filtrage côté client (Cache HIT garanti)
+        // Lancement du chargement des résultats bruts (pour le détail coureur)
         const rawResultsPromise = loadAllRawResults(currentSaison);
         
-        // 3. Initialisation des écouteurs
         const mastersContainer = document.getElementById('nav-masters');
         if (mastersContainer) {
             mastersContainer.addEventListener('click', handleMasterFilterChange);
@@ -540,7 +496,7 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
-            // Écouteur pour la vue détaillée (Nom du coureur)
+            // Détail Coureur : Utilise le chargement local
             classementContainer.addEventListener('click', async (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
@@ -548,12 +504,11 @@ async function init() {
                     const nom = link.getAttribute('data-nom'); 
                     const currentSaison = getSaisonFromURL(); 
                     
-                    // Lancement de la vue détaillée avec les résultats bruts déjà chargés
                     showCoureurDetails(nom, currentSaison, await rawResultsPromise); 
                 }
             });
             
-            // Écouteur pour le classement Club
+            // Détail Club : Utilise l'API
             classementContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('.club-link');
                 if (link) {
@@ -569,7 +524,7 @@ async function init() {
         renderTable(rawData);
     } else {
         if (container) {
-            container.innerHTML = `<p style="color: red;">Configuration des données manquante pour la saison ${currentSaison} ou la catégorie "${currentCategoryKey}".</p>`;
+            container.innerHTML = `<p style="color: red;">Configuration des données manquante.</p>`;
         }
     }
 }
