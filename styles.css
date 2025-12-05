@@ -35,23 +35,34 @@ h1, h2, h3, h4, th {
     letter-spacing: 0.5px;
 }
 
-/* --- 3. HEADER IMMERSIF --- */
+/* --- 3. HEADER IMMERSIF (Modifié pour plus de visibilité de l'image) --- */
 header {
-    /* Superposition : Dégradé semi-transparent + Image de fond */
+    /* Superposition : Dégradé plus transparent (75% et 60%) + Image de fond */
     background: 
-        linear-gradient(135deg, rgba(0, 77, 153, 0.9) 0%, rgba(0, 167, 187, 0.85) 100%),
-        url('https://images.unsplash.com/photo-1519681393784-d8e5b5a4570e?q=80&w=2070&auto=format&fit=crop'); /* Image exemple route */
+        linear-gradient(135deg, rgba(0, 77, 153, 0.75) 0%, rgba(0, 167, 187, 0.60) 100%),
+        url('https://images.unsplash.com/photo-1519681393784-d8e5b5a4570e?q=80&w=2070&auto=format&fit=crop'); /* Image route */
     
     background-size: cover;      /* L'image couvre tout le header */
     background-position: center; /* Centrer l'image */
-    background-attachment: fixed; /* Effet Parallaxe sympa (l'image reste fixe quand on scroll) */
+    background-attachment: fixed; /* Effet Parallaxe (l'image reste fixe au scroll) */
     
     color: var(--color-light);
     padding: 40px 20px 50px;
     text-align: center;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    border-bottom-left-radius: 30px; /* Arrondi plus prononcé */
+    border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
+    
+    /* Bonus : Ajout d'un léger flou sur l'image pour mieux faire ressortir le texte */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ajout pour augmenter le contraste du texte sur l'image */
+h1, h2, h4 {
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6); /* Ombre plus marquée sous le texte */
+    position: relative;
+    z-index: 2; /* S'assure que le texte est au-dessus */
 }
 
 h1 { 
@@ -322,3 +333,4 @@ tr.category-separator td {
 @media (min-width: 769px) {
     th, td { display: table-cell !important; }
 }
+
