@@ -48,7 +48,7 @@ const MASTERS_CONFIG = [
     { key: 'M6', name: 'M6' },
 ];
 
-const WORKER_BASE_URL = 'https://morning-darkness-4a2d.med97400.workers.dev/'; 
+const WORKER_BASE_URL = 'https://morning-darkness-4a2d.med97400.workers.dev/';
 
 
 // --- 2. Fonctions Utilitaires ---
@@ -328,9 +328,12 @@ function renderClubDetails(members, clubNom) {
         // Tri primaire par Catégorie Principale (Alphabetique)
         if (a.Catégorie < b.Catégorie) return -1;
         if (a.Catégorie > b.Catégorie) return 1;
+        
         // Tri secondaire par Points Total (Décroissant)
-        const pointsA = parseFloat(a.PointsTotal) || 0;
-        const pointsB = parseFloat(b.PointsTotal) || 0;
+        // CORRECTION : Supprimer les virgules avant de parser
+        const pointsA = parseFloat(String(a.PointsTotal).replace(/[^\d.]/g, '')) || 0;
+        const pointsB = parseFloat(String(b.PointsTotal).replace(/[^\d.]/g, '')) || 0;
+        
         return pointsB - pointsA; 
     });
     
@@ -344,18 +347,17 @@ function renderClubDetails(members, clubNom) {
     html += '<div class="club-details-list">'; 
     
     members.forEach(member => {
-        // CORRECTION DU TOTAL DES POINTS : S'assurer qu'il est un nombre ou 0
-        const points = parseFloat(member.PointsTotal) || 0; 
+        // CORRECTION DU TOTAL DES POINTS : Conversion en nombre avec suppression des caractères non numériques
+        const points = parseFloat(String(member.PointsTotal).replace(/[^\d.]/g, '')) || 0;
         
         // NOUVEAU : Changement de Catégorie (Début du Regroupement)
         if (member.Catégorie !== currentCategory) {
+            // Fermer le tableau précédent (si ce n'est pas le tout premier titre)
+            if (currentCategory !== '') {
+                html += '</tbody></table>'; 
+            }
             currentCategory = member.Catégorie;
             
-            // Si le tableau est déjà ouvert (n'est pas le tout premier titre)
-            if (currentCategory !== members[0].Catégorie) {
-                html += '</tbody></table>'; // Fermer le tableau précédent
-            }
-
             // Insérer le titre de regroupement
             html += `<h4 class="category-group-title">${currentCategory}</h4>`; 
             
@@ -372,7 +374,10 @@ function renderClubDetails(members, clubNom) {
     });
     
     // Fermeture finale du dernier tableau et du conteneur de regroupement
-    html += '</tbody></table>'; 
+    if (members.length > 0) {
+        html += '</tbody></table>'; 
+    }
+    
     html += '</div>';
 
     // Bouton de retour au classement général
