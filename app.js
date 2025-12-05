@@ -176,7 +176,11 @@ function renderTable(data) {
     let html = '<table class="classement-table">';
     html += '<thead><tr>';
     headers.forEach(header => {
-        const displayHeader = header.replace('PointsTotal', 'Total Pts').replace('NbCourses', 'Nb Courses').replace('SousCategorie', 'Sous Catégorie').replace('Master', 'Catégorie Master');
+        const displayHeader = header.replace('PointsTotal', 'Total Pts')
+                                    .replace('NbCourses', 'Nb Courses')
+                                    .replace('SousCategorie', 'Catégorie')
+                                    .replace('Master', 'Cat. Master')
+                                    .replace('Classement', 'Pos.'); 
         html += `<th>${displayHeader}</th>`;
     });
     html += '</tr></thead>';
@@ -534,6 +538,7 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
 
 
 
