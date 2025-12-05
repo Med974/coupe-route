@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v51 - Correction Totaux Club Stricts)
+// FICHIER : app.js (v52 - Rétablissement Vue Détaillée Stable)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -211,6 +211,7 @@ function renderTable(data) {
             if (header === 'Dossard') {
                 displayContent = getDisplayDossard(content);
             } else if (header === 'Nom') {
+                // Le lien utilise le Nom comme clé de recherche (pour la vue détaillée)
                 displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
             } else if (header === 'Club') {
                  displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
@@ -251,7 +252,7 @@ function renderCoureurDetails(details) {
     // Calcul et Affichage du total des points
     let totalPoints = 0;
     details.forEach(course => {
-        // CORRECTION : Utilise parseInt()
+        // CORRECTION : Parsing strict pour les entiers
         const points = parseInt(String(course.Points)) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
@@ -291,7 +292,7 @@ async function showCoureurDetails(nom, saisonKey) {
     const encodedNom = encodeURIComponent(nom);
     const encodedSheetName = encodeURIComponent("Résultats Bruts"); 
     
-    // CORRECTION CRITIQUE : L'URL utilise la casse correcte "Nom=" pour la recherche API
+    // CORRECTION CRITIQUE : Utilise la casse correcte "Nom=" pour la recherche API
     const searchUrl = `${WORKER_BASE_URL}search?Nom=${encodedNom}&sheet=${encodedSheetName}&saison=${saisonKey}`; 
 
     const container = document.getElementById('classement-container');
@@ -334,7 +335,6 @@ function renderClubDetails(members, clubNom) {
         if (a.Catégorie > b.Catégorie) return 1;
         
         // Tri secondaire par Points Total (Décroissant)
-        // CORRECTION : Utilise parseInt() pour les points entiers
         const pointsA = parseInt(a.PointsTotal) || 0; 
         const pointsB = parseInt(b.PointsTotal) || 0; 
         
