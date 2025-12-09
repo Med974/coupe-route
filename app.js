@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v60 - Ajout Onglets Vidéos)
+// FICHIER : app.js (v61 - FINAL COMPLET : Nav + Vidéos + Corrections)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -104,20 +104,18 @@ async function loadAllRawResults(saisonKey) {
     }
 }
 
-// --- NOUVEAU : FONCTIONS VIDÉOS ---
+// --- GESTION VIDÉOS ---
 
 async function loadVideos(saisonKey) {
     const container = document.getElementById('videos-container');
     container.innerHTML = '<p style="text-align:center; padding:20px;">Chargement des vidéos...</p>';
     
-    // On interroge la feuille 'Videos' via le Worker
     const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Videos`;
 
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error("Impossible de charger les vidéos");
         const videos = await response.json();
-        
         renderVideos(videos);
     } catch (error) {
         container.innerHTML = `<p style="color:red; text-align:center;">Erreur : ${error.message}</p>`;
@@ -133,9 +131,7 @@ function renderVideos(videos) {
     }
 
     let html = '<div class="videos-grid">';
-    
     videos.forEach(video => {
-        // Sécurité : On vérifie que l'ID Youtube existe
         if (video.YoutubeID) {
             html += `
                 <div class="video-card">
@@ -153,45 +149,76 @@ function renderVideos(videos) {
             `;
         }
     });
-    
     html += '</div>';
     container.innerHTML = html;
 }
 
-// --- GESTION DES ONGLETS PRINCIPAUX ---
+// --- NAVIGATION & TABS ---
 
 function initTabs(currentSaison) {
     const btnClassement = document.getElementById('btn-tab-classement');
     const btnVideos = document.getElementById('btn-tab-videos');
-    
     const viewClassement = document.getElementById('classement-container');
     const viewVideos = document.getElementById('videos-container');
-    const filtersContainer = document.getElementById('filters-container'); // Les filtres Saisons/Catégories
+    const filtersContainer = document.getElementById('filters-container');
 
-    // Clic sur CLASSEMENTS
-    btnClassement.addEventListener('click', () => {
-        btnClassement.classList.add('active');
-        btnVideos.classList.remove('active');
-        
-        viewClassement.style.display = 'block';
-        filtersContainer.style.display = 'block'; // On réaffiche les filtres
-        viewVideos.style.display = 'none';
-    });
+    if (btnClassement && btnVideos) {
+        btnClassement.addEventListener('click', () => {
+            btnClassement.classList.add('active');
+            btnVideos.classList.remove('active');
+            viewClassement.style.display = 'block';
+            filtersContainer.style.display = 'block';
+            viewVideos.style.display = 'none';
+        });
 
-    // Clic sur VIDÉOS
-    btnVideos.addEventListener('click', () => {
-        btnVideos.classList.add('active');
-        btnClassement.classList.remove('active');
-        
-        viewClassement.style.display = 'none';
-        filtersContainer.style.display = 'none'; // On cache les filtres pour faire propre
-        viewVideos.style.display = 'block';
-        
-        // Charger les vidéos (si pas déjà fait ou rafraichir)
-        loadVideos(currentSaison);
-    });
+        btnVideos.addEventListener('click', () => {
+            btnVideos.classList.add('active');
+            btnClassement.classList.remove('active');
+            viewClassement.style.display = 'none';
+            filtersContainer.style.display = 'none';
+            viewVideos.style.display = 'block';
+            loadVideos(currentSaison);
+        });
+    }
 }
 
+// C'EST ICI QUE LA FONCTION MANQUAIT :
+function createNavBar(currentSaison, currentCategory) {
+    const seasonsContainer = document.getElementById('nav-seasons');
+    const categoriesContainer = document.getElementById('nav-categories');
+    const mastersContainer = document.getElementById('nav-masters');
+
+    let seasonsHtml = '';
+    Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
+        const saison = SAISONS_CONFIG[saisonKey];
+        const isActive = saisonKey === currentSaison ? 'active' : '';
+        seasonsHtml += `<a href="?saison=${saisonKey}&cat=${currentCategory}" class="${isActive}">${saison.name}</a>`;
+    });
+    if (seasonsContainer) {
+        seasonsContainer.innerHTML = seasonsHtml;
+    }
+
+    let categoriesHtml = '';
+    if (SAISONS_CONFIG[currentSaison]?.categories) {
+        Object.keys(SAISONS_CONFIG[currentSaison].categories).forEach(categoryKey => {
+            const category = SAISONS_CONFIG[currentSaison].categories[categoryKey];
+            const isActive = categoryKey === currentCategory ? 'active' : '';
+            categoriesHtml += `<a href="?saison=${currentSaison}&cat=${categoryKey}" class="${isActive}">${category.name}</a>`;
+        });
+    }
+    if (categoriesContainer) {
+        categoriesContainer.innerHTML = categoriesHtml;
+    }
+    
+    let mastersHtml = '';
+    MASTERS_CONFIG.forEach(master => {
+        const isActive = master.key === 'all' ? 'active' : '';
+        mastersHtml += `<a href="#" data-master="${master.key}" class="master-button ${isActive}">${master.name}</a>`;
+    });
+    if (mastersContainer) {
+        mastersContainer.innerHTML = mastersHtml;
+    }
+}
 
 // --- 3. Fonctions de Données et Rendu ---
 
@@ -229,6 +256,7 @@ function renderTable(data) {
     let html = '<table class="classement-table">';
     html += '<thead><tr>';
     headers.forEach(header => {
+        // RENOMMAGE : 'Points' et 'Pos.'
         const displayHeader = header.replace('PointsTotal', 'Points')
                                     .replace('Points Total', 'Points')
                                     .replace('NbCourses', 'Nb Courses')
@@ -291,7 +319,7 @@ function renderCoureurDetails(details) {
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
-    // Gap Logic
+    // --- GAP LOGIC ---
     let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
         const val = row.PointsTotal || row["Points Total"] || "0";
@@ -317,8 +345,10 @@ function renderCoureurDetails(details) {
     }
     gapsHtml += '</div>';
     html += gapsHtml;
+    // -----------------
 
     html += '<table class="details-table">';
+    // RENOMMAGE : 'Pos.'
     html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
     details.forEach(course => {
         html += `<tr>
@@ -352,6 +382,7 @@ function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
     if (!container) return;
     
+    // Tri personnalisé
     const categoryOrder = ["OPEN", "Access 1/2", "Access 3/4", "Femmes", "U17", "U15", "U15/U17 Filles", "U15U17F"];
     const getCategoryRank = (catName) => { const index = categoryOrder.indexOf(catName); return index === -1 ? 999 : index; };
 
@@ -362,6 +393,7 @@ function renderClubDetails(members, clubNom) {
         
         const valA = a["Points Total"] || a.PointsTotal || "0";
         const valB = b["Points Total"] || b.PointsTotal || "0";
+        
         const pointsA = parseInt(String(valA).replace(/[^\d]/g, '')) || 0;
         const pointsB = parseInt(String(valB).replace(/[^\d]/g, '')) || 0;
         
@@ -371,15 +403,22 @@ function renderClubDetails(members, clubNom) {
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
     let totalClubPoints = 0;
+    let categoryCounts = {}; 
+
     members.forEach(member => {
         const rawPoints = member["Points Total"] || member.PointsTotal || "0";
-        totalClubPoints += parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
+        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
+        totalClubPoints += points;
+        
+        const cat = member.Catégorie;
+        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
     });
 
     html += `<p style="font-size: 1.1em; margin-bottom: 20px;"><strong>Points Total :</strong> ${totalClubPoints} <span style="margin: 0 10px;">|</span> <strong>Nombre de Coureurs :</strong> ${members.length}</p>`;
     
     let currentCategory = '';
     html += '<table class="details-table club-table">';
+    // MODIFICATION : 'Points' au lieu de 'Points Total'
     html += '<thead><tr><th>Nom</th><th>Points</th></tr></thead><tbody>';
     
     members.forEach(member => {
@@ -388,7 +427,8 @@ function renderClubDetails(members, clubNom) {
         
         if (member.Catégorie !== currentCategory) {
             currentCategory = member.Catégorie;
-            html += `<tr class="category-separator"><td colspan="2">${currentCategory}</td></tr>`;
+            const countInCat = categoryCounts[currentCategory] || 0;
+            html += `<tr class="category-separator"><td colspan="2">${currentCategory} <span style="font-size:0.8em; font-weight:normal;">(${countInCat} coureurs)</span></td></tr>`;
         }
         
         html += `<tr>
@@ -462,8 +502,8 @@ async function init() {
     
     document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
     createNavBar(currentSaison, currentCategoryKey);
-    initTabs(currentSaison); // NOUVEAU : Initialise les onglets
-
+    initTabs(currentSaison); // Initialisation des onglets vidéos
+    
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     const categoryTitleElement = document.getElementById('category-title');
