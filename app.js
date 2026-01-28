@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v61 - FINAL COMPLET : Nav + Vidéos + Corrections)
+// FICHIER : app.js (v62 - OPTIMISATION LAZY LOADING & BUG FIXES)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -110,7 +110,9 @@ async function loadVideos(saisonKey) {
     const container = document.getElementById('videos-container');
     container.innerHTML = '<p style="text-align:center; padding:20px;">Chargement des vidéos...</p>';
     
-    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Videos`;
+    // Cache Buster pour les vidéos
+    const timestamp = new Date().getTime(); 
+    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Videos&t=${timestamp}`;
 
     try {
         const response = await fetch(url);
@@ -182,7 +184,6 @@ function initTabs(currentSaison) {
     }
 }
 
-// C'EST ICI QUE LA FONCTION MANQUAIT :
 function createNavBar(currentSaison, currentCategory) {
     const seasonsContainer = document.getElementById('nav-seasons');
     const categoriesContainer = document.getElementById('nav-categories');
@@ -256,7 +257,6 @@ function renderTable(data) {
     let html = '<table class="classement-table">';
     html += '<thead><tr>';
     headers.forEach(header => {
-        // RENOMMAGE : 'Points' et 'Pos.'
         const displayHeader = header.replace('PointsTotal', 'Points')
                                     .replace('Points Total', 'Points')
                                     .replace('NbCourses', 'Nb Courses')
@@ -345,10 +345,8 @@ function renderCoureurDetails(details) {
     }
     gapsHtml += '</div>';
     html += gapsHtml;
-    // -----------------
 
     html += '<table class="details-table">';
-    // RENOMMAGE : 'Pos.'
     html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
     details.forEach(course => {
         html += `<tr>
@@ -364,12 +362,11 @@ function renderCoureurDetails(details) {
     container.innerHTML = html;
 }
 
-async function showCoureurDetails(nom, saisonKey, allRawResults) {
+// Fonction modifiée pour recevoir les données brutes directement (pas de promise interne)
+async function showCoureurDetails(nom, saisonKey, rawResults) {
     const container = document.getElementById('classement-container');
-    if (container) {
-        container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
-    }
-    const rawResults = await allRawResults;
+    
+    // Filtrage côté client
     const filteredDetails = rawResults.filter(course => 
         course.Nom && course.Nom.toString().trim() === nom.toString().trim()
     );
@@ -391,6 +388,7 @@ function renderClubDetails(members, clubNom) {
         const rankB = getCategoryRank(b.Catégorie);
         if (rankA !== rankB) return rankA - rankB;
         
+        // Correction Points Club (Accès sécurisé)
         const valA = a["Points Total"] || a.PointsTotal || "0";
         const valB = b["Points Total"] || b.PointsTotal || "0";
         
@@ -407,8 +405,7 @@ function renderClubDetails(members, clubNom) {
 
     members.forEach(member => {
         const rawPoints = member["Points Total"] || member.PointsTotal || "0";
-        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
-        totalClubPoints += points;
+        totalClubPoints += parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
         
         const cat = member.Catégorie;
         categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
@@ -418,7 +415,6 @@ function renderClubDetails(members, clubNom) {
     
     let currentCategory = '';
     html += '<table class="details-table club-table">';
-    // MODIFICATION : 'Points' au lieu de 'Points Total'
     html += '<thead><tr><th>Nom</th><th>Points</th></tr></thead><tbody>';
     
     members.forEach(member => {
@@ -502,7 +498,7 @@ async function init() {
     
     document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
     createNavBar(currentSaison, currentCategoryKey);
-    initTabs(currentSaison); // Initialisation des onglets vidéos
+    initTabs(currentSaison); 
     
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
@@ -518,7 +514,9 @@ async function init() {
         
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
-        const rawResultsPromise = loadAllRawResults(currentSaison);
+        
+        // NOTE: On ne charge PAS les résultats bruts ici (Lazy Loading)
+        // const rawResultsPromise = loadAllRawResults(currentSaison);
         
         const mastersContainer = document.getElementById('nav-masters');
         if (mastersContainer) {
@@ -527,13 +525,21 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
+            // Clic Coureur : Lazy Load ici
             classementContainer.addEventListener('click', async (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
                     const nom = link.getAttribute('data-nom'); 
                     const currentSaison = getSaisonFromURL(); 
-                    showCoureurDetails(nom, currentSaison, await rawResultsPromise); 
+                    
+                    // Chargement / Indicateur
+                    classementContainer.innerHTML = `<p style="text-align:center; padding:20px;">Chargement du détail pour ${nom}...</p>`;
+                    
+                    // Récupération des données brutes
+                    const rawResults = await loadAllRawResults(currentSaison);
+                    
+                    showCoureurDetails(nom, currentSaison, rawResults); 
                 }
             });
             
