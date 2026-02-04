@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v63 - CORRECTION VIDÉOS & LAZY LOADING ACTIF)
+// FICHIER : app.js (v64 - AJOUT CALENDRIER SIMPLIFIÉ & VIDÉOS 2026)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -104,13 +104,59 @@ async function loadAllRawResults(saisonKey) {
     }
 }
 
+// --- GESTION CALENDRIER ---
+
+async function loadCalendar(saisonKey) {
+    const container = document.getElementById('calendrier-container');
+    container.innerHTML = '<p style="text-align:center; padding:20px;">Chargement du calendrier...</p>';
+    
+    // Interroge l'onglet 'Calendrier'
+    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Calendrier`;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Impossible de charger le calendrier");
+        const races = await response.json();
+        renderCalendar(races);
+    } catch (error) {
+        container.innerHTML = `<p style="color:red; text-align:center;">Calendrier non disponible pour le moment.</p>`;
+    }
+}
+
+function renderCalendar(races) {
+    const container = document.getElementById('calendrier-container');
+    
+    if (!races || races.length === 0 || races[0].error) {
+        container.innerHTML = '<p style="text-align:center;">Aucune course trouvée pour cette saison.</p>';
+        return;
+    }
+
+    let html = '<div class="calendar-list">';
+    
+    races.forEach(race => {
+        // Simple détection de course passée si on veut (optionnel)
+        const cardClass = 'race-card';
+        
+        html += `
+            <div class="${cardClass}">
+                <div class="race-date">${race.Date || 'Date à venir'}</div>
+                <div class="race-info">
+                    <h4 style="margin:0;">${race.Nom}</h4>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
 // --- GESTION VIDÉOS ---
 
 async function loadVideos(saisonKey) {
     const container = document.getElementById('videos-container');
     container.innerHTML = '<p style="text-align:center; padding:20px;">Chargement des vidéos...</p>';
     
-    // CORRECTION : On retire le timestamp inutile qui cassait la requête Worker
     const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Videos`;
 
     try {
@@ -119,7 +165,7 @@ async function loadVideos(saisonKey) {
         const videos = await response.json();
         renderVideos(videos);
     } catch (error) {
-        container.innerHTML = `<p style="color:red; text-align:center;">Erreur : ${error.message}</p>`;
+        container.innerHTML = `<p style="text-align:center;">Aucune vidéo disponible pour le moment.</p>`;
     }
 }
 
@@ -158,26 +204,45 @@ function renderVideos(videos) {
 
 function initTabs(currentSaison) {
     const btnClassement = document.getElementById('btn-tab-classement');
+    const btnCalendrier = document.getElementById('btn-tab-calendrier');
     const btnVideos = document.getElementById('btn-tab-videos');
+    
     const viewClassement = document.getElementById('classement-container');
+    const viewCalendrier = document.getElementById('calendrier-container');
     const viewVideos = document.getElementById('videos-container');
+    
     const filtersContainer = document.getElementById('filters-container');
 
-    if (btnClassement && btnVideos) {
-        btnClassement.addEventListener('click', () => {
-            btnClassement.classList.add('active');
-            btnVideos.classList.remove('active');
-            viewClassement.style.display = 'block';
-            filtersContainer.style.display = 'block';
-            viewVideos.style.display = 'none';
-        });
+    const tabs = [btnClassement, btnCalendrier, btnVideos];
+    const views = [viewClassement, viewCalendrier, viewVideos];
 
+    function switchTab(targetBtn, targetView, showFilters) {
+        // Reset
+        tabs.forEach(btn => btn && btn.classList.remove('active'));
+        views.forEach(view => view && (view.style.display = 'none'));
+
+        // Activate
+        if(targetBtn) targetBtn.classList.add('active');
+        if(targetView) targetView.style.display = 'block';
+
+        // Toggle filters
+        filtersContainer.style.display = showFilters ? 'block' : 'none';
+    }
+
+    if (btnClassement) {
+        btnClassement.addEventListener('click', () => switchTab(btnClassement, viewClassement, true));
+    }
+
+    if (btnCalendrier) {
+        btnCalendrier.addEventListener('click', () => {
+            switchTab(btnCalendrier, viewCalendrier, false);
+            loadCalendar(currentSaison);
+        });
+    }
+
+    if (btnVideos) {
         btnVideos.addEventListener('click', () => {
-            btnVideos.classList.add('active');
-            btnClassement.classList.remove('active');
-            viewClassement.style.display = 'none';
-            filtersContainer.style.display = 'none';
-            viewVideos.style.display = 'block';
+            switchTab(btnVideos, viewVideos, false);
             loadVideos(currentSaison);
         });
     }
@@ -318,7 +383,6 @@ function renderCoureurDetails(details) {
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
-    // --- GAP LOGIC ---
     let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
         const val = row.PointsTotal || row["Points Total"] || "0";
@@ -361,11 +425,12 @@ function renderCoureurDetails(details) {
     container.innerHTML = html;
 }
 
-// Fonction modifiée pour recevoir les données brutes directement
-async function showCoureurDetails(nom, saisonKey, rawResults) {
+async function showCoureurDetails(nom, saisonKey, allRawResults) {
     const container = document.getElementById('classement-container');
-    
-    // Filtrage côté client
+    if (container) {
+        container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
+    }
+    const rawResults = await allRawResults;
     const filteredDetails = rawResults.filter(course => 
         course.Nom && course.Nom.toString().trim() === nom.toString().trim()
     );
@@ -512,7 +577,7 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // --- OPTIMISATION LAZY LOADING (v62/v63) ---
+        // --- OPTIMISATION LAZY LOADING (v62) ---
         // On ne charge PAS les résultats bruts ici. On attend le clic utilisateur.
         
         const mastersContainer = document.getElementById('nav-masters');
