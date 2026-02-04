@@ -14,14 +14,20 @@
         <h1>Coupe de la Réunion Route</h1> 
         <h2 id="category-title"></h2> 
         
-        <!-- Menu Principal (3 Onglets) -->
+        <!-- NOUVEAU : Barre de Recherche Globale -->
+        <div class="search-container">
+            <input type="text" id="global-search-input" placeholder="Rechercher un coureur..." />
+            <button id="global-search-btn">🔍</button>
+        </div>
+        
+        <!-- Menu Principal (Onglets) -->
         <div id="main-tabs">
             <button id="btn-tab-classement" class="main-tab active">📊 Classements</button>
             <button id="btn-tab-calendrier" class="main-tab">📅 Calendrier</button>
             <button id="btn-tab-videos" class="main-tab">🎬 Vidéos</button>
         </div>
 
-        <!-- Les filtres de classement (Visible uniquement sur l'onglet Classement) -->
+        <!-- Les filtres de classement -->
         <div id="filters-container">
             <nav id="nav-seasons"></nav>
             <nav id="nav-categories"></nav> 
@@ -31,12 +37,12 @@
 
     <main>
         <div class="table-responsive">
-            <!-- Conteneur Classement -->
+            <!-- Conteneur Classement (aussi utilisé pour les résultats de recherche) -->
             <div id="classement-container">
                 <p>Initialisation...</p>
             </div>
 
-            <!-- NOUVEAU : Conteneur Calendrier -->
+            <!-- Conteneur Calendrier -->
             <div id="calendrier-container" style="display: none;">
                 <p>Chargement du calendrier...</p>
             </div>
