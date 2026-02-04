@@ -1,6 +1,6 @@
 /* =======================================================================
    FICHIER : styles.css
-   Version : Finale Absolue (Mobile Compact & Alignement Club Centré)
+   Version : Finale Complète (Avec Calendrier)
 ======================================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
@@ -68,16 +68,17 @@ main {
     position: relative;
 }
 
-#classement-container {
+#classement-container, #calendrier-container {
     background-color: var(--color-background-card); 
     padding: 40px; 
     border-radius: 25px; 
     box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
 }
 
-#classement-container h3 { color: var(--color-lagon-dark); margin-top: 0; font-size: 1.5em; }
+#classement-container h3, #calendrier-container h3 { color: var(--color-lagon-dark); margin-top: 0; font-size: 1.5em; }
 #classement-container p { color: var(--color-text-light); }
 
+/* --- NAVIGATION --- */
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
     display: block; 
@@ -119,6 +120,95 @@ main {
     box-shadow: 0 4px 15px rgba(217, 79, 0, 0.4);
 }
 
+/* --- MAIN TABS (NOUVEAU STYLE ADAPTÉ POUR 3 BOUTONS) --- */
+#main-tabs {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Permet le passage à la ligne sur petit mobile */
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 20;
+}
+
+.main-tab {
+    background-color: rgba(0, 0, 0, 0.6); 
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 10px 20px;
+    font-size: 1em;
+    font-family: 'Montserrat', sans-serif;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+}
+.main-tab:hover { background-color: rgba(255, 255, 255, 0.2); }
+.main-tab.active {
+    background-color: var(--color-volcan);
+    border-color: var(--color-volcan);
+    font-weight: 800;
+    box-shadow: 0 4px 15px rgba(217, 79, 0, 0.5);
+}
+
+
+/* --- STYLE DU CALENDRIER --- */
+.calendar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.race-card {
+    display: flex;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 12px;
+    border-left: 5px solid var(--color-lagon);
+    transition: transform 0.2s;
+}
+
+.race-card:hover {
+    transform: translateX(5px);
+    background: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.race-card.past {
+    border-left-color: #bdc3c7; /* Gris pour les courses passées */
+    opacity: 0.7;
+    background: #f0f0f0;
+}
+
+.race-date {
+    background: var(--color-text);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-align: center;
+    min-width: 80px;
+    margin-right: 20px;
+    font-family: 'Montserrat', sans-serif;
+}
+.race-card.past .race-date { background: #95a5a6; }
+
+.race-info h4 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 1.1em;
+}
+
+.race-details {
+    font-size: 0.9em;
+    color: var(--color-text-light);
+    margin-top: 5px;
+}
+
+/* --- TABLEAUX --- */
 .table-responsive {
     overflow-x: auto;
     width: 100%;
@@ -140,7 +230,6 @@ main {
     font-size: 0.85em;
     padding: 15px;
     border-bottom: 2px solid #eee;
-    text-align: center; 
 }
 
 .classement-table td, .details-table td {
@@ -154,13 +243,11 @@ main {
 
 .classement-table tbody tr:hover, .details-table tbody tr:hover { background-color: #f0f8ff; }
 
-/* Alignement Gauche spécifique pour Nom (5) et Club (6) sur DESKTOP */
 .classement-table td:nth-child(5), .classement-table td:nth-child(6) {
     text-align: left;
     padding-left: 20px;
 }
 
-/* PODIUM */
 .classement-table tbody tr:nth-child(1) td:last-child strong { color: var(--color-gold); font-size: 1.6em; }
 .classement-table tbody tr:nth-child(2) td:last-child strong { color: var(--color-silver); font-size: 1.5em; }
 .classement-table tbody tr:nth-child(3) td:last-child strong { color: var(--color-bronze); font-size: 1.4em; }
@@ -231,103 +318,13 @@ tr.category-separator td {
 .gap-card strong { display: block; font-size: 1.2em; margin-bottom: 5px; color: var(--color-text); }
 .gap-name { font-size: 0.85em; color: #888; }
 
-
-/* --- 9. RESPONSIVE (MOBILE) --- */
-@media (max-width: 768px) {
-    header { padding: 20px 10px 100px; }
-    h1 { font-size: 1.8em; }
-    main { margin-top: -60px; padding: 0 10px; }
-    #classement-container { padding: 20px 15px; border-radius: 20px; }
-
-    /* CORRECTION : BOUTONS COMPACTS (CHIPS) */
-    #nav-seasons a, #nav-categories a, #nav-masters a {
-        display: inline-block;
-        width: auto; /* S'adapte au texte */
-        margin: 3px 2px;
-        padding: 6px 12px;
-        font-size: 0.75em;
-        margin-right: 2px;
-    }
-    
-    /* Masquage Colonnes Portrait */
-    .classement-table th:nth-child(1), .classement-table td:nth-child(1),
-    .classement-table th:nth-child(2), .classement-table td:nth-child(2),
-    .classement-table th:nth-child(3), .classement-table td:nth-child(3),
-    .classement-table th:nth-child(4), .classement-table td:nth-child(4) { display: none; }
-
-    .classement-table td, .classement-table th { padding: 10px 5px; font-size: 0.85em; text-align: center; }
-    
-    /* CORRECTION : Alignement Gauche UNIQUEMENT pour le NOM (5) */
-    .classement-table td:nth-child(5) { text-align: left; padding-left: 5px; }
-    
-    /* Le Club (6) sera centré par la règle par défaut ci-dessus */
-    
-    .classement-table th:last-child, .classement-table td:last-child { width: 30px; white-space: nowrap; }
-
-    /* Vue Détail Mobile */
-    .details-table:not(.club-table) th:nth-child(1), .details-table:not(.club-table) td:nth-child(1),
-    .details-table th:nth-child(4), .details-table td:nth-child(4) { display: none; }
-    
-    /* Vue Club Mobile */
-    .club-table th:nth-child(1), .club-table td:nth-child(1),
-    .club-table th:nth-child(2), .club-table td:nth-child(2) { display: table-cell; }
-    .club-table td:nth-child(1) { text-align: left; }
-
-    .classement-table, .details-table { min-width: 100%; margin-top: 15px; }
-    .gap-container { flex-direction: column; gap: 10px; padding: 10px; }
-    .gap-card { width: 100%; max-width: none; }
-}
-
-/* --- 10. RÉTABLISSEMENT DESKTOP --- */
-@media (min-width: 769px) {
-    th, td { display: table-cell !important; }
-}
-
-/* --- NOUVEAU : Styles pour les Onglets Principaux --- */
-#main-tabs {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-    margin-bottom: 30px;
-    position: relative;
-    z-index: 20;
-}
-
-.main-tab {
-    background-color: rgba(0, 0, 0, 0.5); /* Sombre par défaut */
-    color: white;
-    border: 1px solid rgba(255,255,255,0.3);
-    padding: 12px 30px;
-    font-size: 1.1em;
-    font-family: 'Montserrat', sans-serif;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-transform: uppercase;
-    margin-top: 0; /* Reset marge bouton par défaut */
-}
-
-.main-tab:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-}
-
-.main-tab.active {
-    background-color: var(--color-volcan); /* Actif = Rouge Volcan */
-    border-color: var(--color-volcan);
-    font-weight: 800;
-    box-shadow: 0 4px 15px rgba(217, 79, 0, 0.5);
-}
-
-/* --- Styles pour la Grille Vidéos --- */
+/* Styles pour les Vidéos */
 .videos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 25px;
     padding: 20px;
 }
-
 .video-card {
     background: white;
     border-radius: 15px;
@@ -335,43 +332,62 @@ tr.category-separator td {
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     transition: transform 0.3s;
 }
-
-.video-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
+.video-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
 .video-wrapper {
     position: relative;
-    padding-bottom: 56.25%; /* Ratio 16:9 */
+    padding-bottom: 56.25%;
     height: 0;
     overflow: hidden;
     background: #000;
 }
-
 .video-wrapper iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
+}
+.video-info { padding: 15px; text-align: left; }
+.video-info h4 { color: var(--color-text); margin: 0 0 5px 0; font-size: 1.1em; }
+.video-info p { color: #888; font-size: 0.9em; margin: 0; }
+
+
+@media (max-width: 768px) {
+    header { padding: 20px 10px 100px; }
+    h1 { font-size: 1.8em; }
+    main { margin-top: -60px; padding: 0 10px; }
+    #classement-container, #calendrier-container { padding: 20px 15px; border-radius: 20px; }
+
+    #nav-seasons a, #nav-categories a, #nav-masters a {
+        width: calc(50% - 14px); 
+        margin: 4px; 
+        padding: 8px 0;
+        font-size: 0.75em;
+        margin-right: 4px;
+    }
+    
+    .classement-table th:nth-child(1), .classement-table td:nth-child(1),
+    .classement-table th:nth-child(2), .classement-table td:nth-child(2),
+    .classement-table th:nth-child(3), .classement-table td:nth-child(3),
+    .classement-table th:nth-child(4), .classement-table td:nth-child(4) { display: none; }
+
+    .classement-table td, .classement-table th { padding: 10px 5px; font-size: 0.85em; text-align: center; }
+    .classement-table td:nth-child(5) { text-align: left; padding-left: 5px; }
+    .classement-table td:nth-child(6), .classement-table td:nth-child(7), .classement-table td:nth-child(8) { text-align: center; }
+    .classement-table th:last-child, .classement-table td:last-child { width: 30px; white-space: nowrap; }
+
+    .details-table:not(.club-table) th:nth-child(1), .details-table:not(.club-table) td:nth-child(1),
+    .details-table th:nth-child(4), .details-table td:nth-child(4) { display: none; }
+    
+    .club-table th:nth-child(1), .club-table td:nth-child(1),
+    .club-table th:nth-child(2), .club-table td:nth-child(2) { display: table-cell; }
+    .club-table td:nth-child(1) { text-align: left; }
+
+    .classement-table, .details-table { min-width: 100%; margin-top: 15px; }
+    .gap-container { flex-direction: column; gap: 10px; padding: 10px; }
+    .gap-card { width: 100%; max-width: none; }
+    
+    /* Adaptation Calendrier Mobile */
+    .race-card { flex-direction: column; text-align: center; align-items: stretch; }
+    .race-date { margin-right: 0; margin-bottom: 10px; width: 100%; }
 }
 
-.video-info {
-    padding: 15px;
-    text-align: left;
+@media (min-width: 769px) {
+    th, td { display: table-cell !important; }
 }
-
-.video-info h4 {
-    color: var(--color-text);
-    margin: 0 0 5px 0;
-    font-size: 1.1em;
-}
-
-.video-info p {
-    color: #888;
-    font-size: 0.9em;
-    margin: 0;
-}
-
