@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v64 - AJOUT CALENDRIER SIMPLIFIÉ & VIDÉOS 2026)
+// FICHIER : app.js (v65 - Recherche Globale Intégrée)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -104,13 +104,78 @@ async function loadAllRawResults(saisonKey) {
     }
 }
 
+// --- RECHERCHE GLOBALE ---
+
+async function performGlobalSearch() {
+    const input = document.getElementById('global-search-input');
+    const query = input.value.trim().toLowerCase();
+    
+    if (query.length < 2) return; 
+
+    const container = document.getElementById('classement-container');
+    container.innerHTML = '<p style="text-align:center; padding:20px;">Recherche en cours...</p>';
+
+    // Force l'affichage de l'onglet Classement
+    const btnClassement = document.getElementById('btn-tab-classement');
+    if(btnClassement) btnClassement.click();
+
+    const currentSaison = getSaisonFromURL();
+    const rawResults = await loadAllRawResults(currentSaison);
+
+    const matches = [];
+    const seen = new Set();
+
+    if (rawResults && rawResults.length > 0) {
+         rawResults.forEach(row => {
+            if (row.Nom && row.Nom.toLowerCase().includes(query)) {
+                if (!seen.has(row.Nom)) {
+                    seen.add(row.Nom);
+                    matches.push(row);
+                }
+            }
+        });
+    }
+
+    if (matches.length === 0) {
+        container.innerHTML = `<p style="text-align:center;">Aucun coureur trouvé pour "${input.value}".</p><button onclick="init()">Retour</button>`;
+    } else if (matches.length === 1) {
+        // Un seul résultat : on ouvre direct la fiche
+        // Note: showCoureurDetails n'est pas asynchrone dans sa logique interne de rendu, 
+        // mais on peut l'appeler directement.
+        // On filtre ici pour correspondre à la signature attendue par renderCoureurDetails
+        const exactMatch = rawResults.filter(r => r.Nom === matches[0].Nom);
+        renderCoureurDetails(exactMatch);
+    } else {
+        renderSearchResults(matches);
+    }
+}
+
+function renderSearchResults(matches) {
+    const container = document.getElementById('classement-container');
+    let html = `<h3 style="color:var(--color-lagon);">Résultats de recherche (${matches.length})</h3>`;
+    
+    html += '<table class="classement-table search-results-table">';
+    html += '<thead><tr><th>Nom</th><th>Catégorie</th><th>Club</th></tr></thead><tbody>';
+    
+    matches.forEach(m => {
+        html += `<tr>
+                    <td><a href="#" class="coureur-link" data-nom="${m.Nom}">${m.Nom}</a></td>
+                    <td>${m.Catégorie || '-'}</td>
+                    <td>${m.Club || '-'}</td>
+                 </tr>`;
+    });
+    
+    html += '</tbody></table>';
+    html += `<button onclick="init()">Retour au Classement Général</button>`;
+    container.innerHTML = html;
+}
+
 // --- GESTION CALENDRIER ---
 
 async function loadCalendar(saisonKey) {
     const container = document.getElementById('calendrier-container');
     container.innerHTML = '<p style="text-align:center; padding:20px;">Chargement du calendrier...</p>';
     
-    // Interroge l'onglet 'Calendrier'
     const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Calendrier`;
 
     try {
@@ -134,9 +199,7 @@ function renderCalendar(races) {
     let html = '<div class="calendar-list">';
     
     races.forEach(race => {
-        // Simple détection de course passée si on veut (optionnel)
         const cardClass = 'race-card';
-        
         html += `
             <div class="${cardClass}">
                 <div class="race-date">${race.Date || 'Date à venir'}</div>
@@ -165,7 +228,7 @@ async function loadVideos(saisonKey) {
         const videos = await response.json();
         renderVideos(videos);
     } catch (error) {
-        container.innerHTML = `<p style="text-align:center;">Aucune vidéo disponible pour le moment.</p>`;
+        container.innerHTML = `<p style="color:red; text-align:center;">Erreur : ${error.message}</p>`;
     }
 }
 
@@ -212,21 +275,20 @@ function initTabs(currentSaison) {
     const viewVideos = document.getElementById('videos-container');
     
     const filtersContainer = document.getElementById('filters-container');
+    const searchContainer = document.querySelector('.search-container'); // Barre de recherche
 
     const tabs = [btnClassement, btnCalendrier, btnVideos];
     const views = [viewClassement, viewCalendrier, viewVideos];
 
     function switchTab(targetBtn, targetView, showFilters) {
-        // Reset
         tabs.forEach(btn => btn && btn.classList.remove('active'));
         views.forEach(view => view && (view.style.display = 'none'));
 
-        // Activate
         if(targetBtn) targetBtn.classList.add('active');
         if(targetView) targetView.style.display = 'block';
 
-        // Toggle filters
-        filtersContainer.style.display = showFilters ? 'block' : 'none';
+        if(filtersContainer) filtersContainer.style.display = showFilters ? 'block' : 'none';
+        if(searchContainer) searchContainer.style.display = showFilters ? 'flex' : 'none'; // Cache la recherche si pas classement
     }
 
     if (btnClassement) {
@@ -425,12 +487,11 @@ function renderCoureurDetails(details) {
     container.innerHTML = html;
 }
 
-async function showCoureurDetails(nom, saisonKey, allRawResults) {
+// Fonction modifiée pour recevoir les données brutes directement
+async function showCoureurDetails(nom, saisonKey, rawResults) {
     const container = document.getElementById('classement-container');
-    if (container) {
-        container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
-    }
-    const rawResults = await allRawResults;
+    
+    // Filtrage côté client
     const filteredDetails = rawResults.filter(course => 
         course.Nom && course.Nom.toString().trim() === nom.toString().trim()
     );
@@ -453,7 +514,6 @@ function renderClubDetails(members, clubNom) {
         
         const valA = a["Points Total"] || a.PointsTotal || "0";
         const valB = b["Points Total"] || b.PointsTotal || "0";
-        
         const pointsA = parseInt(String(valA).replace(/[^\d]/g, '')) || 0;
         const pointsB = parseInt(String(valB).replace(/[^\d]/g, '')) || 0;
         
@@ -577,7 +637,7 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // --- OPTIMISATION LAZY LOADING (v62) ---
+        // --- OPTIMISATION LAZY LOADING ---
         // On ne charge PAS les résultats bruts ici. On attend le clic utilisateur.
         
         const mastersContainer = document.getElementById('nav-masters');
@@ -587,6 +647,18 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
+            
+            // Gestion Recherche Globale
+            const searchBtn = document.getElementById('global-search-btn');
+            const searchInput = document.getElementById('global-search-input');
+            
+            if (searchBtn && searchInput) {
+                searchBtn.addEventListener('click', performGlobalSearch);
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') performGlobalSearch();
+                });
+            }
+
             // Clic Coureur : Lazy Load ici
             classementContainer.addEventListener('click', async (e) => {
                 const link = e.target.closest('.coureur-link');
