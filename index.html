@@ -12,14 +12,17 @@
 
     <header>
         <h1>Coupe de la Réunion Route</h1> 
+        <h2 id="category-title"></h2> 
         
+        <!-- Menu Principal (3 Onglets) -->
         <div id="main-tabs">
             <button id="btn-tab-classement" class="main-tab active">📊 Classements</button>
+            <button id="btn-tab-calendrier" class="main-tab">📅 Calendrier</button>
             <button id="btn-tab-videos" class="main-tab">🎬 Vidéos</button>
         </div>
 
+        <!-- Les filtres de classement (Visible uniquement sur l'onglet Classement) -->
         <div id="filters-container">
-            <h2 id="category-title"></h2> 
             <nav id="nav-seasons"></nav>
             <nav id="nav-categories"></nav> 
             <nav id="nav-masters"></nav> 
@@ -28,10 +31,17 @@
 
     <main>
         <div class="table-responsive">
+            <!-- Conteneur Classement -->
             <div id="classement-container">
                 <p>Initialisation...</p>
             </div>
+
+            <!-- NOUVEAU : Conteneur Calendrier -->
+            <div id="calendrier-container" style="display: none;">
+                <p>Chargement du calendrier...</p>
+            </div>
             
+            <!-- Conteneur Vidéos -->
             <div id="videos-container" style="display: none;">
                 <p>Chargement des vidéos...</p>
             </div>
