@@ -1,6 +1,6 @@
 /* =======================================================================
    FICHIER : styles.css
-   Version : Finale Complète (Avec Calendrier)
+   Version : Finale Absolue (Design Sombre Restauré & Recherche Stylée)
 ======================================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
@@ -10,7 +10,8 @@
     --color-lagon-dark: #008c9e;  
     --color-volcan: #D94F00;      
     --color-background-page: #121212;  
-    --color-background-card: #ffffff; 
+    /* MODIFICATION : Le fond carte devient transparent par défaut pour le conteneur */
+    --color-background-card: transparent; 
     --color-text: #2c3e50;            
     --color-text-light: #7f8c8d;      
     --color-header-text: #ffffff;
@@ -60,6 +61,48 @@ h1, h2 {
 h1 { margin: 0 0 10px 0; font-size: 2.5em; font-weight: 800; }
 h2 { margin: 5px 0 20px 0; font-size: 1.2em; font-weight: 400; opacity: 1; }
 
+/* --- BARRE DE RECHERCHE STYLISÉE --- */
+.search-container {
+    margin: 15px auto 25px;
+    max-width: 500px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    z-index: 20;
+    /* Ombre pour détacher la barre du fond */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border-radius: 50px;
+}
+
+#global-search-input {
+    width: 100%;
+    padding: 12px 25px;
+    border-radius: 50px 0 0 50px;
+    border: none;
+    /* Fond blanc légèrement transparent */
+    background: rgba(255, 255, 255, 0.95); 
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95em;
+    outline: none;
+    color: #333;
+}
+
+#global-search-btn {
+    padding: 12px 25px;
+    border-radius: 0 50px 50px 0;
+    border: none;
+    background: var(--color-volcan);
+    color: white;
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-top: 0; /* Reset marge bouton générique */
+    transition: background 0.3s;
+    /* Retirer l'ombre du bouton générique pour qu'il colle à l'input */
+    box-shadow: none; 
+}
+
+#global-search-btn:hover { background: #e74c3c; transform: none; }
+
 main {
     padding: 0 20px;
     max-width: 1200px;
@@ -68,17 +111,27 @@ main {
     position: relative;
 }
 
+/* MODIFICATION : Conteneur Transparent */
 #classement-container, #calendrier-container {
-    background-color: var(--color-background-card); 
-    padding: 40px; 
-    border-radius: 25px; 
-    box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
+    background-color: transparent; 
+    padding: 20px 0; /* Plus de padding blanc, juste de l'espace */
+    border-radius: 0; 
+    box-shadow: none; /* Plus d'ombre globale, chaque ligne a son ombre */
 }
 
-#classement-container h3, #calendrier-container h3 { color: var(--color-lagon-dark); margin-top: 0; font-size: 1.5em; }
-#classement-container p { color: var(--color-text-light); }
+/* Les titres doivent être lisibles sur le fond noir */
+#classement-container h3, #calendrier-container h3 { 
+    color: var(--color-lagon); 
+    margin-top: 0; 
+    font-size: 1.5em; 
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.6); /* Petit fond sombre pour lisibilité */
+    padding: 10px;
+    border-radius: 10px;
+    display: inline-block;
+}
+#classement-container p { color: #ccc; }
 
-/* --- NAVIGATION --- */
 #nav-seasons, #nav-categories, #nav-masters {
     margin: 10px auto; 
     display: block; 
@@ -152,7 +205,7 @@ main {
     box-shadow: 0 4px 15px rgba(217, 79, 0, 0.5);
 }
 
-/* --- STYLE DU CALENDRIER --- */
+/* --- CALENDRIER --- */
 .calendar-list {
     display: flex;
     flex-direction: column;
@@ -160,42 +213,41 @@ main {
     margin-top: 20px;
 }
 
+/* Fond clair pour les cartes sur fond noir */
 .race-card {
     display: flex;
     align-items: center;
-    background: var(--color-background-card);
+    background: white; 
     padding: 20px;
     border-radius: 15px;
-    border-left: 5px solid #bdc3c7; /* Gris par défaut */
+    border-left: 5px solid #bdc3c7; 
     transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #eee;
+    border: none;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .race-card:hover {
     transform: translateX(5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* Course Passée */
 .race-card.past {
     opacity: 0.6;
-    background: #f9f9f9;
+    background: #e0e0e0;
 }
-.race-card.past .race-date { background: #eee; border-color: #ddd; color: #777; }
+.race-card.past .race-date { background: #ccc; border-color: #bbb; color: #666; }
 
-/* PROCHAINE COURSE */
 .race-card.next-race {
     border-left: 5px solid var(--color-volcan);
     background: #fff;
-    box-shadow: 0 0 20px rgba(217, 79, 0, 0.15);
+    box-shadow: 0 0 20px rgba(217, 79, 0, 0.4); /* Glow plus visible sur noir */
     transform: scale(1.02);
     z-index: 5;
-    padding-top: 35px; /* Espace pour le badge */
+    padding-top: 35px;
 }
 
-/* Badge "Prochaine Course" */
 .next-badge {
     position: absolute;
     top: 0;
@@ -338,13 +390,15 @@ tr.category-separator td {
     padding-top: 20px;
 }
 
+/* Badges Écarts */
 .gap-container {
     display: flex;
     justify-content: center;
     gap: 20px;
     margin-bottom: 40px;
     padding: 20px;
-    background-color: #f9f9f9;
+    /* Fond sombre pour le bloc stats */
+    background-color: rgba(255,255,255,0.1); 
     border-radius: 15px;
 }
 .gap-card {
@@ -393,23 +447,21 @@ tr.category-separator td {
 .video-info h4 { color: var(--color-text); margin: 0 0 5px 0; font-size: 1.1em; }
 .video-info p { color: #888; font-size: 0.9em; margin: 0; }
 
-/* --- 9. RESPONSIVE (MOBILE) --- */
 @media (max-width: 768px) {
     header { padding: 20px 10px 100px; }
     h1 { font-size: 1.8em; }
     main { margin-top: -60px; padding: 0 10px; }
-    #classement-container, #calendrier-container { padding: 20px 15px; border-radius: 20px; }
+    /* Sur mobile, on retire le padding du conteneur pour gagner de la place */
+    #classement-container, #calendrier-container { padding: 10px 0; border-radius: 20px; background: transparent; }
 
     #nav-seasons a, #nav-categories a, #nav-masters a {
-        display: inline-block;
-        width: auto; /* Boutons compacts */
+        width: auto; 
         margin: 3px 2px;
         padding: 6px 12px;
         font-size: 0.75em;
         margin-right: 2px;
     }
     
-    /* Masquage Colonnes Portrait */
     .classement-table th:nth-child(1), .classement-table td:nth-child(1),
     .classement-table th:nth-child(2), .classement-table td:nth-child(2),
     .classement-table th:nth-child(3), .classement-table td:nth-child(3),
@@ -431,14 +483,12 @@ tr.category-separator td {
     .gap-container { flex-direction: column; gap: 10px; padding: 10px; }
     .gap-card { width: 100%; max-width: none; }
     
-    /* Adaptation Calendrier Mobile */
     .race-card { flex-direction: column; text-align: center; align-items: stretch; padding: 15px; }
     .race-card.next-race { flex-direction: column; text-align: left; }
     .race-card.next-race .race-date { flex-direction: row; width: 100%; justify-content: space-between; margin-right: 0; margin-bottom: 10px; }
     .race-date { margin-right: 0; margin-bottom: 10px; width: 100%; }
 }
 
-/* --- 10. RÉTABLISSEMENT DESKTOP --- */
 @media (min-width: 769px) {
     th, td { display: table-cell !important; }
 }
