@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v68 - Stable v45 + Calendrier Complet)
+// FICHIER : app.js (v69 - Base v66 + Calendrier + Navigation Sans Rechargement)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -37,7 +37,7 @@ const DEFAULT_SAISON = '2026';
 const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
-let globalRawData = {}; // Stocke les résultats bruts par saison
+let globalRawData = {}; 
 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
@@ -76,14 +76,6 @@ function getDisplayDossard(dossardRecherche) {
     return dossardRecherche; 
 }
 
-// Convertit "23/03/2026" en objet Date JS
-function parseFrenchDate(dateStr) {
-    if (!dateStr) return null;
-    const parts = dateStr.split('/');
-    if (parts.length !== 3) return null;
-    return new Date(parts[2], parts[1] - 1, parts[0]);
-}
-
 function buildJsonUrl(saisonKey, categoryKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     if (!saisonConfig) return null;
@@ -107,9 +99,17 @@ async function loadAllRawResults(saisonKey) {
         globalRawData[saisonKey] = data; 
         return data;
     } catch (e) {
-        console.error("Erreur critique lors du chargement des résultats bruts:", e);
+        console.error("Erreur chargement résultats bruts:", e);
         return [];
     }
+}
+
+// Convertit "23/03/2026" en objet Date JS pour le calendrier
+function parseFrenchDate(dateStr) {
+    if (!dateStr) return null;
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return null;
+    return new Date(parts[2], parts[1] - 1, parts[0]);
 }
 
 // --- GESTION CALENDRIER ---
@@ -118,7 +118,6 @@ async function loadCalendar(saisonKey) {
     const container = document.getElementById('calendrier-container');
     container.innerHTML = '<p style="text-align:center; padding:20px;">Chargement du calendrier...</p>';
     
-    // On interroge l'onglet 'Calendrier' via le Worker
     const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Calendrier`;
 
     try {
@@ -127,7 +126,7 @@ async function loadCalendar(saisonKey) {
         const races = await response.json();
         renderCalendar(races);
     } catch (error) {
-        container.innerHTML = `<p style="color:red; text-align:center;">Calendrier non disponible pour cette saison.</p>`;
+        container.innerHTML = `<p style="color:red; text-align:center;">Calendrier non disponible pour le moment.</p>`;
     }
 }
 
@@ -139,7 +138,6 @@ function renderCalendar(races) {
         return;
     }
 
-    // Tri chronologique
     races.sort((a, b) => {
         const dateA = parseFrenchDate(a.Date);
         const dateB = parseFrenchDate(b.Date);
@@ -149,10 +147,8 @@ function renderCalendar(races) {
     });
 
     let html = '<div class="calendar-list">';
-    
     const today = new Date();
-    today.setHours(0,0,0,0); // Comparer dates sans heure
-    
+    today.setHours(0,0,0,0);
     let nextRaceFound = false;
 
     races.forEach(race => {
@@ -163,36 +159,28 @@ function renderCalendar(races) {
         let dateDisplay = { day: '??', month: '???' };
 
         if (raceDate) {
-            // Formatage date
             const day = String(raceDate.getDate()).padStart(2, '0');
             const month = raceDate.toLocaleString('fr-FR', { month: 'short' }).replace('.', '');
             dateDisplay = { day, month };
 
-            // Logique Passé / Futur
             if (raceDate < today) {
                 cardClass += ' past';
                 countdownHtml = '<span class="countdown-tag" style="border-color:#555; color:#666;">TERMINÉ</span>';
             } else {
-                // Calcul J-X
                 const diffTime = Math.ceil((raceDate - today) / (1000 * 60 * 60 * 24));
-                
                 if (!nextRaceFound) {
-                    // C'est la PROCHAINE course
                     cardClass += ' next-race';
                     nextRaceFound = true;
                     badgeHtml = '<div class="next-badge">PROCHAINE COURSE</div>';
-                    
-                    if (diffTime === 0) countdownHtml = '<span class="countdown-tag pulse">AUJOURD\'HUI !</span>';
-                    else if (diffTime === 1) countdownHtml = '<span class="countdown-tag pulse">DEMAIN !</span>';
-                    else countdownHtml = `<span class="countdown-tag pulse">J-${diffTime}</span>`;
+                    if (diffTime === 0) countdownHtml = '<span class="countdown-tag">AUJOURD\'HUI !</span>';
+                    else if (diffTime === 1) countdownHtml = '<span class="countdown-tag">DEMAIN !</span>';
+                    else countdownHtml = `<span class="countdown-tag">J-${diffTime}</span>`;
                 } else {
-                    // Course future
                     countdownHtml = `<span class="countdown-tag">Dans ${diffTime} jours</span>`;
                 }
             }
         }
         
-        // Construction HTML de la carte
         html += `
             <div class="${cardClass}">
                 ${badgeHtml}
@@ -202,9 +190,7 @@ function renderCalendar(races) {
                 </div>
                 <div class="race-info">
                     <h4>${race.Nom}</h4>
-                    <div style="margin-top:5px;">
-                        ${countdownHtml}
-                    </div>
+                    <div style="margin-top:5px;">${countdownHtml}</div>
                 </div>
             </div>
         `;
@@ -219,9 +205,7 @@ function renderCalendar(races) {
 async function loadVideos(saisonKey) {
     const container = document.getElementById('videos-container');
     container.innerHTML = '<p style="text-align:center; padding:20px;">Chargement des vidéos...</p>';
-    
     const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Videos`;
-
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error("Impossible de charger les vidéos");
@@ -234,12 +218,10 @@ async function loadVideos(saisonKey) {
 
 function renderVideos(videos) {
     const container = document.getElementById('videos-container');
-    
     if (!videos || videos.length === 0 || videos[0].error) {
         container.innerHTML = '<p style="text-align:center;">Aucune vidéo disponible pour le moment.</p>';
         return;
     }
-
     let html = '<div class="videos-grid">';
     videos.forEach(video => {
         if (video.YoutubeID) {
@@ -274,8 +256,7 @@ function initTabs(currentSaison) {
     const viewCalendrier = document.getElementById('calendrier-container');
     const viewVideos = document.getElementById('videos-container');
     
-    // Conteneurs à masquer/afficher selon l'onglet
-    const filtersContainer = document.getElementById('filters-container'); // Contient Saisons + Catégories
+    const filtersContainer = document.getElementById('filters-container');
     const navCategories = document.getElementById('nav-categories');
     const navMasters = document.getElementById('nav-masters');
     const searchContainer = document.querySelector('.search-container');
@@ -284,7 +265,6 @@ function initTabs(currentSaison) {
     const tabs = [btnClassement, btnCalendrier, btnVideos];
     const views = [viewClassement, viewCalendrier, viewVideos];
 
-    // Fonction de bascule d'onglet
     function switchTab(targetBtn, targetView, mode) {
         tabs.forEach(btn => btn && btn.classList.remove('active'));
         views.forEach(view => view && (view.style.display = 'none'));
@@ -292,15 +272,14 @@ function initTabs(currentSaison) {
         if(targetBtn) targetBtn.classList.add('active');
         if(targetView) targetView.style.display = 'block';
 
-        // GESTION AFFICHAGE DES FILTRES
+        if(filtersContainer) filtersContainer.style.display = 'block';
+
         if (mode === 'classement') {
-            // Onglet Classement : On affiche tout
             if(navCategories) navCategories.style.display = 'block';
             if(navMasters) navMasters.style.display = 'block';
             if(searchContainer) searchContainer.style.display = 'flex';
             if(categoryTitle) categoryTitle.style.display = 'block';
         } else {
-            // Onglet Calendrier ou Vidéos : On garde SEULEMENT les Saisons
             if(navCategories) navCategories.style.display = 'none';
             if(navMasters) navMasters.style.display = 'none';
             if(searchContainer) searchContainer.style.display = 'none';
@@ -315,7 +294,7 @@ function initTabs(currentSaison) {
     if (btnCalendrier) {
         btnCalendrier.addEventListener('click', () => {
             switchTab(btnCalendrier, viewCalendrier, 'calendrier');
-            // Charge le calendrier pour la saison active (bouton saison actif)
+            // Chargement dynamique selon le bouton saison actif
             const activeSaisonBtn = document.querySelector('.season-link.active');
             const activeSaison = activeSaisonBtn ? activeSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
             loadCalendar(activeSaison);
@@ -337,7 +316,7 @@ function createNavBar(currentSaison, currentCategory) {
     const categoriesContainer = document.getElementById('nav-categories');
     const mastersContainer = document.getElementById('nav-masters');
 
-    // 1. Navigation Saisons (MODIFIÉ : data-saison au lieu de href pour gestion JS)
+    // 1. Navigation Saisons (MODIFIÉ : data-saison pour navigation JS)
     let seasonsHtml = '';
     Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
         const saison = SAISONS_CONFIG[saisonKey];
@@ -406,10 +385,12 @@ function renderTable(data) {
     let html = '<table class="classement-table">';
     html += '<thead><tr>';
     headers.forEach(header => {
-        const displayHeader = header.replace('PointsTotal', 'Total Pts')
+        const displayHeader = header.replace('PointsTotal', 'Points')
+                                    .replace('Points Total', 'Points')
                                     .replace('NbCourses', 'Nb Courses')
-                                    .replace('SousCategorie', 'Sous Catégorie')
-                                    .replace('Master', 'Catégorie Master');
+                                    .replace('SousCategorie', 'Catégorie')
+                                    .replace('Master', 'Cat. Master')
+                                    .replace('Classement', 'Pos.');
         html += `<th>${displayHeader}</th>`;
     });
     html += '</tr></thead>';
@@ -458,7 +439,7 @@ function renderCoureurDetails(details) {
 
     let totalPoints = 0;
     details.forEach(course => {
-        const points = parseFloat(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
+        const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
         }
@@ -466,9 +447,59 @@ function renderCoureurDetails(details) {
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
-    html += '<table class="details-table">';
-    html += '<thead><tr><th>Date</th><th>Course</th><th>Position</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
+    // Gap Logic & Chart (v66)
+    let gapsHtml = '<div class="gap-container">';
+    const getPointsSafe = (row) => {
+        const val = row.PointsTotal || row["Points Total"] || "0";
+        return parseInt(String(val).replace(/[^\d]/g, '')) || 0;
+    };
+    const rankIndex = globalClassementData.findIndex(c => c.Nom === coureurNom);
+    if (rankIndex !== -1) {
+        const currentPoints = getPointsSafe(globalClassementData[rankIndex]);
+        if (rankIndex > 0) {
+            const runnerAhead = globalClassementData[rankIndex - 1];
+            const pointsAhead = getPointsSafe(runnerAhead);
+            const diff = pointsAhead - currentPoints;
+            gapsHtml += `<div class="gap-card chase"><strong>🛑 Retard : -${diff} pts</strong><span class="gap-name">sur ${runnerAhead.Nom} (#${runnerAhead.Classement})</span></div>`;
+        } else {
+             gapsHtml += `<div class="gap-card lead"><strong>👑 Leader</strong></div>`;
+        }
+        if (rankIndex < globalClassementData.length - 1) {
+            const runnerBehind = globalClassementData[rankIndex + 1];
+            const pointsBehind = getPointsSafe(runnerBehind);
+            const diff = currentPoints - pointsBehind;
+            gapsHtml += `<div class="gap-card lead"><strong>✅ Avance : +${diff} pts</strong><span class="gap-name">sur ${runnerBehind.Nom} (#${runnerBehind.Classement})</span></div>`;
+        }
+    }
+    gapsHtml += '</div>';
 
+    // Graphique Participation
+    const currentSaison = getSaisonFromURL();
+    const allResults = globalRawData[currentSaison] || [];
+    const allUniqueRaces = new Set(allResults.map(r => r.Course).filter(c => c && c.trim() !== ""));
+    const totalRacesInSeason = allUniqueRaces.size || 1; 
+    const runnerRacesCount = details.length;
+    const participationPercent = Math.round((runnerRacesCount / totalRacesInSeason) * 100);
+    const chartDegree = Math.round((participationPercent * 360) / 100);
+    
+    const chartHtml = `
+        <div class="stats-container">
+            <div class="participation-chart" style="background: conic-gradient(var(--color-lagon) ${chartDegree}deg, #444 0deg);">
+                <span class="chart-text">${participationPercent}%</span>
+            </div>
+            <div class="stats-info">
+                <h4>PARTICIPATION</h4>
+                <div class="big-number">${runnerRacesCount} / ${totalRacesInSeason}</div>
+                <div style="font-size:0.8em; color:#888;">Courses courues</div>
+            </div>
+        </div>
+    `;
+    
+    html += chartHtml;
+    html += gapsHtml;
+
+    html += '<table class="details-table">';
+    html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
     details.forEach(course => {
         html += `<tr>
                     <td>${course.Date}</td> 
@@ -478,7 +509,6 @@ function renderCoureurDetails(details) {
                     <td><strong>${course.Points}</strong></td>
                  </tr>`;
     });
-    
     html += '</tbody></table>';
     html += `<button onclick="init()">Retour au Classement Général</button>`;
     container.innerHTML = html;
@@ -489,8 +519,6 @@ async function showCoureurDetails(nom, saisonKey, allRawResults) {
     if (container) {
         container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
     }
-    
-    // V45 STABLE : Filtre côté client
     const rawResults = await allRawResults;
     const filteredDetails = rawResults.filter(course => 
         course.Nom && course.Nom.toString().trim() === nom.toString().trim()
@@ -498,48 +526,49 @@ async function showCoureurDetails(nom, saisonKey, allRawResults) {
     renderCoureurDetails(filteredDetails); 
 }
 
-
 // --- 5. Logique Club ---
 
 function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
     if (!container) return;
     
-    // Tri
+    const categoryOrder = ["OPEN", "Access 1/2", "Access 3/4", "Femmes", "U17", "U15", "U15/U17 Filles", "U15U17F"];
+    const getCategoryRank = (catName) => { const index = categoryOrder.indexOf(catName); return index === -1 ? 999 : index; };
+
     members.sort((a, b) => {
-        if (a.Catégorie < b.Catégorie) return -1;
-        if (a.Catégorie > b.Catégorie) return 1;
-        // Points : on utilise parseInt (entiers)
-        const pointsA = parseInt(a["Points Total"]) || 0;
-        const pointsB = parseInt(b["Points Total"]) || 0;
+        const rankA = getCategoryRank(a.Catégorie);
+        const rankB = getCategoryRank(b.Catégorie);
+        if (rankA !== rankB) return rankA - rankB;
+        
+        const valA = a["Points Total"] || a.PointsTotal || "0";
+        const valB = b["Points Total"] || b.PointsTotal || "0";
+        const pointsA = parseInt(String(valA).replace(/[^\d]/g, '')) || 0;
+        const pointsB = parseInt(String(valB).replace(/[^\d]/g, '')) || 0;
+        
         return pointsB - pointsA; 
     });
     
     let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
     
-    // Calcul Total Club
     let totalClubPoints = 0;
     members.forEach(member => {
-        totalClubPoints += parseInt(member["Points Total"]) || 0;
+        const rawPoints = member["Points Total"] || member.PointsTotal || "0";
+        totalClubPoints += parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
     });
 
-    html += `<p style="font-size: 1.2em; margin-bottom: 20px;">Total des Points du Club: ${totalClubPoints}</p>`;
+    html += `<p style="font-size: 1.1em; margin-bottom: 20px;"><strong>Points Total :</strong> ${totalClubPoints} <span style="margin: 0 10px;">|</span> <strong>Nombre de Coureurs :</strong> ${members.length}</p>`;
     
-    // Regroupement
     let currentCategory = '';
-    html += '<div class="club-details-list">'; 
+    html += '<table class="details-table club-table">';
+    html += '<thead><tr><th>Nom</th><th>Points</th></tr></thead><tbody>';
     
     members.forEach(member => {
-        const points = parseInt(member["Points Total"]) || 0;
+        const rawPoints = member["Points Total"] || member.PointsTotal || "0";
+        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
         
         if (member.Catégorie !== currentCategory) {
-            if (currentCategory !== '') {
-                html += '</tbody></table>'; 
-            }
             currentCategory = member.Catégorie;
-            html += `<h4 class="category-group-title" style="margin-top:20px;">${currentCategory}</h4>`; 
-            html += '<table class="details-table club-category-table">';
-            html += '<thead><tr><th>Nom</th><th>Points Total</th></tr></thead><tbody>';
+            html += `<tr class="category-separator"><td colspan="2">${currentCategory}</td></tr>`;
         }
         
         html += `<tr>
@@ -548,19 +577,13 @@ function renderClubDetails(members, clubNom) {
                  </tr>`;
     });
     
-    if (members.length > 0) {
-        html += '</tbody></table>'; 
-    }
-    html += '</div>';
-
+    html += '</tbody></table>'; 
     html += `<button onclick="init()">Retour au Classement Général</button>`;
     container.innerHTML = html;
 }
 
 async function showClubClassement(clubNom, saisonKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
-    const sheetdbApiId = saisonConfig.apiId;
-    
     const encodedClub = encodeURIComponent(clubNom);
     const searchUrl = `${WORKER_BASE_URL}search?Club=${encodedClub}&sheet=Coureurs&saison=${saisonKey}`;
 
@@ -574,13 +597,11 @@ async function showClubClassement(clubNom, saisonKey) {
         if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}.`);
         const data = await response.json();
         
-        // Filtre client de sécurité
         const filteredMembers = data.filter(member => member.Club && member.Club.trim() === clubNom.trim());
         renderClubDetails(filteredMembers, clubNom); 
-
     } catch (error) {
         if (container) {
-            container.innerHTML = `<p style="color: red;">Erreur récupération club : ${error.message}</p>`;
+            container.innerHTML = `<p style="color: red;">Erreur lors de la récupération des membres du club.</p>`;
         }
     }
 }
@@ -592,13 +613,11 @@ function handleMasterFilterChange(event) {
     event.preventDefault(); 
     const button = event.target.closest('a.master-button');
     if (!button) return;
-
     const selectedMaster = button.getAttribute('data-master');
     document.querySelectorAll('#nav-masters .master-button').forEach(btn => {
         btn.classList.remove('active');
     });
     button.classList.add('active');
-    
     let filteredData = globalClassementData;
     if (selectedMaster !== 'all') {
         filteredData = globalClassementData.filter(coureur => {
@@ -608,12 +627,12 @@ function handleMasterFilterChange(event) {
     renderTable(filteredData);
 }
 
-// --- 7. Fonction Principale (Init) ---
+// --- 7. Fonction Principale ---
 
 async function init() {
     const container = document.getElementById('classement-container');
     
-    // Variables d'état
+    // Etat initial
     let currentSaison = getSaisonFromURL(); 
     let currentCategoryKey = getCategoryFromURL();
     
@@ -621,38 +640,41 @@ async function init() {
         currentSaison = DEFAULT_SAISON; 
     }
 
-    // --- LOGIQUE DE RAFRAICHISSEMENT DE CONTENU (Sans rechargement de page) ---
+    // --- LOGIQUE DE NAVIGATION (Sans rechargement pour les saisons) ---
+    
     const refreshContent = async () => {
-        // Mettre à jour titre et nav
+        // MAJ Titre et Nav
         const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
         document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
         
         createNavBar(currentSaison, currentCategoryKey);
-        attachSeasonListeners(); // Réattacher les clics sur les nouveaux boutons
+        attachSeasonListeners();
 
-        // Déterminer l'onglet actif pour savoir quoi charger
+        // Quel onglet est actif ?
         const btnCalendrier = document.getElementById('btn-tab-calendrier');
         const btnVideos = document.getElementById('btn-tab-videos');
-        
+
         if (btnCalendrier && btnCalendrier.classList.contains('active')) {
             loadCalendar(currentSaison);
         } else if (btnVideos && btnVideos.classList.contains('active')) {
             loadVideos(currentSaison);
         } else {
-            // Onglet Classement
+            // Classement par défaut
             const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey);
+            const seasonParagraph = document.querySelector('header p');
+            if(seasonParagraph) seasonParagraph.textContent = `Saison ${currentSaison}`;
+            
             if (jsonUrl) {
                 container.innerHTML = `<p style="text-align:center; padding:20px;">Chargement ${currentSaison}...</p>`;
                 const rawData = await fetchClassementData(jsonUrl); 
                 globalClassementData = rawData;
                 renderTable(rawData);
-                // On recharge aussi les données brutes pour le détail coureur
+                // Préchargement pour la vue détail
                 loadAllRawResults(currentSaison);
             }
         }
     };
 
-    // Gestion des clics Saisons
     const attachSeasonListeners = () => {
         const seasonLinks = document.querySelectorAll('.season-link');
         seasonLinks.forEach(link => {
@@ -674,12 +696,14 @@ async function init() {
     document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
     createNavBar(currentSaison, currentCategoryKey);
     attachSeasonListeners();
-    initTabs(currentSaison); // Gestion des onglets principaux
-
+    initTabs(currentSaison); 
+    
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     const categoryTitleElement = document.getElementById('category-title');
-    if (categoryTitleElement) categoryTitleElement.textContent = ""; 
+    if (categoryTitleElement) {
+        categoryTitleElement.textContent = ""; 
+    }
     
     if (jsonUrl) {
         if (container) {
@@ -688,6 +712,7 @@ async function init() {
         
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
+        // Lazy Load results
         const rawResultsPromise = loadAllRawResults(currentSaison);
         
         const mastersContainer = document.getElementById('nav-masters');
@@ -716,22 +741,22 @@ async function init() {
                 if (link) {
                     e.preventDefault();
                     const clubNom = link.getAttribute('data-club'); 
-                    // showClubClassement utilisera la saison courante (mise à jour par refreshContent)
                     showClubClassement(clubNom, currentSaison);
                 }
             });
             
-            // Gestion Recherche Globale
+            // Recherche Globale
             const searchBtn = document.getElementById('global-search-btn');
             const searchInput = document.getElementById('global-search-input');
             if (searchBtn && searchInput) {
-                searchBtn.addEventListener('click', performGlobalSearch);
+                searchBtn.addEventListener('click', () => {
+                     loadAllRawResults(currentSaison).then(() => performGlobalSearch());
+                });
                 searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') performGlobalSearch();
+                    if (e.key === 'Enter') loadAllRawResults(currentSaison).then(() => performGlobalSearch());
                 });
             }
         }
-        
         renderTable(rawData);
     } else {
         if (container) {
