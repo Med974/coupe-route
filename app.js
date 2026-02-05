@@ -175,7 +175,7 @@ function renderSearchResults(matches) {
     container.innerHTML = html;
 }
 
-// --- GESTION CALENDRIER (Mise à jour J-X) ---
+// --- GESTION CALENDRIER (Refonte Visuelle) ---
 
 async function loadCalendar(saisonKey) {
     const container = document.getElementById('calendrier-container');
@@ -223,24 +223,35 @@ function renderCalendar(races) {
         let cardClass = 'race-card';
         let badgeHtml = '';
         let countdownHtml = '';
+        let dateDisplay = { day: '??', month: '???' };
 
         if (raceDate) {
-            // Comparaison de dates
+            // Formatage de la date (Jour / Mois)
+            const day = String(raceDate.getDate()).padStart(2, '0');
+            const month = raceDate.toLocaleString('fr-FR', { month: 'short' }); // jan., fév.
+            dateDisplay = { day, month };
+
+            // Logique Passé / Futur
             if (raceDate < today) {
                 cardClass += ' past';
-            } else if (!nextRaceFound) {
-                // C'est la première course future trouvée -> C'est la prochaine !
-                cardClass += ' next-race';
-                nextRaceFound = true;
-                badgeHtml = '<div class="next-badge">PROCHAINE COURSE</div>';
-                
+                countdownHtml = '<span class="countdown-tag" style="border-color:#555; color:#666;">TERMINÉ</span>';
+            } else {
                 // Calcul J-X
-                const diffTime = Math.abs(raceDate - today);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                const diffTime = Math.ceil((raceDate - today) / (1000 * 60 * 60 * 24));
                 
-                if (diffDays === 0) countdownHtml = '<span class="countdown">AUJOURD\'HUI !</span>';
-                else if (diffDays === 1) countdownHtml = '<span class="countdown">DEMAIN !</span>';
-                else countdownHtml = `<span class="countdown">J-${diffDays}</span>`;
+                if (!nextRaceFound) {
+                    // C'est la première course future trouvée -> C'est la prochaine !
+                    cardClass += ' next-race';
+                    nextRaceFound = true;
+                    badgeHtml = '<div class="next-badge">PROCHAINE COURSE</div>';
+                    
+                    if (diffTime === 0) countdownHtml = '<span class="countdown-tag pulse">AUJOURD\'HUI !</span>';
+                    else if (diffTime === 1) countdownHtml = '<span class="countdown-tag pulse">DEMAIN !</span>';
+                    else countdownHtml = `<span class="countdown-tag pulse">J-${diffTime}</span>`;
+                } else {
+                    // Course future classique
+                    countdownHtml = `<span class="countdown-tag">Dans ${diffTime} jours</span>`;
+                }
             }
         }
         
@@ -248,14 +259,13 @@ function renderCalendar(races) {
             <div class="${cardClass}">
                 ${badgeHtml}
                 <div class="race-date">
-                    ${race.Date || 'TBD'}
-                    ${countdownHtml}
+                    <span class="race-day">${dateDisplay.day}</span>
+                    <span class="race-month">${dateDisplay.month}</span>
                 </div>
                 <div class="race-info">
-                    <h4 style="margin:0;">${race.Nom}</h4>
-                    <div class="race-details">
-                        <span>📍 ${race.Lieu || 'Non défini'}</span> • 
-                        <span>🚲 ${race.Club || 'Comité'}</span>
+                    <h4>${race.Nom}</h4>
+                    <div style="margin-top:5px;">
+                        ${countdownHtml}
                     </div>
                 </div>
             </div>
@@ -326,38 +336,21 @@ function initTabs(currentSaison) {
     const viewCalendrier = document.getElementById('calendrier-container');
     const viewVideos = document.getElementById('videos-container');
     
-    // Conteneurs de navigation
-    const navCategories = document.getElementById('nav-categories');
-    const navMasters = document.getElementById('nav-masters');
-    const searchContainer = document.querySelector('.search-container');
-    const categoryTitle = document.getElementById('category-title'); // Le H2 "Classement OPEN"
+    const filtersContainer = document.getElementById('filters-container');
+    const searchContainer = document.querySelector('.search-container'); 
 
     const tabs = [btnClassement, btnCalendrier, btnVideos];
     const views = [viewClassement, viewCalendrier, viewVideos];
 
-    function switchTab(targetBtn, targetView, isClassementTab) {
-        // Reset classes et vues
+    function switchTab(targetBtn, targetView, showFilters) {
         tabs.forEach(btn => btn && btn.classList.remove('active'));
         views.forEach(view => view && (view.style.display = 'none'));
 
-        // Activer la cible
         if(targetBtn) targetBtn.classList.add('active');
         if(targetView) targetView.style.display = 'block';
 
-        // GESTION DE L'AFFICHAGE DES FILTRES
-        // Saisons : Toujours visible (géré par CSS ou défaut)
-        // Catégories/Masters/Recherche/Titre : Seulement si onglet Classement
-        if (isClassementTab) {
-            if(navCategories) navCategories.style.display = 'block';
-            if(navMasters) navMasters.style.display = 'block';
-            if(searchContainer) searchContainer.style.display = 'flex';
-            if(categoryTitle) categoryTitle.style.display = 'block';
-        } else {
-            if(navCategories) navCategories.style.display = 'none';
-            if(navMasters) navMasters.style.display = 'none';
-            if(searchContainer) searchContainer.style.display = 'none'; // Pas de recherche coureur sur le calendrier
-            if(categoryTitle) categoryTitle.style.display = 'none'; // Pas de titre "Classement OPEN" sur le calendrier
-        }
+        if(filtersContainer) filtersContainer.style.display = showFilters ? 'block' : 'none';
+        if(searchContainer) searchContainer.style.display = showFilters ? 'flex' : 'none'; 
     }
 
     if (btnClassement) {
@@ -367,8 +360,11 @@ function initTabs(currentSaison) {
     if (btnCalendrier) {
         btnCalendrier.addEventListener('click', () => {
             switchTab(btnCalendrier, viewCalendrier, false);
-            // Récupère la saison actuellement sélectionnée dans l'URL ou par défaut
-            const activeSaison = getSaisonFromURL(); 
+            // Récupère la saison active via la variable globale ou l'URL
+            // Note: getSaisonFromURL prend l'URL, mais ici on veut la saison *active dans la navigation*
+            // Pour simplifier, on recharge avec la saison affichée dans les boutons
+            const activeSaisonBtn = document.querySelector('.season-link.active');
+            const activeSaison = activeSaisonBtn ? activeSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
             loadCalendar(activeSaison);
         });
     }
@@ -376,7 +372,8 @@ function initTabs(currentSaison) {
     if (btnVideos) {
         btnVideos.addEventListener('click', () => {
             switchTab(btnVideos, viewVideos, false);
-            const activeSaison = getSaisonFromURL();
+            const activeSaisonBtn = document.querySelector('.season-link.active');
+            const activeSaison = activeSaisonBtn ? activeSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
             loadVideos(activeSaison);
         });
     }
@@ -387,14 +384,13 @@ function createNavBar(currentSaison, currentCategory) {
     const categoriesContainer = document.getElementById('nav-categories');
     const mastersContainer = document.getElementById('nav-masters');
 
+    // 1. Navigation Saisons (MODIFIÉ : Plus de lien href)
     let seasonsHtml = '';
     Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
         const saison = SAISONS_CONFIG[saisonKey];
-        // On garde le lien ?saison=... mais attention, si on est sur l'onglet calendrier, 
-        // le rechargement de page va remettre sur l'onglet par défaut (Classement) sauf si on gère l'état.
-        // Pour faire simple, le lien recharge la page, ce qui est acceptable.
         const isActive = saisonKey === currentSaison ? 'active' : '';
-        seasonsHtml += `<a href="?saison=${saisonKey}&cat=${currentCategory}" class="${isActive}">${saison.name}</a>`;
+        // On utilise data-saison au lieu de href pour gérer le clic en JS
+        seasonsHtml += `<a href="#" class="season-link ${isActive}" data-saison="${saisonKey}">${saison.name}</a>`;
     });
     if (seasonsContainer) {
         seasonsContainer.innerHTML = seasonsHtml;
@@ -605,6 +601,7 @@ function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
     if (!container) return;
     
+    // Tri personnalisé
     const categoryOrder = ["OPEN", "Access 1/2", "Access 3/4", "Femmes", "U17", "U15", "U15/U17 Filles", "U15U17F"];
     const getCategoryRank = (catName) => { const index = categoryOrder.indexOf(catName); return index === -1 ? 999 : index; };
 
@@ -628,8 +625,7 @@ function renderClubDetails(members, clubNom) {
 
     members.forEach(member => {
         const rawPoints = member["Points Total"] || member.PointsTotal || "0";
-        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
-        totalClubPoints += points;
+        totalClubPoints += parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
         
         const cat = member.Catégorie;
         categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
@@ -707,42 +703,87 @@ function handleMasterFilterChange(event) {
     renderTable(filteredData);
 }
 
-// --- 7. Fonction Principale ---
+// --- 7. Fonction Principale (Mise à jour logique Saison) ---
 
 async function init() {
     const container = document.getElementById('classement-container');
+    
+    // On garde l'état courant dans des variables
     let currentSaison = getSaisonFromURL(); 
-    const currentCategoryKey = getCategoryFromURL();
+    let currentCategoryKey = getCategoryFromURL();
     
     if (!SAISONS_CONFIG[currentSaison]) {
         currentSaison = DEFAULT_SAISON; 
     }
-    const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey); 
-    const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
     
-    document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
+    // Fonction interne pour recharger le contenu selon l'onglet actif
+    const refreshContent = async () => {
+        // Mettre à jour le titre et la nav
+        const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
+        document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
+        
+        createNavBar(currentSaison, currentCategoryKey);
+        
+        // On réattache les écouteurs sur les nouveaux boutons saison
+        attachSeasonListeners();
+
+        const btnCalendrier = document.getElementById('btn-tab-calendrier');
+        const btnVideos = document.getElementById('btn-tab-videos');
+
+        if (btnCalendrier && btnCalendrier.classList.contains('active')) {
+            loadCalendar(currentSaison);
+        } else if (btnVideos && btnVideos.classList.contains('active')) {
+            loadVideos(currentSaison);
+        } else {
+            // Par défaut : Classement
+            const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey);
+            const seasonParagraph = document.querySelector('header p');
+            if(seasonParagraph) seasonParagraph.textContent = `Saison ${currentSaison}`;
+            
+            if (jsonUrl) {
+                container.innerHTML = `<p style="text-align:center; padding:20px;">Chargement ${currentSaison}...</p>`;
+                const rawData = await fetchClassementData(jsonUrl); 
+                globalClassementData = rawData;
+                renderTable(rawData);
+                // On recharge aussi les données brutes
+                loadAllRawResults(currentSaison);
+            }
+        }
+    };
+
+    // Fonction pour attacher les écouteurs sur les boutons saisons
+    const attachSeasonListeners = () => {
+        const seasonLinks = document.querySelectorAll('.season-link');
+        seasonLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault(); 
+                const newSaison = link.getAttribute('data-saison');
+                
+                if (newSaison !== currentSaison) {
+                    currentSaison = newSaison;
+                    refreshContent(); 
+                }
+            });
+        });
+    };
+
+    // Démarrage initial
     createNavBar(currentSaison, currentCategoryKey);
-    initTabs(currentSaison); // On initialise les onglets ici
+    attachSeasonListeners(); 
+    initTabs(currentSaison); 
     
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     const categoryTitleElement = document.getElementById('category-title');
-    if (categoryTitleElement) {
-        categoryTitleElement.textContent = ""; 
-    }
-    
+    if (categoryTitleElement) categoryTitleElement.textContent = ""; 
+
+    const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey); 
     if (jsonUrl) {
-        if (container) {
-            container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
-        }
+        if (container) container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
         
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
-        
-        // OPTIMISATION LAZY LOAD
-        // On ne charge les résultats bruts que si l'utilisateur clique sur un coureur ou le calendrier (si on veut)
-        // Mais pour la recherche globale, on a besoin des résultats. On peut les charger en fond.
-        // Pour l'instant, on laisse le lazy load au clic sur coureur.
+        const rawResultsPromise = loadAllRawResults(currentSaison);
         
         const mastersContainer = document.getElementById('nav-masters');
         if (mastersContainer) {
@@ -751,33 +792,15 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
-            
-            // Gestion Recherche Globale
-            const searchBtn = document.getElementById('global-search-btn');
-            const searchInput = document.getElementById('global-search-input');
-            
-            if (searchBtn && searchInput) {
-                searchBtn.addEventListener('click', performGlobalSearch);
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') performGlobalSearch();
-                });
-            }
-
-            // Clic Coureur : Lazy Load ici
             classementContainer.addEventListener('click', async (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
                     e.preventDefault();
                     const nom = link.getAttribute('data-nom'); 
-                    const currentSaison = getSaisonFromURL(); 
                     
-                    // Chargement / Indicateur
                     classementContainer.innerHTML = `<p style="text-align:center; padding:20px;">Chargement du détail pour ${nom}...</p>`;
-                    
-                    // Récupération des données brutes
-                    const rawResults = await loadAllRawResults(currentSaison);
-                    
-                    showCoureurDetails(nom, currentSaison, rawResults); 
+                    const results = await loadAllRawResults(currentSaison);
+                    showCoureurDetails(nom, currentSaison, results); 
                 }
             });
             
@@ -786,7 +809,6 @@ async function init() {
                 if (link) {
                     e.preventDefault();
                     const clubNom = link.getAttribute('data-club'); 
-                    const currentSaison = getSaisonFromURL(); 
                     showClubClassement(clubNom, currentSaison);
                 }
             });
