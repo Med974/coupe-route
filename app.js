@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v66 - FINAL COMPLET : Avec Graphique Participation)
+// FICHIER : app.js (v67 - CALENDRIER INTELLIGENT & NAV AMÉLIORÉE)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -74,6 +74,15 @@ function getDisplayDossard(dossardRecherche) {
         }
     }
     return dossardRecherche; 
+}
+
+// Convertit "23/03/2026" en objet Date JS
+function parseFrenchDate(dateStr) {
+    if (!dateStr) return null;
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return null;
+    // Mois en JS commence à 0 (janvier = 0)
+    return new Date(parts[2], parts[1] - 1, parts[0]);
 }
 
 function buildJsonUrl(saisonKey, categoryKey) {
@@ -166,7 +175,7 @@ function renderSearchResults(matches) {
     container.innerHTML = html;
 }
 
-// --- GESTION CALENDRIER ---
+// --- GESTION CALENDRIER (Mise à jour J-X) ---
 
 async function loadCalendar(saisonKey) {
     const container = document.getElementById('calendrier-container');
@@ -192,15 +201,62 @@ function renderCalendar(races) {
         return;
     }
 
+    // Tri chronologique
+    races.sort((a, b) => {
+        const dateA = parseFrenchDate(a.Date);
+        const dateB = parseFrenchDate(b.Date);
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        return dateA - dateB;
+    });
+
     let html = '<div class="calendar-list">';
     
+    const today = new Date();
+    // On met l'heure à 00:00:00 pour comparer juste les jours
+    today.setHours(0,0,0,0);
+    
+    let nextRaceFound = false;
+
     races.forEach(race => {
-        const cardClass = 'race-card';
+        const raceDate = parseFrenchDate(race.Date);
+        let cardClass = 'race-card';
+        let badgeHtml = '';
+        let countdownHtml = '';
+
+        if (raceDate) {
+            // Comparaison de dates
+            if (raceDate < today) {
+                cardClass += ' past';
+            } else if (!nextRaceFound) {
+                // C'est la première course future trouvée -> C'est la prochaine !
+                cardClass += ' next-race';
+                nextRaceFound = true;
+                badgeHtml = '<div class="next-badge">PROCHAINE COURSE</div>';
+                
+                // Calcul J-X
+                const diffTime = Math.abs(raceDate - today);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                
+                if (diffDays === 0) countdownHtml = '<span class="countdown">AUJOURD\'HUI !</span>';
+                else if (diffDays === 1) countdownHtml = '<span class="countdown">DEMAIN !</span>';
+                else countdownHtml = `<span class="countdown">J-${diffDays}</span>`;
+            }
+        }
+        
         html += `
             <div class="${cardClass}">
-                <div class="race-date">${race.Date || 'Date à venir'}</div>
+                ${badgeHtml}
+                <div class="race-date">
+                    ${race.Date || 'TBD'}
+                    ${countdownHtml}
+                </div>
                 <div class="race-info">
                     <h4 style="margin:0;">${race.Nom}</h4>
+                    <div class="race-details">
+                        <span>📍 ${race.Lieu || 'Non défini'}</span> • 
+                        <span>🚲 ${race.Club || 'Comité'}</span>
+                    </div>
                 </div>
             </div>
         `;
@@ -270,21 +326,38 @@ function initTabs(currentSaison) {
     const viewCalendrier = document.getElementById('calendrier-container');
     const viewVideos = document.getElementById('videos-container');
     
-    const filtersContainer = document.getElementById('filters-container');
-    const searchContainer = document.querySelector('.search-container'); 
+    // Conteneurs de navigation
+    const navCategories = document.getElementById('nav-categories');
+    const navMasters = document.getElementById('nav-masters');
+    const searchContainer = document.querySelector('.search-container');
+    const categoryTitle = document.getElementById('category-title'); // Le H2 "Classement OPEN"
 
     const tabs = [btnClassement, btnCalendrier, btnVideos];
     const views = [viewClassement, viewCalendrier, viewVideos];
 
-    function switchTab(targetBtn, targetView, showFilters) {
+    function switchTab(targetBtn, targetView, isClassementTab) {
+        // Reset classes et vues
         tabs.forEach(btn => btn && btn.classList.remove('active'));
         views.forEach(view => view && (view.style.display = 'none'));
 
+        // Activer la cible
         if(targetBtn) targetBtn.classList.add('active');
         if(targetView) targetView.style.display = 'block';
 
-        if(filtersContainer) filtersContainer.style.display = showFilters ? 'block' : 'none';
-        if(searchContainer) searchContainer.style.display = showFilters ? 'flex' : 'none'; 
+        // GESTION DE L'AFFICHAGE DES FILTRES
+        // Saisons : Toujours visible (géré par CSS ou défaut)
+        // Catégories/Masters/Recherche/Titre : Seulement si onglet Classement
+        if (isClassementTab) {
+            if(navCategories) navCategories.style.display = 'block';
+            if(navMasters) navMasters.style.display = 'block';
+            if(searchContainer) searchContainer.style.display = 'flex';
+            if(categoryTitle) categoryTitle.style.display = 'block';
+        } else {
+            if(navCategories) navCategories.style.display = 'none';
+            if(navMasters) navMasters.style.display = 'none';
+            if(searchContainer) searchContainer.style.display = 'none'; // Pas de recherche coureur sur le calendrier
+            if(categoryTitle) categoryTitle.style.display = 'none'; // Pas de titre "Classement OPEN" sur le calendrier
+        }
     }
 
     if (btnClassement) {
@@ -294,14 +367,17 @@ function initTabs(currentSaison) {
     if (btnCalendrier) {
         btnCalendrier.addEventListener('click', () => {
             switchTab(btnCalendrier, viewCalendrier, false);
-            loadCalendar(currentSaison);
+            // Récupère la saison actuellement sélectionnée dans l'URL ou par défaut
+            const activeSaison = getSaisonFromURL(); 
+            loadCalendar(activeSaison);
         });
     }
 
     if (btnVideos) {
         btnVideos.addEventListener('click', () => {
             switchTab(btnVideos, viewVideos, false);
-            loadVideos(currentSaison);
+            const activeSaison = getSaisonFromURL();
+            loadVideos(activeSaison);
         });
     }
 }
@@ -314,6 +390,9 @@ function createNavBar(currentSaison, currentCategory) {
     let seasonsHtml = '';
     Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
         const saison = SAISONS_CONFIG[saisonKey];
+        // On garde le lien ?saison=... mais attention, si on est sur l'onglet calendrier, 
+        // le rechargement de page va remettre sur l'onglet par défaut (Classement) sauf si on gère l'état.
+        // Pour faire simple, le lien recharge la page, ce qui est acceptable.
         const isActive = saisonKey === currentSaison ? 'active' : '';
         seasonsHtml += `<a href="?saison=${saisonKey}&cat=${currentCategory}" class="${isActive}">${saison.name}</a>`;
     });
@@ -438,49 +517,8 @@ function renderCoureurDetails(details) {
             totalPoints += points;
         }
     });
-
-    // --- CALCUL PARTICIPATION (CAMEMBERT) ---
-    // 1. Trouver la saison en cours
-    const currentSaison = getSaisonFromURL();
-    // 2. On utilise les données globales chargées au début pour connaitre toutes les courses
-    const allResults = globalRawData[currentSaison] || [];
-    
-    // 3. Compter le nombre de courses UNIQUES dans toute la saison
-    // On prend le nom de la course, on filtre les vides
-    const allUniqueRaces = new Set(allResults.map(r => r.Course).filter(c => c && c.trim() !== ""));
-    const totalRacesInSeason = allUniqueRaces.size || 1; // Sécurité division par 0
-    
-    // 4. Nombre de courses du coureur
-    const runnerRacesCount = details.length;
-    
-    // 5. Pourcentage
-    const participationPercent = Math.round((runnerRacesCount / totalRacesInSeason) * 100);
-    // Calcul des degrés pour le gradient conique : 360 * pourcentage / 100
-    const chartDegree = Math.round((participationPercent * 360) / 100);
-    
-    // HTML du Graphique Donut (Conic Gradient injecté via style inline)
-    const chartHtml = `
-        <div class="stats-container">
-            <div class="participation-chart" style="background: conic-gradient(var(--color-lagon) ${chartDegree}deg, #444 0deg);">
-                <span class="chart-text">${participationPercent}%</span>
-            </div>
-            <div class="stats-info">
-                <h4>PARTICIPATION</h4>
-                <div class="big-number">${runnerRacesCount} / ${totalRacesInSeason}</div>
-                <div style="font-size:0.8em; color:#888;">Courses courues</div>
-            </div>
-            <div class="stats-info" style="margin-left:auto; text-align:right;">
-                 <h4>TOTAL POINTS</h4>
-                 <div class="big-number" style="color:var(--color-gold);">${totalPoints}</div>
-            </div>
-        </div>
-    `;
-    // ----------------------------------------
-
-    let html = `<h3 style="color:var(--color-lagon);">Résultats : ${coureurNom} <span style="font-size:0.6em; color:#666;">(Dos. ${coureurDossardAffichage})</span></h3>`;
-    
-    // On injecte le graphique ici (remplace l'ancien affichage simple des points)
-    html += chartHtml;
+    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
     // --- GAP LOGIC ---
     let gapsHtml = '<div class="gap-container">';
@@ -508,6 +546,30 @@ function renderCoureurDetails(details) {
     }
     gapsHtml += '</div>';
     html += gapsHtml;
+
+    // CAMEMBERT
+    const currentSaison = getSaisonFromURL();
+    const allResults = globalRawData[currentSaison] || [];
+    const allUniqueRaces = new Set(allResults.map(r => r.Course).filter(c => c && c.trim() !== ""));
+    const totalRacesInSeason = allUniqueRaces.size || 1; 
+    const runnerRacesCount = details.length;
+    const participationPercent = Math.round((runnerRacesCount / totalRacesInSeason) * 100);
+    const chartDegree = Math.round((participationPercent * 360) / 100);
+    
+    const chartHtml = `
+        <div class="stats-container">
+            <div class="participation-chart" style="background: conic-gradient(var(--color-lagon) ${chartDegree}deg, #444 0deg);">
+                <span class="chart-text">${participationPercent}%</span>
+            </div>
+            <div class="stats-info">
+                <h4>PARTICIPATION</h4>
+                <div class="big-number">${runnerRacesCount} / ${totalRacesInSeason}</div>
+                <div style="font-size:0.8em; color:#888;">Courses courues</div>
+            </div>
+        </div>
+    `;
+    html += chartHtml;
+    // -----------------
 
     html += '<table class="details-table">';
     html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
@@ -566,7 +628,8 @@ function renderClubDetails(members, clubNom) {
 
     members.forEach(member => {
         const rawPoints = member["Points Total"] || member.PointsTotal || "0";
-        totalClubPoints += parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
+        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
+        totalClubPoints += points;
         
         const cat = member.Catégorie;
         categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
@@ -659,7 +722,7 @@ async function init() {
     
     document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
     createNavBar(currentSaison, currentCategoryKey);
-    initTabs(currentSaison); 
+    initTabs(currentSaison); // On initialise les onglets ici
     
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
@@ -676,8 +739,10 @@ async function init() {
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // --- OPTIMISATION LAZY LOADING ---
-        // On ne charge PAS les résultats bruts ici. On attend le clic utilisateur.
+        // OPTIMISATION LAZY LOAD
+        // On ne charge les résultats bruts que si l'utilisateur clique sur un coureur ou le calendrier (si on veut)
+        // Mais pour la recherche globale, on a besoin des résultats. On peut les charger en fond.
+        // Pour l'instant, on laisse le lazy load au clic sur coureur.
         
         const mastersContainer = document.getElementById('nav-masters');
         if (mastersContainer) {
@@ -709,7 +774,7 @@ async function init() {
                     // Chargement / Indicateur
                     classementContainer.innerHTML = `<p style="text-align:center; padding:20px;">Chargement du détail pour ${nom}...</p>`;
                     
-                    // Récupération des données brutes (seulement si nécessaire)
+                    // Récupération des données brutes
                     const rawResults = await loadAllRawResults(currentSaison);
                     
                     showCoureurDetails(nom, currentSaison, rawResults); 
