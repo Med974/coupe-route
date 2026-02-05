@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v69 - Base v66 + Calendrier + Navigation Sans Rechargement)
+// FICHIER : app.js (v70 - FINAL : Recherche Active & Navigation Stable)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -76,6 +76,13 @@ function getDisplayDossard(dossardRecherche) {
     return dossardRecherche; 
 }
 
+function parseFrenchDate(dateStr) {
+    if (!dateStr) return null;
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return null;
+    return new Date(parts[2], parts[1] - 1, parts[0]);
+}
+
 function buildJsonUrl(saisonKey, categoryKey) {
     const saisonConfig = SAISONS_CONFIG[saisonKey];
     if (!saisonConfig) return null;
@@ -104,12 +111,71 @@ async function loadAllRawResults(saisonKey) {
     }
 }
 
-// Convertit "23/03/2026" en objet Date JS pour le calendrier
-function parseFrenchDate(dateStr) {
-    if (!dateStr) return null;
-    const parts = dateStr.split('/');
-    if (parts.length !== 3) return null;
-    return new Date(parts[2], parts[1] - 1, parts[0]);
+// --- RECHERCHE GLOBALE ---
+
+async function performGlobalSearch() {
+    const input = document.getElementById('global-search-input');
+    const query = input.value.trim().toLowerCase();
+    
+    if (query.length < 2) return; 
+
+    const container = document.getElementById('classement-container');
+    container.innerHTML = '<p style="text-align:center; padding:20px;">Recherche en cours...</p>';
+
+    // Basculer sur l'onglet Classement visuellement
+    const btnClassement = document.getElementById('btn-tab-classement');
+    if(btnClassement && !btnClassement.classList.contains('active')) btnClassement.click();
+
+    // CORRECTION : Récupérer la saison ACTIVE (Bouton sélectionné) et non l'URL
+    const activeSaisonBtn = document.querySelector('.season-link.active');
+    const currentSaison = activeSaisonBtn ? activeSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
+
+    // Chargement des données brutes
+    const rawResults = await loadAllRawResults(currentSaison);
+
+    const matches = [];
+    const seen = new Set();
+
+    if (rawResults && rawResults.length > 0) {
+         rawResults.forEach(row => {
+            if (row.Nom && row.Nom.toLowerCase().includes(query)) {
+                if (!seen.has(row.Nom)) {
+                    seen.add(row.Nom);
+                    matches.push(row);
+                }
+            }
+        });
+    }
+
+    if (matches.length === 0) {
+        container.innerHTML = `<p style="text-align:center; padding:20px;">Aucun coureur trouvé pour "${input.value}" en ${currentSaison}.</p><button onclick="window.location.reload()">Retour</button>`;
+    } else if (matches.length === 1) {
+        const exactMatch = rawResults.filter(r => r.Nom === matches[0].Nom);
+        renderCoureurDetails(exactMatch);
+    } else {
+        renderSearchResults(matches);
+    }
+}
+
+function renderSearchResults(matches) {
+    const container = document.getElementById('classement-container');
+    let html = `<h3 style="color:var(--color-lagon); margin-bottom:20px;">Résultats de recherche (${matches.length})</h3>`;
+    
+    html += '<table class="classement-table search-results-table">';
+    html += '<thead><tr><th>Nom</th><th>Catégorie</th><th>Club</th></tr></thead><tbody>';
+    
+    matches.forEach(m => {
+        // Lien cliquable standard
+        html += `<tr>
+                    <td><a href="#" class="coureur-link" data-nom="${m.Nom}">${m.Nom}</a></td>
+                    <td>${m.Catégorie || '-'}</td>
+                    <td>${m.Club || '-'}</td>
+                 </tr>`;
+    });
+    
+    html += '</tbody></table>';
+    html += `<button onclick="window.location.reload()">Retour</button>`;
+    container.innerHTML = html;
 }
 
 // --- GESTION CALENDRIER ---
@@ -126,7 +192,7 @@ async function loadCalendar(saisonKey) {
         const races = await response.json();
         renderCalendar(races);
     } catch (error) {
-        container.innerHTML = `<p style="color:red; text-align:center;">Calendrier non disponible pour le moment.</p>`;
+        container.innerHTML = `<p style="color:red; text-align:center;">Calendrier non disponible.</p>`;
     }
 }
 
@@ -134,7 +200,7 @@ function renderCalendar(races) {
     const container = document.getElementById('calendrier-container');
     
     if (!races || races.length === 0 || races[0].error) {
-        container.innerHTML = '<p style="text-align:center;">Aucune course trouvée pour cette saison.</p>';
+        container.innerHTML = '<p style="text-align:center;">Aucune course trouvée.</p>';
         return;
     }
 
@@ -172,9 +238,9 @@ function renderCalendar(races) {
                     cardClass += ' next-race';
                     nextRaceFound = true;
                     badgeHtml = '<div class="next-badge">PROCHAINE COURSE</div>';
-                    if (diffTime === 0) countdownHtml = '<span class="countdown-tag">AUJOURD\'HUI !</span>';
-                    else if (diffTime === 1) countdownHtml = '<span class="countdown-tag">DEMAIN !</span>';
-                    else countdownHtml = `<span class="countdown-tag">J-${diffTime}</span>`;
+                    if (diffTime === 0) countdownHtml = '<span class="countdown-tag pulse">AUJOURD\'HUI !</span>';
+                    else if (diffTime === 1) countdownHtml = '<span class="countdown-tag pulse">DEMAIN !</span>';
+                    else countdownHtml = `<span class="countdown-tag pulse">J-${diffTime}</span>`;
                 } else {
                     countdownHtml = `<span class="countdown-tag">Dans ${diffTime} jours</span>`;
                 }
@@ -206,6 +272,7 @@ async function loadVideos(saisonKey) {
     const container = document.getElementById('videos-container');
     container.innerHTML = '<p style="text-align:center; padding:20px;">Chargement des vidéos...</p>';
     const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Videos`;
+
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error("Impossible de charger les vidéos");
@@ -219,9 +286,10 @@ async function loadVideos(saisonKey) {
 function renderVideos(videos) {
     const container = document.getElementById('videos-container');
     if (!videos || videos.length === 0 || videos[0].error) {
-        container.innerHTML = '<p style="text-align:center;">Aucune vidéo disponible pour le moment.</p>';
+        container.innerHTML = '<p style="text-align:center;">Aucune vidéo disponible.</p>';
         return;
     }
+
     let html = '<div class="videos-grid">';
     videos.forEach(video => {
         if (video.YoutubeID) {
@@ -287,14 +355,11 @@ function initTabs(currentSaison) {
         }
     }
 
-    if (btnClassement) {
-        btnClassement.addEventListener('click', () => switchTab(btnClassement, viewClassement, 'classement'));
-    }
-
+    if (btnClassement) btnClassement.addEventListener('click', () => switchTab(btnClassement, viewClassement, 'classement'));
+    
     if (btnCalendrier) {
         btnCalendrier.addEventListener('click', () => {
             switchTab(btnCalendrier, viewCalendrier, 'calendrier');
-            // Chargement dynamique selon le bouton saison actif
             const activeSaisonBtn = document.querySelector('.season-link.active');
             const activeSaison = activeSaisonBtn ? activeSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
             loadCalendar(activeSaison);
@@ -316,11 +381,11 @@ function createNavBar(currentSaison, currentCategory) {
     const categoriesContainer = document.getElementById('nav-categories');
     const mastersContainer = document.getElementById('nav-masters');
 
-    // 1. Navigation Saisons (MODIFIÉ : data-saison pour navigation JS)
     let seasonsHtml = '';
     Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
         const saison = SAISONS_CONFIG[saisonKey];
         const isActive = saisonKey === currentSaison ? 'active' : '';
+        // Utilisation de data-saison pour navigation JS
         seasonsHtml += `<a href="#" class="season-link ${isActive}" data-saison="${saisonKey}">${saison.name}</a>`;
     });
     if (seasonsContainer) {
@@ -357,7 +422,7 @@ async function fetchClassementData(url) {
         const response = await fetch(url);
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare.`);
+            throw new Error(`Erreur HTTP: ${response.status}.`);
         }
         const data = await response.json(); 
         if (data && data.error) throw new Error(`Erreur API: ${data.error}`);
@@ -423,9 +488,6 @@ function renderTable(data) {
     }
 }
 
-
-// --- 4. Logique Détaillée du Coureur ---
-
 function renderCoureurDetails(details) {
     const container = document.getElementById('classement-container');
     if (!container) return;
@@ -447,7 +509,7 @@ function renderCoureurDetails(details) {
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
-    // Gap Logic & Chart (v66)
+    // Gap Logic & Camembert
     let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
         const val = row.PointsTotal || row["Points Total"] || "0";
@@ -472,9 +534,10 @@ function renderCoureurDetails(details) {
         }
     }
     gapsHtml += '</div>';
-
-    // Graphique Participation
-    const currentSaison = getSaisonFromURL();
+    
+    // Camembert
+    const currentSaisonBtn = document.querySelector('.season-link.active');
+    const currentSaison = currentSaisonBtn ? currentSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
     const allResults = globalRawData[currentSaison] || [];
     const allUniqueRaces = new Set(allResults.map(r => r.Course).filter(c => c && c.trim() !== ""));
     const totalRacesInSeason = allUniqueRaces.size || 1; 
@@ -525,8 +588,6 @@ async function showCoureurDetails(nom, saisonKey, allRawResults) {
     );
     renderCoureurDetails(filteredDetails); 
 }
-
-// --- 5. Logique Club ---
 
 function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
@@ -606,9 +667,6 @@ async function showClubClassement(clubNom, saisonKey) {
     }
 }
 
-
-// --- 6. Logique Master ---
-
 function handleMasterFilterChange(event) {
     event.preventDefault(); 
     const button = event.target.closest('a.master-button');
@@ -631,8 +689,6 @@ function handleMasterFilterChange(event) {
 
 async function init() {
     const container = document.getElementById('classement-container');
-    
-    // Etat initial
     let currentSaison = getSaisonFromURL(); 
     let currentCategoryKey = getCategoryFromURL();
     
@@ -640,17 +696,14 @@ async function init() {
         currentSaison = DEFAULT_SAISON; 
     }
 
-    // --- LOGIQUE DE NAVIGATION (Sans rechargement pour les saisons) ---
-    
+    // --- NAVIGATION SANS RECHARGEMENT ---
     const refreshContent = async () => {
-        // MAJ Titre et Nav
         const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
         document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
         
         createNavBar(currentSaison, currentCategoryKey);
         attachSeasonListeners();
 
-        // Quel onglet est actif ?
         const btnCalendrier = document.getElementById('btn-tab-calendrier');
         const btnVideos = document.getElementById('btn-tab-videos');
 
@@ -669,7 +722,8 @@ async function init() {
                 const rawData = await fetchClassementData(jsonUrl); 
                 globalClassementData = rawData;
                 renderTable(rawData);
-                // Préchargement pour la vue détail
+                // Important : on recharge les résultats bruts de la nouvelle saison
+                globalRawData = {}; // Reset cache local pour forcer le chargement de la nouvelle saison
                 loadAllRawResults(currentSaison);
             }
         }
@@ -689,7 +743,7 @@ async function init() {
         });
     };
 
-    // --- DÉMARRAGE ---
+    // --- INITIALISATION ---
     const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey); 
     const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
     
@@ -698,12 +752,20 @@ async function init() {
     attachSeasonListeners();
     initTabs(currentSaison); 
     
+    // Activation de la recherche dès le chargement
+    const searchBtn = document.getElementById('global-search-btn');
+    const searchInput = document.getElementById('global-search-input');
+    if (searchBtn && searchInput) {
+        searchBtn.addEventListener('click', performGlobalSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performGlobalSearch();
+        });
+    }
+
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = "Coupe de la Réunion Route"; 
     const categoryTitleElement = document.getElementById('category-title');
-    if (categoryTitleElement) {
-        categoryTitleElement.textContent = ""; 
-    }
+    if (categoryTitleElement) categoryTitleElement.textContent = ""; 
     
     if (jsonUrl) {
         if (container) {
@@ -712,7 +774,8 @@ async function init() {
         
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
-        // Lazy Load results
+        
+        // Lazy Load des détails (se lance en tâche de fond)
         const rawResultsPromise = loadAllRawResults(currentSaison);
         
         const mastersContainer = document.getElementById('nav-masters');
@@ -722,7 +785,6 @@ async function init() {
         
         const classementContainer = document.getElementById('classement-container');
         if (classementContainer) {
-            // Clic Coureur
             classementContainer.addEventListener('click', async (e) => {
                 const link = e.target.closest('.coureur-link');
                 if (link) {
@@ -730,12 +792,13 @@ async function init() {
                     const nom = link.getAttribute('data-nom'); 
                     
                     classementContainer.innerHTML = `<p style="text-align:center; padding:20px;">Chargement du détail pour ${nom}...</p>`;
+                    
+                    // On attend que les données soient chargées
                     const results = await loadAllRawResults(currentSaison);
                     showCoureurDetails(nom, currentSaison, results); 
                 }
             });
             
-            // Clic Club
             classementContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('.club-link');
                 if (link) {
@@ -744,18 +807,6 @@ async function init() {
                     showClubClassement(clubNom, currentSaison);
                 }
             });
-            
-            // Recherche Globale
-            const searchBtn = document.getElementById('global-search-btn');
-            const searchInput = document.getElementById('global-search-input');
-            if (searchBtn && searchInput) {
-                searchBtn.addEventListener('click', () => {
-                     loadAllRawResults(currentSaison).then(() => performGlobalSearch());
-                });
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') loadAllRawResults(currentSaison).then(() => performGlobalSearch());
-                });
-            }
         }
         renderTable(rawData);
     } else {
