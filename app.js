@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v65 - Recherche Globale Intégrée)
+// FICHIER : app.js (v66 - FINAL COMPLET : Avec Graphique Participation)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -139,10 +139,6 @@ async function performGlobalSearch() {
     if (matches.length === 0) {
         container.innerHTML = `<p style="text-align:center;">Aucun coureur trouvé pour "${input.value}".</p><button onclick="init()">Retour</button>`;
     } else if (matches.length === 1) {
-        // Un seul résultat : on ouvre direct la fiche
-        // Note: showCoureurDetails n'est pas asynchrone dans sa logique interne de rendu, 
-        // mais on peut l'appeler directement.
-        // On filtre ici pour correspondre à la signature attendue par renderCoureurDetails
         const exactMatch = rawResults.filter(r => r.Nom === matches[0].Nom);
         renderCoureurDetails(exactMatch);
     } else {
@@ -275,7 +271,7 @@ function initTabs(currentSaison) {
     const viewVideos = document.getElementById('videos-container');
     
     const filtersContainer = document.getElementById('filters-container');
-    const searchContainer = document.querySelector('.search-container'); // Barre de recherche
+    const searchContainer = document.querySelector('.search-container'); 
 
     const tabs = [btnClassement, btnCalendrier, btnVideos];
     const views = [viewClassement, viewCalendrier, viewVideos];
@@ -288,7 +284,7 @@ function initTabs(currentSaison) {
         if(targetView) targetView.style.display = 'block';
 
         if(filtersContainer) filtersContainer.style.display = showFilters ? 'block' : 'none';
-        if(searchContainer) searchContainer.style.display = showFilters ? 'flex' : 'none'; // Cache la recherche si pas classement
+        if(searchContainer) searchContainer.style.display = showFilters ? 'flex' : 'none'; 
     }
 
     if (btnClassement) {
@@ -442,9 +438,51 @@ function renderCoureurDetails(details) {
             totalPoints += points;
         }
     });
-    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
-    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
+    // --- CALCUL PARTICIPATION (CAMEMBERT) ---
+    // 1. Trouver la saison en cours
+    const currentSaison = getSaisonFromURL();
+    // 2. On utilise les données globales chargées au début pour connaitre toutes les courses
+    const allResults = globalRawData[currentSaison] || [];
+    
+    // 3. Compter le nombre de courses UNIQUES dans toute la saison
+    // On prend le nom de la course, on filtre les vides
+    const allUniqueRaces = new Set(allResults.map(r => r.Course).filter(c => c && c.trim() !== ""));
+    const totalRacesInSeason = allUniqueRaces.size || 1; // Sécurité division par 0
+    
+    // 4. Nombre de courses du coureur
+    const runnerRacesCount = details.length;
+    
+    // 5. Pourcentage
+    const participationPercent = Math.round((runnerRacesCount / totalRacesInSeason) * 100);
+    // Calcul des degrés pour le gradient conique : 360 * pourcentage / 100
+    const chartDegree = Math.round((participationPercent * 360) / 100);
+    
+    // HTML du Graphique Donut (Conic Gradient injecté via style inline)
+    const chartHtml = `
+        <div class="stats-container">
+            <div class="participation-chart" style="background: conic-gradient(var(--color-lagon) ${chartDegree}deg, #444 0deg);">
+                <span class="chart-text">${participationPercent}%</span>
+            </div>
+            <div class="stats-info">
+                <h4>PARTICIPATION</h4>
+                <div class="big-number">${runnerRacesCount} / ${totalRacesInSeason}</div>
+                <div style="font-size:0.8em; color:#888;">Courses courues</div>
+            </div>
+            <div class="stats-info" style="margin-left:auto; text-align:right;">
+                 <h4>TOTAL POINTS</h4>
+                 <div class="big-number" style="color:var(--color-gold);">${totalPoints}</div>
+            </div>
+        </div>
+    `;
+    // ----------------------------------------
+
+    let html = `<h3 style="color:var(--color-lagon);">Résultats : ${coureurNom} <span style="font-size:0.6em; color:#666;">(Dos. ${coureurDossardAffichage})</span></h3>`;
+    
+    // On injecte le graphique ici (remplace l'ancien affichage simple des points)
+    html += chartHtml;
+
+    // --- GAP LOGIC ---
     let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
         const val = row.PointsTotal || row["Points Total"] || "0";
@@ -487,11 +525,12 @@ function renderCoureurDetails(details) {
     container.innerHTML = html;
 }
 
-// Fonction modifiée pour recevoir les données brutes directement
-async function showCoureurDetails(nom, saisonKey, rawResults) {
+async function showCoureurDetails(nom, saisonKey, allRawResults) {
     const container = document.getElementById('classement-container');
-    
-    // Filtrage côté client
+    if (container) {
+        container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
+    }
+    const rawResults = await allRawResults;
     const filteredDetails = rawResults.filter(course => 
         course.Nom && course.Nom.toString().trim() === nom.toString().trim()
     );
