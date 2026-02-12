@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v70 - FINAL : Recherche Active & Navigation Stable)
+// FICHIER : app.js (v71 - FINAL : Navigation Fixe & Sans Vidéo)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -120,17 +120,14 @@ async function performGlobalSearch() {
     if (query.length < 2) return; 
 
     const container = document.getElementById('classement-container');
-    container.innerHTML = '<p style="text-align:center; padding:20px;">Recherche en cours...</p>';
+    container.innerHTML = '<p style="text-align:center; padding:20px; color:#fff;">Recherche en cours...</p>';
 
-    // Basculer sur l'onglet Classement visuellement
     const btnClassement = document.getElementById('btn-tab-classement');
     if(btnClassement && !btnClassement.classList.contains('active')) btnClassement.click();
 
-    // CORRECTION : Récupérer la saison ACTIVE (Bouton sélectionné) et non l'URL
     const activeSaisonBtn = document.querySelector('.season-link.active');
     const currentSaison = activeSaisonBtn ? activeSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
 
-    // Chargement des données brutes
     const rawResults = await loadAllRawResults(currentSaison);
 
     const matches = [];
@@ -148,7 +145,7 @@ async function performGlobalSearch() {
     }
 
     if (matches.length === 0) {
-        container.innerHTML = `<p style="text-align:center; padding:20px;">Aucun coureur trouvé pour "${input.value}" en ${currentSaison}.</p><button onclick="window.location.reload()">Retour</button>`;
+        container.innerHTML = `<p style="text-align:center; color:#fff;">Aucun coureur trouvé pour "${input.value}" en ${currentSaison}.</p><button onclick="window.location.reload()">Retour</button>`;
     } else if (matches.length === 1) {
         const exactMatch = rawResults.filter(r => r.Nom === matches[0].Nom);
         renderCoureurDetails(exactMatch);
@@ -165,7 +162,6 @@ function renderSearchResults(matches) {
     html += '<thead><tr><th>Nom</th><th>Catégorie</th><th>Club</th></tr></thead><tbody>';
     
     matches.forEach(m => {
-        // Lien cliquable standard
         html += `<tr>
                     <td><a href="#" class="coureur-link" data-nom="${m.Nom}">${m.Nom}</a></td>
                     <td>${m.Catégorie || '-'}</td>
@@ -182,7 +178,7 @@ function renderSearchResults(matches) {
 
 async function loadCalendar(saisonKey) {
     const container = document.getElementById('calendrier-container');
-    container.innerHTML = '<p style="text-align:center; padding:20px;">Chargement du calendrier...</p>';
+    container.innerHTML = '<p style="text-align:center; padding:20px; color:#fff;">Chargement du calendrier...</p>';
     
     const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Calendrier`;
 
@@ -192,7 +188,7 @@ async function loadCalendar(saisonKey) {
         const races = await response.json();
         renderCalendar(races);
     } catch (error) {
-        container.innerHTML = `<p style="color:red; text-align:center;">Calendrier non disponible.</p>`;
+        container.innerHTML = `<p style="color:red; text-align:center;">Calendrier non disponible pour le moment.</p>`;
     }
 }
 
@@ -200,7 +196,7 @@ function renderCalendar(races) {
     const container = document.getElementById('calendrier-container');
     
     if (!races || races.length === 0 || races[0].error) {
-        container.innerHTML = '<p style="text-align:center;">Aucune course trouvée.</p>';
+        container.innerHTML = '<p style="text-align:center; color:#fff;">Aucune course trouvée pour cette saison.</p>';
         return;
     }
 
@@ -266,63 +262,14 @@ function renderCalendar(races) {
     container.innerHTML = html;
 }
 
-// --- GESTION VIDÉOS ---
-
-async function loadVideos(saisonKey) {
-    const container = document.getElementById('videos-container');
-    container.innerHTML = '<p style="text-align:center; padding:20px;">Chargement des vidéos...</p>';
-    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Videos`;
-
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Impossible de charger les vidéos");
-        const videos = await response.json();
-        renderVideos(videos);
-    } catch (error) {
-        container.innerHTML = `<p style="color:red; text-align:center;">Erreur : ${error.message}</p>`;
-    }
-}
-
-function renderVideos(videos) {
-    const container = document.getElementById('videos-container');
-    if (!videos || videos.length === 0 || videos[0].error) {
-        container.innerHTML = '<p style="text-align:center;">Aucune vidéo disponible.</p>';
-        return;
-    }
-
-    let html = '<div class="videos-grid">';
-    videos.forEach(video => {
-        if (video.YoutubeID) {
-            html += `
-                <div class="video-card">
-                    <div class="video-wrapper">
-                        <iframe src="https://www.youtube.com/embed/${video.YoutubeID}" 
-                                title="${video.Titre}" frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen></iframe>
-                    </div>
-                    <div class="video-info">
-                        <h4>${video.Titre || 'Course'}</h4>
-                        <p>${video.Date || ''}</p>
-                    </div>
-                </div>
-            `;
-        }
-    });
-    html += '</div>';
-    container.innerHTML = html;
-}
-
 // --- NAVIGATION & TABS ---
 
 function initTabs(currentSaison) {
     const btnClassement = document.getElementById('btn-tab-classement');
     const btnCalendrier = document.getElementById('btn-tab-calendrier');
-    const btnVideos = document.getElementById('btn-tab-videos');
     
     const viewClassement = document.getElementById('classement-container');
     const viewCalendrier = document.getElementById('calendrier-container');
-    const viewVideos = document.getElementById('videos-container');
     
     const filtersContainer = document.getElementById('filters-container');
     const navCategories = document.getElementById('nav-categories');
@@ -330,8 +277,8 @@ function initTabs(currentSaison) {
     const searchContainer = document.querySelector('.search-container');
     const categoryTitle = document.getElementById('category-title');
 
-    const tabs = [btnClassement, btnCalendrier, btnVideos];
-    const views = [viewClassement, viewCalendrier, viewVideos];
+    const tabs = [btnClassement, btnCalendrier];
+    const views = [viewClassement, viewCalendrier];
 
     function switchTab(targetBtn, targetView, mode) {
         tabs.forEach(btn => btn && btn.classList.remove('active'));
@@ -365,15 +312,6 @@ function initTabs(currentSaison) {
             loadCalendar(activeSaison);
         });
     }
-
-    if (btnVideos) {
-        btnVideos.addEventListener('click', () => {
-            switchTab(btnVideos, viewVideos, 'videos');
-            const activeSaisonBtn = document.querySelector('.season-link.active');
-            const activeSaison = activeSaisonBtn ? activeSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
-            loadVideos(activeSaison);
-        });
-    }
 }
 
 function createNavBar(currentSaison, currentCategory) {
@@ -385,7 +323,6 @@ function createNavBar(currentSaison, currentCategory) {
     Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
         const saison = SAISONS_CONFIG[saisonKey];
         const isActive = saisonKey === currentSaison ? 'active' : '';
-        // Utilisation de data-saison pour navigation JS
         seasonsHtml += `<a href="#" class="season-link ${isActive}" data-saison="${saisonKey}">${saison.name}</a>`;
     });
     if (seasonsContainer) {
@@ -507,9 +444,8 @@ function renderCoureurDetails(details) {
         }
     });
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
-    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px; color:#fff;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
-    // Gap Logic & Camembert
     let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
         const val = row.PointsTotal || row["Points Total"] || "0";
@@ -524,7 +460,7 @@ function renderCoureurDetails(details) {
             const diff = pointsAhead - currentPoints;
             gapsHtml += `<div class="gap-card chase"><strong>🛑 Retard : -${diff} pts</strong><span class="gap-name">sur ${runnerAhead.Nom} (#${runnerAhead.Classement})</span></div>`;
         } else {
-             gapsHtml += `<div class="gap-card lead"><strong>👑 Leader</strong></div>`;
+             gapsHtml += `<div class="gap-card lead"><strong>👑 Leader du classement</strong></div>`;
         }
         if (rankIndex < globalClassementData.length - 1) {
             const runnerBehind = globalClassementData[rankIndex + 1];
@@ -534,8 +470,7 @@ function renderCoureurDetails(details) {
         }
     }
     gapsHtml += '</div>';
-    
-    // Camembert
+
     const currentSaisonBtn = document.querySelector('.season-link.active');
     const currentSaison = currentSaisonBtn ? currentSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
     const allResults = globalRawData[currentSaison] || [];
@@ -580,7 +515,7 @@ function renderCoureurDetails(details) {
 async function showCoureurDetails(nom, saisonKey, allRawResults) {
     const container = document.getElementById('classement-container');
     if (container) {
-        container.innerHTML = `<p>Chargement des résultats pour ${nom}...</p>`;
+        container.innerHTML = `<p style="color:#fff;">Chargement des résultats pour ${nom}...</p>`;
     }
     const rawResults = await allRawResults;
     const filteredDetails = rawResults.filter(course => 
@@ -617,7 +552,7 @@ function renderClubDetails(members, clubNom) {
         totalClubPoints += parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
     });
 
-    html += `<p style="font-size: 1.1em; margin-bottom: 20px;"><strong>Points Total :</strong> ${totalClubPoints} <span style="margin: 0 10px;">|</span> <strong>Nombre de Coureurs :</strong> ${members.length}</p>`;
+    html += `<p style="font-size: 1.1em; margin-bottom: 20px; color:#fff;"><strong>Points Total :</strong> ${totalClubPoints} <span style="margin: 0 10px;">|</span> <strong>Nombre de Coureurs :</strong> ${members.length}</p>`;
     
     let currentCategory = '';
     html += '<table class="details-table club-table">';
@@ -650,7 +585,7 @@ async function showClubClassement(clubNom, saisonKey) {
 
     const container = document.getElementById('classement-container');
     if (container) {
-        container.innerHTML = `<p>Chargement du classement pour le club ${clubNom}...</p>`;
+        container.innerHTML = `<p style="color:#fff;">Chargement du classement pour le club ${clubNom}...</p>`;
     }
     
     try {
@@ -696,7 +631,6 @@ async function init() {
         currentSaison = DEFAULT_SAISON; 
     }
 
-    // --- NAVIGATION SANS RECHARGEMENT ---
     const refreshContent = async () => {
         const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
         document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
@@ -705,25 +639,21 @@ async function init() {
         attachSeasonListeners();
 
         const btnCalendrier = document.getElementById('btn-tab-calendrier');
-        const btnVideos = document.getElementById('btn-tab-videos');
 
         if (btnCalendrier && btnCalendrier.classList.contains('active')) {
             loadCalendar(currentSaison);
-        } else if (btnVideos && btnVideos.classList.contains('active')) {
-            loadVideos(currentSaison);
         } else {
-            // Classement par défaut
             const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey);
             const seasonParagraph = document.querySelector('header p');
             if(seasonParagraph) seasonParagraph.textContent = `Saison ${currentSaison}`;
             
             if (jsonUrl) {
-                container.innerHTML = `<p style="text-align:center; padding:20px;">Chargement ${currentSaison}...</p>`;
+                container.innerHTML = `<p style="text-align:center; padding:20px; color:#fff;">Chargement ${currentSaison}...</p>`;
                 const rawData = await fetchClassementData(jsonUrl); 
                 globalClassementData = rawData;
                 renderTable(rawData);
-                // Important : on recharge les résultats bruts de la nouvelle saison
-                globalRawData = {}; // Reset cache local pour forcer le chargement de la nouvelle saison
+                
+                globalRawData = {}; 
                 loadAllRawResults(currentSaison);
             }
         }
@@ -743,7 +673,6 @@ async function init() {
         });
     };
 
-    // --- INITIALISATION ---
     const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey); 
     const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
     
@@ -752,7 +681,6 @@ async function init() {
     attachSeasonListeners();
     initTabs(currentSaison); 
     
-    // Activation de la recherche dès le chargement
     const searchBtn = document.getElementById('global-search-btn');
     const searchInput = document.getElementById('global-search-input');
     if (searchBtn && searchInput) {
@@ -769,13 +697,12 @@ async function init() {
     
     if (jsonUrl) {
         if (container) {
-            container.innerHTML = `<p>Chargement des données de ${currentSaison}...</p>`;
+            container.innerHTML = `<p style="color:#fff;">Chargement des données de ${currentSaison}...</p>`;
         }
         
         const rawData = await fetchClassementData(jsonUrl); 
         globalClassementData = rawData;
         
-        // Lazy Load des détails (se lance en tâche de fond)
         const rawResultsPromise = loadAllRawResults(currentSaison);
         
         const mastersContainer = document.getElementById('nav-masters');
@@ -791,9 +718,8 @@ async function init() {
                     e.preventDefault();
                     const nom = link.getAttribute('data-nom'); 
                     
-                    classementContainer.innerHTML = `<p style="text-align:center; padding:20px;">Chargement du détail pour ${nom}...</p>`;
+                    classementContainer.innerHTML = `<p style="text-align:center; padding:20px; color:#fff;">Chargement du détail pour ${nom}...</p>`;
                     
-                    // On attend que les données soient chargées
                     const results = await loadAllRawResults(currentSaison);
                     showCoureurDetails(nom, currentSaison, results); 
                 }
