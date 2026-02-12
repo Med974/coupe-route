@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v71 - FINAL : Navigation Fixe & Sans Vidéo)
+// FICHIER : app.js (v72 - AVEC GESTION JOKER)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -359,7 +359,7 @@ async function fetchClassementData(url) {
         const response = await fetch(url);
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Erreur HTTP: ${response.status}.`);
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare.`);
         }
         const data = await response.json(); 
         if (data && data.error) throw new Error(`Erreur API: ${data.error}`);
@@ -425,6 +425,9 @@ function renderTable(data) {
     }
 }
 
+
+// --- 4. Logique Détaillée du Coureur ---
+
 function renderCoureurDetails(details) {
     const container = document.getElementById('classement-container');
     if (!container) return;
@@ -437,15 +440,23 @@ function renderCoureurDetails(details) {
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
 
     let totalPoints = 0;
+    let scores = []; // Pour JOKER
+
     details.forEach(course => {
-        const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
+        const points = parseInt(String(course.Points).replace(/[^\d]/g, '')) || 0; 
         if (!isNaN(points)) {
             totalPoints += points;
+            scores.push(points);
         }
     });
-    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
-    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px; color:#fff;">TOTAL DES POINTS: ${totalPoints}</p>`;
 
+    // JOKER : Trouver le score min si > 1 course
+    const minScore = (scores.length > 1) ? Math.min(...scores) : -1;
+
+    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
+
+    // --- GAP LOGIC ---
     let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
         const val = row.PointsTotal || row["Points Total"] || "0";
@@ -471,6 +482,7 @@ function renderCoureurDetails(details) {
     }
     gapsHtml += '</div>';
 
+    // CAMEMBERT
     const currentSaisonBtn = document.querySelector('.season-link.active');
     const currentSaison = currentSaisonBtn ? currentSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
     const allResults = globalRawData[currentSaison] || [];
@@ -498,13 +510,26 @@ function renderCoureurDetails(details) {
 
     html += '<table class="details-table">';
     html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
+    
+    let jokerUsed = false;
     details.forEach(course => {
-        html += `<tr>
+        const points = parseInt(String(course.Points).replace(/[^\d]/g, '')) || 0;
+        let rowClass = "";
+        let jokerBadge = "";
+
+        // JOKER
+        if (points === minScore && !jokerUsed && minScore !== -1) {
+            rowClass = "worst-performance";
+            jokerBadge = `<span class="joker-badge">Joker</span>`;
+            jokerUsed = true;
+        }
+
+        html += `<tr class="${rowClass}">
                     <td>${course.Date}</td> 
                     <td>${course.Course}</td> 
                     <td>${course.Position}</td>
                     <td>${course.Catégorie}</td>
-                    <td><strong>${course.Points}</strong></td>
+                    <td><strong>${course.Points}</strong>${jokerBadge}</td>
                  </tr>`;
     });
     html += '</tbody></table>';
@@ -523,6 +548,8 @@ async function showCoureurDetails(nom, saisonKey, allRawResults) {
     );
     renderCoureurDetails(filteredDetails); 
 }
+
+// --- 5. Logique Club ---
 
 function renderClubDetails(members, clubNom) {
     const container = document.getElementById('classement-container');
