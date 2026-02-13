@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v72 - AVEC GESTION JOKER)
+// FICHIER : app.js (v74 - JOKER ACTIF A PARTIR DE LA 4e COURSE)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -439,24 +439,45 @@ function renderCoureurDetails(details) {
     const coureurDossardRecherche = details[0].Dossard; 
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
 
+    // --- CALCUL INTELLIGENT DU JOKER ---
+    
+    // 1. Récupérer les données de la saison pour savoir combien il y a eu de courses AU TOTAL
+    const currentSaisonBtn = document.querySelector('.season-link.active');
+    const currentSaison = currentSaisonBtn ? currentSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
+    const allResults = globalRawData[currentSaison] || [];
+    
+    const allUniqueRaces = new Set(allResults.map(r => r.Course).filter(c => c && c.trim() !== ""));
+    const totalRacesInSeason = allUniqueRaces.size || 1; 
+
+    // 2. Compter le nombre de courses du coureur
+    const runnerRacesCount = details.length;
+
+    // 3. JOKER ACTIF ? Seulement si participation à TOUTES les courses ET au moins 4 courses dans la saison
+    const jokerActive = (runnerRacesCount === totalRacesInSeason) && (totalRacesInSeason >= 4);
+
+    // 4. Calcul des points
     let totalPoints = 0;
-    let scores = []; // Pour JOKER
+    let scores = [];
 
     details.forEach(course => {
-        const points = parseInt(String(course.Points).replace(/[^\d]/g, '')) || 0; 
+        const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
-            totalPoints += points;
             scores.push(points);
         }
     });
 
-    // JOKER : Trouver le score min si > 1 course
-    const minScore = (scores.length > 1) ? Math.min(...scores) : -1;
+    const minScore = (scores.length > 0) ? Math.min(...scores) : -1;
 
+    // Somme totale - Min (si joker actif)
+    const sumAll = scores.reduce((a, b) => a + b, 0);
+    const finalTotal = jokerActive ? (sumAll - minScore) : sumAll;
+
+    
+    // --- HTML ---
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
-    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${totalPoints}</p>`;
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${finalTotal}</p>`;
 
-    // --- GAP LOGIC ---
+    // --- GAP LOGIC (Ecarts) ---
     let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
         const val = row.PointsTotal || row["Points Total"] || "0";
@@ -481,17 +502,19 @@ function renderCoureurDetails(details) {
         }
     }
     gapsHtml += '</div>';
-
-    // CAMEMBERT
-    const currentSaisonBtn = document.querySelector('.season-link.active');
-    const currentSaison = currentSaisonBtn ? currentSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
-    const allResults = globalRawData[currentSaison] || [];
-    const allUniqueRaces = new Set(allResults.map(r => r.Course).filter(c => c && c.trim() !== ""));
-    const totalRacesInSeason = allUniqueRaces.size || 1; 
-    const runnerRacesCount = details.length;
+    
+    // --- CAMEMBERT ---
     const participationPercent = Math.round((runnerRacesCount / totalRacesInSeason) * 100);
     const chartDegree = Math.round((participationPercent * 360) / 100);
     
+    // Texte explicatif Joker
+    let jokerText = 'Tous les points comptent (course ratée = 0).';
+    if (totalRacesInSeason < 4) {
+        jokerText = 'En attente (s\'active après 3 courses).';
+    } else if (jokerActive) {
+        jokerText = 'Moins bon résultat retiré car 100% de participation.';
+    }
+
     const chartHtml = `
         <div class="stats-container">
             <div class="participation-chart" style="background: conic-gradient(var(--color-lagon) ${chartDegree}deg, #444 0deg);">
@@ -502,6 +525,16 @@ function renderCoureurDetails(details) {
                 <div class="big-number">${runnerRacesCount} / ${totalRacesInSeason}</div>
                 <div style="font-size:0.8em; color:#888;">Courses courues</div>
             </div>
+            
+             <div class="stats-info" style="margin-left:auto; border-left:1px solid #444; padding-left:20px;">
+                <h4>RÈGLE JOKER</h4>
+                <div style="font-size:0.9em; ${jokerActive ? 'color:#27ae60' : 'color:#888'}">
+                    ${jokerActive ? '✅ ACTIVÉ' : '❌ INACTIF'}
+                </div>
+                <div style="font-size:0.7em; color:#666; max-width:150px;">
+                    ${jokerText}
+                </div>
+            </div>
         </div>
     `;
     
@@ -511,17 +544,18 @@ function renderCoureurDetails(details) {
     html += '<table class="details-table">';
     html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
     
-    let jokerUsed = false;
+    let jokerMarked = false; 
+
     details.forEach(course => {
         const points = parseInt(String(course.Points).replace(/[^\d]/g, '')) || 0;
         let rowClass = "";
         let jokerBadge = "";
 
-        // JOKER
-        if (points === minScore && !jokerUsed && minScore !== -1) {
+        // Application visuelle du Joker
+        if (jokerActive && points === minScore && !jokerMarked) {
             rowClass = "worst-performance";
             jokerBadge = `<span class="joker-badge">Joker</span>`;
-            jokerUsed = true;
+            jokerMarked = true;
         }
 
         html += `<tr class="${rowClass}">
