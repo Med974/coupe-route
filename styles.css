@@ -1,6 +1,6 @@
 /* =======================================================================
    FICHIER : styles.css
-   Version : VRAI DARK MODE INTÉGRAL (Fix Mobile + Sans Vidéo)
+   Version : VRAI DARK MODE INTÉGRAL (Tableaux Sombres)
 ======================================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
@@ -16,7 +16,7 @@
     --color-background-row: #252525;    /* Gris pour les lignes du tableau */
     --color-border: #333333;            /* Bordures discrètes */
     
-    --color-text: #ecf0f1;              /* Blanc cassé pour le texte principal */
+    --color-text: #ecf0f1;              /* Texte CLAIR pour fond sombre */
     --color-text-muted: #bdc3c7;        /* Texte gris clair */
     --color-header-text: #ffffff;
 
@@ -48,7 +48,7 @@ header {
     background-repeat: no-repeat;
     background-attachment: scroll; 
     color: var(--color-header-text);
-    padding: 40px 20px 140px; /* Espace maintenu */
+    padding: 40px 20px 140px; 
     text-align: center;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -114,7 +114,7 @@ main {
     position: relative;
 }
 
-/* Conteneurs SOMBRES (Retour au gris foncé) */
+/* Conteneurs SOMBRES (Gris foncé, pas blanc !) */
 #classement-container, #calendrier-container {
     background-color: var(--color-background-card); 
     padding: 40px; 
@@ -266,7 +266,7 @@ main {
 .race-info h4 { margin: 0; color: var(--color-text); font-size: 1.1em; }
 .race-details { font-size: 0.9em; color: var(--color-text-muted); margin-top: 5px; }
 
-/* --- TABLEAUX DARK --- */
+/* --- TABLEAUX DARK (FOND SOMBRE) --- */
 .table-responsive {
     overflow-x: auto;
     width: 100%;
@@ -276,7 +276,8 @@ main {
 
 .classement-table, .details-table { 
     width: 100%;
-    border-collapse: collapse; 
+    border-collapse: separate; 
+    border-spacing: 0 8px; /* Effet cartes */
     min-width: 900px;
     text-align: center;
 }
@@ -292,20 +293,20 @@ main {
 
 .classement-table td, .details-table td {
     padding: 15px 10px;
-    border-bottom: 1px solid var(--color-border);
+    border: none;
     font-size: 0.95em;
     vertical-align: middle;
     color: var(--color-text); /* Texte CLAIR */
     text-align: center;
 }
 
-/* Lignes alternées et survol sombre */
+/* Lignes de données : Fond SOMBRE */
 .classement-table tbody tr, .details-table tbody tr {
-    background-color: var(--color-background-row); /* Fond ligne sombre */
-    box-shadow: none; /* Pas d'ombre sur les lignes en dark mode */
+    background-color: var(--color-background-row); /* #252525 */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 .classement-table tbody tr:hover, .details-table tbody tr:hover {
-    background-color: #333; /* Survol gris un peu plus clair */
+    background-color: #333; /* Survol un peu plus clair */
     transform: scale(1.005);
 }
 
@@ -394,15 +395,28 @@ tr.category-separator td {
 }
 
 .participation-chart {
-    width: 100px; height: 100px; border-radius: 50%;
-    position: relative; display: flex; justify-content: center; align-items: center;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    /* Le dégradé sera injecté dynamiquement en JS */
+    background: conic-gradient(var(--color-lagon) 0%, #444 0); 
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     box-shadow: 0 0 15px rgba(0, 167, 187, 0.2);
     margin: 0 auto;
 }
+
 .participation-chart::after {
-    content: ""; position: absolute; width: 70%; height: 70%;
-    background-color: #252525; border-radius: 50%;
+    content: "";
+    position: absolute;
+    width: 70%;
+    height: 70%;
+    background-color: #252525;
+    border-radius: 50%;
 }
+
 .chart-text { position: absolute; z-index: 2; font-weight: 800; font-size: 1.2em; color: var(--color-text); }
 
 .stats-info { display: flex; flex-direction: column; justify-content: center; text-align: left; }
@@ -517,7 +531,7 @@ tr.category-separator td {
     .gap-container { flex-direction: column; gap: 10px; padding: 0; }
     .gap-card { width: 100%; max-width: none; }
     
-    .race-card { flex-direction: column; text-align: center; align-items: stretch; padding: 15px; }
+    .race-card { flex-direction: column; text-align: center; align-items: stretch; }
     .race-card.next-race { flex-direction: column; text-align: left; }
     .race-card.next-race .race-date { flex-direction: row; width: 100%; justify-content: space-between; margin-right: 0; margin-bottom: 10px; }
     .race-date { margin-right: 0; margin-bottom: 10px; width: 100%; }
