@@ -1,542 +1,774 @@
-/* =======================================================================
-   FICHIER : styles.css
-   Version : VRAI DARK MODE INTÉGRAL (Tableaux Sombres)
-======================================================================= */
+// =======================================================================
+// FICHIER : app.js (v75 - FINAL : Sans Texte Joker)
+// =======================================================================
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap');
+// --- 1. Configuration Multi-Saisons ---
 
-:root {
-    --color-lagon: #00A7BB;       
-    --color-lagon-dark: #008c9e;  
-    --color-volcan: #D94F00;      
-    
-    /* PALETTE DARK MODE */
-    --color-background-page: #0a0a0a;   /* Noir quasi pur pour le fond */
-    --color-background-card: #1e1e1e;   /* Gris anthracite pour les blocs */
-    --color-background-row: #252525;    /* Gris pour les lignes du tableau */
-    --color-border: #333333;            /* Bordures discrètes */
-    
-    --color-text: #ecf0f1;              /* Texte CLAIR pour fond sombre */
-    --color-text-muted: #bdc3c7;        /* Texte gris clair */
-    --color-header-text: #ffffff;
-
-    --color-gold: #f1c40f;
-    --color-silver: #bdc3c7;
-    --color-bronze: #cd7f32;
-}
-
-body {
-    font-family: 'Roboto', 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: var(--color-background-page);
-    color: var(--color-text);
-    line-height: 1.6;
-}
-
-h1, h2, h3, h4, th {
-    font-family: 'Montserrat', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* --- HEADER IMMERSIF (Image Seule) --- */
-header {
-    background-image: url('header-bg.jpg'); 
-    background-size: cover;      
-    background-position: center; 
-    background-repeat: no-repeat;
-    background-attachment: scroll; 
-    color: var(--color-header-text);
-    padding: 40px 20px 140px; 
-    text-align: center;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    border-bottom-left-radius: 30px;
-    border-bottom-right-radius: 30px;
-    position: relative;
-    overflow: hidden;
-}
-
-h1, h2 {
-    text-shadow: 0 3px 15px rgba(0,0,0,1); 
-    position: relative;
-    z-index: 2;
-}
-
-h1 { margin: 0 0 10px 0; font-size: 2.5em; font-weight: 800; }
-h2 { margin: 5px 0 20px 0; font-size: 1.2em; font-weight: 400; opacity: 1; }
-
-/* --- BARRE DE RECHERCHE --- */
-.search-container {
-    margin: 15px auto 25px;
-    max-width: 500px;
-    display: flex;
-    justify-content: center;
-    position: relative;
-    z-index: 20;
-}
-
-#global-search-input {
-    width: 100%;
-    padding: 12px 20px;
-    border-radius: 50px 0 0 50px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(30, 30, 30, 0.9); /* Fond sombre */
-    backdrop-filter: blur(5px);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 0.9em;
-    outline: none;
-    color: white;
-}
-
-#global-search-btn {
-    padding: 12px 25px;
-    border-radius: 0 50px 50px 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-left: none;
-    background: var(--color-volcan);
-    color: white;
-    cursor: pointer;
-    font-size: 1.1em;
-    margin-top: 0; 
-    transition: background 0.3s;
-}
-
-#global-search-btn:hover { background: #c0392b; }
-
-/* --- CONTENEUR PRINCIPAL --- */
-main {
-    padding: 0 20px;
-    max-width: 1200px;
-    margin: -80px auto 50px; 
-    z-index: 20;
-    position: relative;
-}
-
-/* Conteneurs SOMBRES (Gris foncé, pas blanc !) */
-#classement-container, #calendrier-container {
-    background-color: var(--color-background-card); 
-    padding: 40px; 
-    border-radius: 25px; 
-    box-shadow: 0 20px 50px rgba(0,0,0,0.7); 
-    border: 1px solid var(--color-border);
-}
-
-#classement-container h3, #calendrier-container h3 { color: var(--color-lagon); margin-top: 0; font-size: 1.5em; }
-#classement-container p { color: var(--color-text-muted); }
-
-/* --- NAVIGATION --- */
-#nav-seasons, #nav-categories, #nav-masters {
-    margin: 10px auto; 
-    display: block; 
-    background-color: transparent; 
-    padding: 0;
-    text-align: center; 
-    position: relative;
-    z-index: 10; 
-}
-#nav-seasons { margin-bottom: 15px; }
-
-#nav-seasons a, #nav-categories a, #nav-masters a {
-    display: inline-block;
-    text-decoration: none;
-    color: var(--color-light); 
-    background-color: rgba(0, 0, 0, 0.6); 
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 10px 22px; 
-    margin: 5px;
-    border-radius: 50px;
-    font-size: 0.85em;
-    font-weight: 700; 
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
-    margin-right: 10px; 
-}
-
-#nav-seasons a:hover, #nav-categories a:hover, #nav-masters a:hover {
-    background-color: var(--color-lagon);
-    color: white;
-    border-color: var(--color-lagon);
-    transform: translateY(-2px);
-}
-#nav-seasons a.active, #nav-categories a.active, #nav-masters a.active {
-    background-color: var(--color-volcan);
-    color: white;
-    border-color: var(--color-volcan);
-    box-shadow: 0 4px 15px rgba(217, 79, 0, 0.6);
-}
-
-/* --- TABS --- */
-#main-tabs {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 20px;
-    margin-bottom: 30px;
-    position: relative;
-    z-index: 20;
-}
-.main-tab {
-    background-color: rgba(30, 30, 30, 0.8); 
-    color: white;
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 10px 20px;
-    font-size: 1em;
-    font-family: 'Montserrat', sans-serif;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-transform: uppercase;
-    margin-top: 0;
-}
-.main-tab:hover { background-color: rgba(50, 50, 50, 0.9); }
-.main-tab.active {
-    background-color: var(--color-volcan);
-    border-color: var(--color-volcan);
-    font-weight: 800;
-    box-shadow: 0 4px 15px rgba(217, 79, 0, 0.5);
-}
-
-/* --- CALENDRIER DARK --- */
-.calendar-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
-}
-.race-card {
-    display: flex;
-    align-items: center;
-    background: var(--color-background-row); /* Fond sombre */
-    padding: 15px;
-    border-radius: 12px;
-    border-left: 5px solid var(--color-lagon);
-    transition: transform 0.2s;
-    border: 1px solid var(--color-border);
-}
-.race-card:hover {
-    transform: translateX(5px);
-    background: #333;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-.race-card.past {
-    border-left-color: #555;
-    opacity: 0.6;
-    background: #1a1a1a;
-}
-.race-date {
-    background: #333;
-    color: var(--color-lagon);
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-weight: 700;
-    text-align: center;
-    min-width: 80px;
-    margin-right: 20px;
-    font-family: 'Montserrat', sans-serif;
-    border: 1px solid var(--color-lagon);
-}
-.race-card.past .race-date { background: #222; border-color: #555; color: #777; }
-
-.race-card.next-race {
-    border-left: 6px solid var(--color-volcan);
-    background: linear-gradient(90deg, rgba(217, 79, 0, 0.15) 0%, rgba(37, 37, 37, 1) 100%);
-    box-shadow: 0 0 25px rgba(217, 79, 0, 0.25);
-    z-index: 5;
-    padding-top: 35px;
-}
-.next-badge {
-    position: absolute; top: 0; left: 0;
-    background: var(--color-volcan); color: white;
-    font-size: 0.7em; font-weight: 800;
-    padding: 5px 15px; border-bottom-right-radius: 15px; text-transform: uppercase;
-}
-.countdown-tag {
-    display: inline-block; margin-top: 8px; font-size: 0.9em; font-weight: 800; padding: 4px 12px;
-    border-radius: 4px; background: rgba(0, 167, 187, 0.1); color: var(--color-lagon); border: 1px solid var(--color-lagon);
-}
-.race-card.next-race .countdown-tag {
-    background: var(--color-volcan); color: white; border-color: var(--color-volcan);
-    animation: pulse 2s infinite;
-}
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-.race-info h4 { margin: 0; color: var(--color-text); font-size: 1.1em; }
-.race-details { font-size: 0.9em; color: var(--color-text-muted); margin-top: 5px; }
-
-/* --- TABLEAUX DARK (FOND SOMBRE) --- */
-.table-responsive {
-    overflow-x: auto;
-    width: 100%;
-    -webkit-overflow-scrolling: touch;
-    margin-top: 30px;
-}
-
-.classement-table, .details-table { 
-    width: 100%;
-    border-collapse: separate; 
-    border-spacing: 0 8px; /* Effet cartes */
-    min-width: 900px;
-    text-align: center;
-}
-
-.classement-table th, .details-table th {
-    background-color: #2a2a2a; /* En-tête sombre */
-    color: var(--color-text-muted);
-    font-weight: 700;
-    font-size: 0.85em;
-    padding: 15px;
-    border-bottom: 2px solid var(--color-border);
-}
-
-.classement-table td, .details-table td {
-    padding: 15px 10px;
-    border: none;
-    font-size: 0.95em;
-    vertical-align: middle;
-    color: var(--color-text); /* Texte CLAIR */
-    text-align: center;
-}
-
-/* Lignes de données : Fond SOMBRE */
-.classement-table tbody tr, .details-table tbody tr {
-    background-color: var(--color-background-row); /* #252525 */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-.classement-table tbody tr:hover, .details-table tbody tr:hover {
-    background-color: #333; /* Survol un peu plus clair */
-    transform: scale(1.005);
-}
-
-/* Alignement Gauche pour Nom et Club (Desktop) */
-.classement-table td:nth-child(5), .classement-table td:nth-child(6) {
-    text-align: left;
-    padding-left: 20px;
-}
-
-/* Arrondis */
-.classement-table td:first-child, .details-table td:first-child {
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-}
-.classement-table td:last-child, .details-table td:last-child {
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
-}
-
-/* --- PODIUM --- */
-.classement-table tbody tr:nth-child(1) td:last-child strong { color: var(--color-gold); font-size: 1.6em; }
-.classement-table tbody tr:nth-child(1) td:first-child { border-left: 5px solid var(--color-gold); }
-
-.classement-table tbody tr:nth-child(2) td:last-child strong { color: var(--color-silver); font-size: 1.5em; }
-.classement-table tbody tr:nth-child(2) td:first-child { border-left: 5px solid var(--color-silver); }
-
-.classement-table tbody tr:nth-child(3) td:last-child strong { color: var(--color-bronze); font-size: 1.4em; }
-.classement-table tbody tr:nth-child(3) td:first-child { border-left: 5px solid var(--color-bronze); }
-
-.classement-table tr td:last-child strong { font-weight: 800; color: var(--color-text); }
-
-/* --- ÉLÉMENTS SPÉCIFIQUES --- */
-
-a.coureur-link, a.club-link {
-    color: var(--color-text); 
-    text-decoration: none; 
-    font-weight: 600;
-    border-bottom: 1px dotted #555;
-    transition: color 0.2s;
-}
-a.coureur-link:hover, a.club-link:hover {
-    color: var(--color-lagon); 
-    border-bottom-color: var(--color-lagon);
-}
-
-button {
-    background-color: var(--color-lagon);
-    color: white;
-    border: none;
-    padding: 12px 30px;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    font-size: 0.9em;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s;
-    margin-top: 30px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: 0 4px 15px rgba(0, 167, 187, 0.3);
-}
-button:hover { background-color: var(--color-lagon-dark); transform: translateY(-2px); }
-
-tr.category-separator td {
-    background-color: #1a1a1a; /* Fond très sombre pour le titre */
-    color: var(--color-lagon);
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    border-top: 1px solid var(--color-border);
-    padding-top: 20px;
-    display: table-cell;
-}
-
-/* --- STATS & GRAPHIQUE --- */
-.stats-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 30px;
-    padding: 20px;
-    background-color: #252525;
-    border-radius: 15px;
-    border: 1px solid var(--color-border);
-}
-
-.participation-chart {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    /* Le dégradé sera injecté dynamiquement en JS */
-    background: conic-gradient(var(--color-lagon) 0%, #444 0); 
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 0 15px rgba(0, 167, 187, 0.2);
-    margin: 0 auto;
-}
-
-.participation-chart::after {
-    content: "";
-    position: absolute;
-    width: 70%;
-    height: 70%;
-    background-color: #252525;
-    border-radius: 50%;
-}
-
-.chart-text { position: absolute; z-index: 2; font-weight: 800; font-size: 1.2em; color: var(--color-text); }
-
-.stats-info { display: flex; flex-direction: column; justify-content: center; text-align: left; }
-.stats-info h4 { margin: 0 0 5px; color: var(--color-text-muted); font-size: 0.9em; }
-.stats-info .big-number { font-size: 1.8em; font-weight: 800; color: var(--color-lagon); }
-
-/* Badges Écarts */
-.gap-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 40px;
-}
-.gap-card {
-    background: #252525;
-    padding: 15px 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    font-size: 0.9em;
-    border-left: 4px solid #555;
-    flex: 1;
-    max-width: 250px;
-    text-align: center;
-    border: 1px solid var(--color-border);
-}
-.gap-card.chase { border-left-color: #e74c3c; color: #ffcccc; }
-.gap-card.lead { border-left-color: #27ae60; color: #ccffcc; }
-.gap-card strong { display: block; font-size: 1.2em; margin-bottom: 5px; color: var(--color-text); }
-.gap-name { font-size: 0.85em; color: #888; }
-
-/* STYLE PERFORMANCE "JOKER" (Moins bon résultat) */
-.worst-performance {
-    background-color: #2a1a1a !important; /* Rouge sombre très subtil */
-    box-shadow: none !important; 
-    border: 1px dashed #e74c3c !important; 
-}
-.worst-performance td {
-    color: #777 !important; /* Texte grisé */
-}
-.worst-performance strong {
-    color: #c0392b !important;
-    text-decoration: line-through;
-    opacity: 0.7;
-}
-
-.joker-badge {
-    font-size: 0.7em;
-    background-color: #e74c3c;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: 5px;
-    vertical-align: middle;
-    text-decoration: none !important;
-    display: inline-block;
-}
-
-
-/* --- 9. RESPONSIVE (MOBILE) --- */
-@media (max-width: 768px) {
-    header { padding: 20px 10px 100px; }
-    h1 { font-size: 1.8em; }
-    main { margin-top: -60px; padding: 0 10px; }
-    
-    #classement-container, #calendrier-container { padding: 10px 0; }
-
-    /* BOUTONS COMPACTS */
-    #nav-seasons a, #nav-categories a, #nav-masters a {
-        display: inline-block;
-        width: auto;
-        margin: 3px 2px;
-        padding: 6px 12px;
-        font-size: 0.75em;
-        margin-right: 2px;
+const SAISONS_CONFIG = {
+    '2025': {
+        name: 'Saison 2025',
+        apiId: 'hiydnpj4xuxdz', 
+        categories: {
+            'open': { name: 'OPEN', sheetName: 'Open' },
+            'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
+            'access34': { name: 'Access 3/4', sheetName: 'Access34' },
+            'femmes': { name: 'Femmes', sheetName: 'Femmes' },
+            'u17': { name: 'U17', sheetName: 'U17' },
+            'u15': { name: 'U15', sheetName: 'U15' },
+            'u15u17f': { name: 'U15/U17 Filles', sheetName: 'U15U17Femmes' },
+        }
+    },
+    '2026': {
+        name: 'Saison 2026',
+        apiId: 'guq5nvsip34b6', 
+        categories: {
+            'open': { name: 'OPEN', sheetName: 'Open' }, 
+            'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
+            'access34': { name: 'Access 3/4', sheetName: 'Access34' },
+            'femmes': { name: 'Femmes', sheetName: 'Femmes' },
+            'u17': { name: 'U17', sheetName: 'U17' },
+            'u15': { name: 'U15', sheetName: 'U15' },
+            'u15u17f': { name: 'U15/U17 Filles', sheetName: 'U15U17Femmes' },
+        }
     }
+};
+
+const DEFAULT_SAISON = '2026'; 
+const DEFAULT_CATEGORY = 'open';
+
+let globalClassementData = []; 
+let globalRawData = {}; 
+
+const MASTERS_CONFIG = [
+    { key: 'all', name: 'Général' },
+    { key: 'M1', name: 'M1' },
+    { key: 'M2', name: 'M2' },
+    { key: 'M3', name: 'M3' },
+    { key: 'M4', name: 'M4' },
+    { key: 'M5', name: 'M5' },
+    { key: 'M6', name: 'M6' },
+];
+
+const WORKER_BASE_URL = 'https://morning-darkness-4a2d.med97400.workers.dev/';
+
+
+// --- 2. Fonctions Utilitaires ---
+
+function getSaisonFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('saison') || DEFAULT_SAISON;
+}
+
+function getCategoryFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('cat') || DEFAULT_CATEGORY;
+}
+
+function getDisplayDossard(dossardRecherche) {
+    if (!dossardRecherche) return dossardRecherche;
+    const dossardStr = String(dossardRecherche); 
+    const suffixes = ['1517', '000', '170', '150'];
+    for (const suffix of suffixes) {
+        if (dossardStr.endsWith(suffix)) {
+            return dossardStr.slice(0, -suffix.length);
+        }
+    }
+    return dossardRecherche; 
+}
+
+function parseFrenchDate(dateStr) {
+    if (!dateStr) return null;
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return null;
+    return new Date(parts[2], parts[1] - 1, parts[0]);
+}
+
+function buildJsonUrl(saisonKey, categoryKey) {
+    const saisonConfig = SAISONS_CONFIG[saisonKey];
+    if (!saisonConfig) return null;
+    const categoryInfo = saisonConfig.categories[categoryKey];
+    if (!categoryInfo) return null;
+    const sheetParam = encodeURIComponent(categoryInfo.sheetName);
+    return `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${sheetParam}`;
+}
+
+async function loadAllRawResults(saisonKey) {
+    if (globalRawData[saisonKey] && globalRawData[saisonKey].length > 0) {
+        return globalRawData[saisonKey];
+    }
+    const sheetName = "Résultats Bruts";
+    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=${encodeURIComponent(sheetName)}`; 
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Worker/API: ${response.status}`);
+        const data = await response.json();
+        globalRawData[saisonKey] = data; 
+        return data;
+    } catch (e) {
+        console.error("Erreur chargement résultats bruts:", e);
+        return [];
+    }
+}
+
+// --- RECHERCHE GLOBALE ---
+
+async function performGlobalSearch() {
+    const input = document.getElementById('global-search-input');
+    const query = input.value.trim().toLowerCase();
     
-    /* Masquage Colonnes Portrait */
-    .classement-table th:nth-child(1), .classement-table td:nth-child(1),
-    .classement-table th:nth-child(2), .classement-table td:nth-child(2),
-    .classement-table th:nth-child(3), .classement-table td:nth-child(3),
-    .classement-table th:nth-child(4), .classement-table td:nth-child(4) {
-        display: none;
+    if (query.length < 2) return; 
+
+    const container = document.getElementById('classement-container');
+    container.innerHTML = '<p style="text-align:center; padding:20px; color:#fff;">Recherche en cours...</p>';
+
+    const btnClassement = document.getElementById('btn-tab-classement');
+    if(btnClassement && !btnClassement.classList.contains('active')) btnClassement.click();
+
+    const activeSaisonBtn = document.querySelector('.season-link.active');
+    const currentSaison = activeSaisonBtn ? activeSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
+
+    const rawResults = await loadAllRawResults(currentSaison);
+
+    const matches = [];
+    const seen = new Set();
+
+    if (rawResults && rawResults.length > 0) {
+         rawResults.forEach(row => {
+            if (row.Nom && row.Nom.toLowerCase().includes(query)) {
+                if (!seen.has(row.Nom)) {
+                    seen.add(row.Nom);
+                    matches.push(row);
+                }
+            }
+        });
     }
 
-    .classement-table td, .classement-table th { padding: 10px 5px; font-size: 0.85em; text-align: center; }
-    
-    /* NOM aligné à gauche sur mobile */
-    .classement-table td:nth-child(5) { text-align: left; padding-left: 5px; }
-    
-    /* Autres colonnes (Club, Points, Pos) centrées par défaut */
-    .classement-table td:nth-child(6), .classement-table td:nth-child(7), .classement-table td:nth-child(8) { text-align: center; }
-    
-    .classement-table th:last-child, .classement-table td:last-child { width: 30px; white-space: nowrap; }
+    if (matches.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#fff;">Aucun coureur trouvé pour "${input.value}" en ${currentSaison}.</p><button onclick="window.location.reload()">Retour</button>`;
+    } else if (matches.length === 1) {
+        const exactMatch = rawResults.filter(r => r.Nom === matches[0].Nom);
+        renderCoureurDetails(exactMatch);
+    } else {
+        renderSearchResults(matches);
+    }
+}
 
-    /* Vue Détail Mobile */
-    .details-table:not(.club-table) th:nth-child(1), .details-table:not(.club-table) td:nth-child(1),
-    .details-table th:nth-child(4), .details-table td:nth-child(4) { display: none; }
+function renderSearchResults(matches) {
+    const container = document.getElementById('classement-container');
+    let html = `<h3 style="color:var(--color-lagon); margin-bottom:20px;">Résultats de recherche (${matches.length})</h3>`;
     
-    /* Vue Club Mobile : Affiche Nom et Points */
-    .club-table th:nth-child(1), .club-table td:nth-child(1),
-    .club-table th:nth-child(2), .club-table td:nth-child(2) { display: table-cell; }
-    .club-table td:nth-child(1) { text-align: left; }
+    html += '<table class="classement-table search-results-table">';
+    html += '<thead><tr><th>Nom</th><th>Catégorie</th><th>Club</th></tr></thead><tbody>';
     
-    /* Correction Recherche Mobile : Force l'affichage des colonnes de recherche */
-    .search-results-table th, .search-results-table td {
-        display: table-cell !important;
-        text-align: left;
+    matches.forEach(m => {
+        html += `<tr>
+                    <td><a href="#" class="coureur-link" data-nom="${m.Nom}">${m.Nom}</a></td>
+                    <td>${m.Catégorie || '-'}</td>
+                    <td>${m.Club || '-'}</td>
+                 </tr>`;
+    });
+    
+    html += '</tbody></table>';
+    html += `<button onclick="window.location.reload()">Retour</button>`;
+    container.innerHTML = html;
+}
+
+// --- GESTION CALENDRIER ---
+
+async function loadCalendar(saisonKey) {
+    const container = document.getElementById('calendrier-container');
+    container.innerHTML = '<p style="text-align:center; padding:20px; color:#fff;">Chargement du calendrier...</p>';
+    
+    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Calendrier`;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Impossible de charger le calendrier");
+        const races = await response.json();
+        renderCalendar(races);
+    } catch (error) {
+        container.innerHTML = `<p style="color:red; text-align:center;">Calendrier non disponible pour le moment.</p>`;
+    }
+}
+
+function renderCalendar(races) {
+    const container = document.getElementById('calendrier-container');
+    
+    if (!races || races.length === 0 || races[0].error) {
+        container.innerHTML = '<p style="text-align:center; color:#fff;">Aucune course trouvée pour cette saison.</p>';
+        return;
     }
 
-    .classement-table, .details-table { min-width: 100%; margin-top: 15px; border-spacing: 0 5px; }
+    races.sort((a, b) => {
+        const dateA = parseFrenchDate(a.Date);
+        const dateB = parseFrenchDate(b.Date);
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        return dateA - dateB;
+    });
+
+    let html = '<div class="calendar-list">';
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    let nextRaceFound = false;
+
+    races.forEach(race => {
+        const raceDate = parseFrenchDate(race.Date);
+        let cardClass = 'race-card';
+        let badgeHtml = '';
+        let countdownHtml = '';
+        let dateDisplay = { day: '??', month: '???' };
+
+        if (raceDate) {
+            const day = String(raceDate.getDate()).padStart(2, '0');
+            const month = raceDate.toLocaleString('fr-FR', { month: 'short' }).replace('.', '');
+            dateDisplay = { day, month };
+
+            if (raceDate < today) {
+                cardClass += ' past';
+                countdownHtml = '<span class="countdown-tag" style="border-color:#555; color:#666;">TERMINÉ</span>';
+            } else {
+                const diffTime = Math.ceil((raceDate - today) / (1000 * 60 * 60 * 24));
+                if (!nextRaceFound) {
+                    cardClass += ' next-race';
+                    nextRaceFound = true;
+                    badgeHtml = '<div class="next-badge">PROCHAINE COURSE</div>';
+                    if (diffTime === 0) countdownHtml = '<span class="countdown-tag pulse">AUJOURD\'HUI !</span>';
+                    else if (diffTime === 1) countdownHtml = '<span class="countdown-tag pulse">DEMAIN !</span>';
+                    else countdownHtml = `<span class="countdown-tag pulse">J-${diffTime}</span>`;
+                } else {
+                    countdownHtml = `<span class="countdown-tag">Dans ${diffTime} jours</span>`;
+                }
+            }
+        }
+        
+        html += `
+            <div class="${cardClass}">
+                ${badgeHtml}
+                <div class="race-date">
+                    <span class="race-day">${dateDisplay.day}</span>
+                    <span class="race-month">${dateDisplay.month}</span>
+                </div>
+                <div class="race-info">
+                    <h4>${race.Nom}</h4>
+                    <div style="margin-top:5px;">${countdownHtml}</div>
+                </div>
+            </div>
+        `;
+    });
     
-    .gap-container { flex-direction: column; gap: 10px; padding: 0; }
-    .gap-card { width: 100%; max-width: none; }
-    
-    .race-card { flex-direction: column; text-align: center; align-items: stretch; }
-    .race-card.next-race { flex-direction: column; text-align: left; }
-    .race-card.next-race .race-date { flex-direction: row; width: 100%; justify-content: space-between; margin-right: 0; margin-bottom: 10px; }
-    .race-date { margin-right: 0; margin-bottom: 10px; width: 100%; }
+    html += '</div>';
+    container.innerHTML = html;
 }
 
-@media (min-width: 769px) {
-    th, td { display: table-cell !important; }
+// --- NAVIGATION & TABS ---
+
+function initTabs(currentSaison) {
+    const btnClassement = document.getElementById('btn-tab-classement');
+    const btnCalendrier = document.getElementById('btn-tab-calendrier');
+    
+    const viewClassement = document.getElementById('classement-container');
+    const viewCalendrier = document.getElementById('calendrier-container');
+    
+    const filtersContainer = document.getElementById('filters-container');
+    const navCategories = document.getElementById('nav-categories');
+    const navMasters = document.getElementById('nav-masters');
+    const searchContainer = document.querySelector('.search-container');
+    const categoryTitle = document.getElementById('category-title');
+
+    const tabs = [btnClassement, btnCalendrier];
+    const views = [viewClassement, viewCalendrier];
+
+    function switchTab(targetBtn, targetView, mode) {
+        tabs.forEach(btn => btn && btn.classList.remove('active'));
+        views.forEach(view => view && (view.style.display = 'none'));
+
+        if(targetBtn) targetBtn.classList.add('active');
+        if(targetView) targetView.style.display = 'block';
+
+        if(filtersContainer) filtersContainer.style.display = 'block';
+
+        if (mode === 'classement') {
+            if(navCategories) navCategories.style.display = 'block';
+            if(navMasters) navMasters.style.display = 'block';
+            if(searchContainer) searchContainer.style.display = 'flex';
+            if(categoryTitle) categoryTitle.style.display = 'block';
+        } else {
+            if(navCategories) navCategories.style.display = 'none';
+            if(navMasters) navMasters.style.display = 'none';
+            if(searchContainer) searchContainer.style.display = 'none';
+            if(categoryTitle) categoryTitle.style.display = 'none';
+        }
+    }
+
+    if (btnClassement) btnClassement.addEventListener('click', () => switchTab(btnClassement, viewClassement, 'classement'));
+    
+    if (btnCalendrier) {
+        btnCalendrier.addEventListener('click', () => {
+            switchTab(btnCalendrier, viewCalendrier, 'calendrier');
+            const activeSaisonBtn = document.querySelector('.season-link.active');
+            const activeSaison = activeSaisonBtn ? activeSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
+            loadCalendar(activeSaison);
+        });
+    }
 }
+
+function createNavBar(currentSaison, currentCategory) {
+    const seasonsContainer = document.getElementById('nav-seasons');
+    const categoriesContainer = document.getElementById('nav-categories');
+    const mastersContainer = document.getElementById('nav-masters');
+
+    let seasonsHtml = '';
+    Object.keys(SAISONS_CONFIG).forEach(saisonKey => {
+        const saison = SAISONS_CONFIG[saisonKey];
+        const isActive = saisonKey === currentSaison ? 'active' : '';
+        seasonsHtml += `<a href="#" class="season-link ${isActive}" data-saison="${saisonKey}">${saison.name}</a>`;
+    });
+    if (seasonsContainer) {
+        seasonsContainer.innerHTML = seasonsHtml;
+    }
+
+    let categoriesHtml = '';
+    if (SAISONS_CONFIG[currentSaison]?.categories) {
+        Object.keys(SAISONS_CONFIG[currentSaison].categories).forEach(categoryKey => {
+            const category = SAISONS_CONFIG[currentSaison].categories[categoryKey];
+            const isActive = categoryKey === currentCategory ? 'active' : '';
+            categoriesHtml += `<a href="?saison=${currentSaison}&cat=${categoryKey}" class="${isActive}">${category.name}</a>`;
+        });
+    }
+    if (categoriesContainer) {
+        categoriesContainer.innerHTML = categoriesHtml;
+    }
+    
+    let mastersHtml = '';
+    MASTERS_CONFIG.forEach(master => {
+        const isActive = master.key === 'all' ? 'active' : '';
+        mastersHtml += `<a href="#" data-master="${master.key}" class="master-button ${isActive}">${master.name}</a>`;
+    });
+    if (mastersContainer) {
+        mastersContainer.innerHTML = mastersHtml;
+    }
+}
+
+// --- 3. Fonctions de Données et Rendu ---
+
+async function fetchClassementData(url) {
+    const container = document.getElementById('classement-container');
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`Erreur HTTP: ${response.status}. Vérifiez le Worker Cloudflare.`);
+        }
+        const data = await response.json(); 
+        if (data && data.error) throw new Error(`Erreur API: ${data.error}`);
+        return data;
+    } catch (error) {
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Erreur lors du chargement des données. Détails : ${error.message}</p>`;
+        }
+        return [];
+    }
+}
+
+function renderTable(data) {
+    const container = document.getElementById('classement-container');
+
+    if (data.length === 0 || typeof data[0] !== 'object') {
+        if (container) {
+            container.innerHTML = '<p>Aucun coureur trouvé dans cette catégorie.</p>';
+        }
+        return;
+    }
+
+    const headers = Object.keys(data[0]);
+
+    let html = '<table class="classement-table">';
+    html += '<thead><tr>';
+    headers.forEach(header => {
+        const displayHeader = header.replace('PointsTotal', 'Points')
+                                    .replace('Points Total', 'Points')
+                                    .replace('NbCourses', 'Nb Courses')
+                                    .replace('SousCategorie', 'Catégorie')
+                                    .replace('Master', 'Cat. Master')
+                                    .replace('Classement', 'Pos.');
+        html += `<th>${displayHeader}</th>`;
+    });
+    html += '</tr></thead>';
+
+    html += '<tbody>';
+    data.forEach(coureur => {
+        html += '<tr>';
+        headers.forEach(header => {
+            let content = coureur[header];
+            if (header === 'Classement' || header === 'PointsTotal') {
+                content = parseFloat(content) || content; 
+            }
+            let displayContent = content; 
+            if (header === 'Dossard') {
+                displayContent = getDisplayDossard(content);
+            } else if (header === 'Nom') {
+                displayContent = `<a href="#" class="coureur-link" data-nom="${coureur.Nom}">${content}</a>`;
+            } else if (header === 'Club') {
+                 displayContent = `<a href="#" class="club-link" data-club="${coureur.Club}">${content}</a>`;
+            } else if (header === 'Classement') {
+                displayContent = `<strong>${content}</strong>`;
+            }
+            html += `<td>${displayContent}</td>`;
+        });
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+    if (container) {
+        container.innerHTML = html;
+    }
+}
+
+
+// --- 4. Logique Détaillée du Coureur ---
+
+function renderCoureurDetails(details) {
+    const container = document.getElementById('classement-container');
+    if (!container) return;
+    if (details.length === 0) {
+        container.innerHTML = '<p>Aucun résultat de course trouvé pour ce coureur.</p>';
+        return;
+    }
+    const coureurNom = details[0].Nom;
+    const coureurDossardRecherche = details[0].Dossard; 
+    const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
+
+    // --- CALCUL INTELLIGENT DU JOKER ---
+    const currentSaisonBtn = document.querySelector('.season-link.active');
+    const currentSaison = currentSaisonBtn ? currentSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
+    const allResults = globalRawData[currentSaison] || [];
+    
+    const allUniqueRaces = new Set(allResults.map(r => r.Course).filter(c => c && c.trim() !== ""));
+    const totalRacesInSeason = allUniqueRaces.size || 1; 
+    const runnerRacesCount = details.length;
+
+    const jokerActive = (runnerRacesCount === totalRacesInSeason) && (totalRacesInSeason >= 4);
+
+    let scores = [];
+    details.forEach(course => {
+        const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
+        if (!isNaN(points)) {
+            scores.push(points);
+        }
+    });
+
+    const minScore = (scores.length > 0) ? Math.min(...scores) : -1;
+    const sumAll = scores.reduce((a, b) => a + b, 0);
+    const finalTotal = jokerActive ? (sumAll - minScore) : sumAll;
+
+    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${finalTotal}</p>`;
+
+    // --- GAP LOGIC ---
+    let gapsHtml = '<div class="gap-container">';
+    const getPointsSafe = (row) => {
+        const val = row.PointsTotal || row["Points Total"] || "0";
+        return parseInt(String(val).replace(/[^\d]/g, '')) || 0;
+    };
+    const rankIndex = globalClassementData.findIndex(c => c.Nom === coureurNom);
+    if (rankIndex !== -1) {
+        const currentPoints = getPointsSafe(globalClassementData[rankIndex]);
+        if (rankIndex > 0) {
+            const runnerAhead = globalClassementData[rankIndex - 1];
+            const pointsAhead = getPointsSafe(runnerAhead);
+            const diff = pointsAhead - currentPoints;
+            gapsHtml += `<div class="gap-card chase"><strong>🛑 Retard : -${diff} pts</strong><span class="gap-name">sur ${runnerAhead.Nom} (#${runnerAhead.Classement})</span></div>`;
+        } else {
+             gapsHtml += `<div class="gap-card lead"><strong>👑 Leader du classement</strong></div>`;
+        }
+        if (rankIndex < globalClassementData.length - 1) {
+            const runnerBehind = globalClassementData[rankIndex + 1];
+            const pointsBehind = getPointsSafe(runnerBehind);
+            const diff = currentPoints - pointsBehind;
+            gapsHtml += `<div class="gap-card lead"><strong>✅ Avance : +${diff} pts</strong><span class="gap-name">sur ${runnerBehind.Nom} (#${runnerBehind.Classement})</span></div>`;
+        }
+    }
+    gapsHtml += '</div>';
+    
+    // --- CAMEMBERT ---
+    const participationPercent = Math.round((runnerRacesCount / totalRacesInSeason) * 100);
+    const chartDegree = Math.round((participationPercent * 360) / 100);
+    
+    const chartHtml = `
+        <div class="stats-container">
+            <div class="participation-chart" style="background: conic-gradient(var(--color-lagon) ${chartDegree}deg, #444 0deg);">
+                <span class="chart-text">${participationPercent}%</span>
+            </div>
+            <div class="stats-info">
+                <h4>PARTICIPATION</h4>
+                <div class="big-number">${runnerRacesCount} / ${totalRacesInSeason}</div>
+                <div style="font-size:0.8em; color:#888;">Courses courues</div>
+            </div>
+        </div>
+    `;
+    
+    html += chartHtml;
+    html += gapsHtml;
+
+    html += '<table class="details-table">';
+    html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
+    
+    let jokerMarked = false; 
+    details.forEach(course => {
+        const points = parseInt(String(course.Points).replace(/[^\d]/g, '')) || 0;
+        let rowClass = "";
+        let jokerBadge = "";
+
+        if (jokerActive && points === minScore && !jokerMarked) {
+            rowClass = "worst-performance";
+            jokerBadge = `<span class="joker-badge">Joker</span>`;
+            jokerMarked = true;
+        }
+
+        html += `<tr class="${rowClass}">
+                    <td>${course.Date}</td> 
+                    <td>${course.Course}</td> 
+                    <td>${course.Position}</td>
+                    <td>${course.Catégorie}</td>
+                    <td><strong>${course.Points}</strong>${jokerBadge}</td>
+                 </tr>`;
+    });
+    html += '</tbody></table>';
+    html += `<button onclick="init()">Retour au Classement Général</button>`;
+    container.innerHTML = html;
+}
+
+async function showCoureurDetails(nom, saisonKey, allRawResults) {
+    const container = document.getElementById('classement-container');
+    if (container) {
+        container.innerHTML = `<p style="color:#fff;">Chargement des résultats pour ${nom}...</p>`;
+    }
+    const rawResults = await allRawResults;
+    const filteredDetails = rawResults.filter(course => 
+        course.Nom && course.Nom.toString().trim() === nom.toString().trim()
+    );
+    renderCoureurDetails(filteredDetails); 
+}
+
+// --- 5. Logique Club ---
+
+function renderClubDetails(members, clubNom) {
+    const container = document.getElementById('classement-container');
+    if (!container) return;
+    
+    const categoryOrder = ["OPEN", "Access 1/2", "Access 3/4", "Femmes", "U17", "U15", "U15/U17 Filles", "U15U17F"];
+    const getCategoryRank = (catName) => { const index = categoryOrder.indexOf(catName); return index === -1 ? 999 : index; };
+
+    members.sort((a, b) => {
+        const rankA = getCategoryRank(a.Catégorie);
+        const rankB = getCategoryRank(b.Catégorie);
+        if (rankA !== rankB) return rankA - rankB;
+        
+        const valA = a["Points Total"] || a.PointsTotal || "0";
+        const valB = b["Points Total"] || b.PointsTotal || "0";
+        const pointsA = parseInt(String(valA).replace(/[^\d]/g, '')) || 0;
+        const pointsB = parseInt(String(valB).replace(/[^\d]/g, '')) || 0;
+        
+        return pointsB - pointsA; 
+    });
+    
+    let html = `<h3 style="color:var(--color-lagon);">Classement du Club : ${clubNom}</h3>`;
+    
+    let totalClubPoints = 0;
+    members.forEach(member => {
+        const rawPoints = member["Points Total"] || member.PointsTotal || "0";
+        totalClubPoints += parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
+    });
+
+    html += `<p style="font-size: 1.1em; margin-bottom: 20px; color:#fff;"><strong>Points Total :</strong> ${totalClubPoints} <span style="margin: 0 10px;">|</span> <strong>Nombre de Coureurs :</strong> ${members.length}</p>`;
+    
+    let currentCategory = '';
+    html += '<table class="details-table club-table">';
+    html += '<thead><tr><th>Nom</th><th>Points</th></tr></thead><tbody>';
+    
+    members.forEach(member => {
+        const rawPoints = member["Points Total"] || member.PointsTotal || "0";
+        const points = parseInt(String(rawPoints).replace(/[^\d]/g, '')) || 0;
+        
+        if (member.Catégorie !== currentCategory) {
+            currentCategory = member.Catégorie;
+            html += `<tr class="category-separator"><td colspan="2">${currentCategory}</td></tr>`;
+        }
+        
+        html += `<tr>
+                    <td>${member.Nom}</td> 
+                    <td><strong>${points}</strong></td>
+                 </tr>`;
+    });
+    
+    html += '</tbody></table>'; 
+    html += `<button onclick="init()">Retour au Classement Général</button>`;
+    container.innerHTML = html;
+}
+
+async function showClubClassement(clubNom, saisonKey) {
+    const saisonConfig = SAISONS_CONFIG[saisonKey];
+    const encodedClub = encodeURIComponent(clubNom);
+    const searchUrl = `${WORKER_BASE_URL}search?Club=${encodedClub}&sheet=Coureurs&saison=${saisonKey}`;
+
+    const container = document.getElementById('classement-container');
+    if (container) {
+        container.innerHTML = `<p style="color:#fff;">Chargement du classement pour le club ${clubNom}...</p>`;
+    }
+    
+    try {
+        const response = await fetch(searchUrl);
+        if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}.`);
+        const data = await response.json();
+        
+        const filteredMembers = data.filter(member => member.Club && member.Club.trim() === clubNom.trim());
+        renderClubDetails(filteredMembers, clubNom); 
+    } catch (error) {
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Erreur lors de la récupération des membres du club.</p>`;
+        }
+    }
+}
+
+function handleMasterFilterChange(event) {
+    event.preventDefault(); 
+    const button = event.target.closest('a.master-button');
+    if (!button) return;
+    const selectedMaster = button.getAttribute('data-master');
+    document.querySelectorAll('#nav-masters .master-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    button.classList.add('active');
+    let filteredData = globalClassementData;
+    if (selectedMaster !== 'all') {
+        filteredData = globalClassementData.filter(coureur => {
+            return coureur.Master === selectedMaster; 
+        });
+    }
+    renderTable(filteredData);
+}
+
+// --- 7. Fonction Principale ---
+
+async function init() {
+    const container = document.getElementById('classement-container');
+    let currentSaison = getSaisonFromURL(); 
+    let currentCategoryKey = getCategoryFromURL();
+    
+    if (!SAISONS_CONFIG[currentSaison]) {
+        currentSaison = DEFAULT_SAISON; 
+    }
+
+    const refreshContent = async () => {
+        const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
+        document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
+        
+        createNavBar(currentSaison, currentCategoryKey);
+        attachSeasonListeners();
+
+        const btnCalendrier = document.getElementById('btn-tab-calendrier');
+
+        if (btnCalendrier && btnCalendrier.classList.contains('active')) {
+            loadCalendar(currentSaison);
+        } else {
+            const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey);
+            const seasonParagraph = document.querySelector('header p');
+            if(seasonParagraph) seasonParagraph.textContent = `Saison ${currentSaison}`;
+            
+            if (jsonUrl) {
+                container.innerHTML = `<p style="text-align:center; padding:20px; color:#fff;">Chargement ${currentSaison}...</p>`;
+                const rawData = await fetchClassementData(jsonUrl); 
+                globalClassementData = rawData;
+                renderTable(rawData);
+                
+                globalRawData = {}; 
+                loadAllRawResults(currentSaison);
+            }
+        }
+    };
+
+    const attachSeasonListeners = () => {
+        const seasonLinks = document.querySelectorAll('.season-link');
+        seasonLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault(); 
+                const newSaison = link.getAttribute('data-saison');
+                if (newSaison !== currentSaison) {
+                    currentSaison = newSaison;
+                    refreshContent(); 
+                }
+            });
+        });
+    };
+
+    const jsonUrl = buildJsonUrl(currentSaison, currentCategoryKey); 
+    const categoryName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name || currentCategoryKey.toUpperCase();
+    
+    document.title = `Classement ${categoryName} - Route ${currentSaison}`; 
+    createNavBar(currentSaison, currentCategoryKey);
+    attachSeasonListeners();
+    initTabs(currentSaison); 
+    
+    const searchBtn = document.getElementById('global-search-btn');
+    const searchInput = document.getElementById('global-search-input');
+    if (searchBtn && searchInput) {
+        searchBtn.addEventListener('click', performGlobalSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performGlobalSearch();
+        });
+    }
+
+    const h1 = document.querySelector('h1');
+    if (h1) h1.textContent = "Coupe de la Réunion Route"; 
+    const categoryTitleElement = document.getElementById('category-title');
+    if (categoryTitleElement) categoryTitleElement.textContent = ""; 
+    
+    if (jsonUrl) {
+        if (container) {
+            container.innerHTML = `<p style="color:#fff;">Chargement des données de ${currentSaison}...</p>`;
+        }
+        
+        const rawData = await fetchClassementData(jsonUrl); 
+        globalClassementData = rawData;
+        
+        const rawResultsPromise = loadAllRawResults(currentSaison);
+        
+        const mastersContainer = document.getElementById('nav-masters');
+        if (mastersContainer) {
+            mastersContainer.addEventListener('click', handleMasterFilterChange);
+        }
+        
+        const classementContainer = document.getElementById('classement-container');
+        if (classementContainer) {
+            classementContainer.addEventListener('click', async (e) => {
+                const link = e.target.closest('.coureur-link');
+                if (link) {
+                    e.preventDefault();
+                    const nom = link.getAttribute('data-nom'); 
+                    
+                    classementContainer.innerHTML = `<p style="text-align:center; padding:20px; color:#fff;">Chargement du détail pour ${nom}...</p>`;
+                    
+                    const results = await loadAllRawResults(currentSaison);
+                    showCoureurDetails(nom, currentSaison, results); 
+                }
+            });
+            
+            classementContainer.addEventListener('click', (e) => {
+                const link = e.target.closest('.club-link');
+                if (link) {
+                    e.preventDefault();
+                    const clubNom = link.getAttribute('data-club'); 
+                    showClubClassement(clubNom, currentSaison);
+                }
+            });
+        }
+        renderTable(rawData);
+    } else {
+        if (container) {
+            container.innerHTML = `<p style="color: red;">Configuration des données manquante.</p>`;
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', init);
