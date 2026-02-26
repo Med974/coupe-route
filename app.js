@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v75 - FINAL : Sans Texte Joker)
+// FICHIER : app.js (v75 - FINAL : Navigation avec onglet Règlement)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -267,9 +267,11 @@ function renderCalendar(races) {
 function initTabs(currentSaison) {
     const btnClassement = document.getElementById('btn-tab-classement');
     const btnCalendrier = document.getElementById('btn-tab-calendrier');
+    const btnReglement = document.getElementById('btn-tab-reglement');
     
     const viewClassement = document.getElementById('classement-container');
     const viewCalendrier = document.getElementById('calendrier-container');
+    const viewReglement = document.getElementById('reglement-container');
     
     const filtersContainer = document.getElementById('filters-container');
     const navCategories = document.getElementById('nav-categories');
@@ -277,8 +279,8 @@ function initTabs(currentSaison) {
     const searchContainer = document.querySelector('.search-container');
     const categoryTitle = document.getElementById('category-title');
 
-    const tabs = [btnClassement, btnCalendrier];
-    const views = [viewClassement, viewCalendrier];
+    const tabs = [btnClassement, btnCalendrier, btnReglement];
+    const views = [viewClassement, viewCalendrier, viewReglement];
 
     function switchTab(targetBtn, targetView, mode) {
         tabs.forEach(btn => btn && btn.classList.remove('active'));
@@ -294,9 +296,13 @@ function initTabs(currentSaison) {
             if(navMasters) navMasters.style.display = 'block';
             if(searchContainer) searchContainer.style.display = 'flex';
             if(categoryTitle) categoryTitle.style.display = 'block';
-        } else {
+        } else if (mode === 'calendrier') {
             if(navCategories) navCategories.style.display = 'none';
             if(navMasters) navMasters.style.display = 'none';
+            if(searchContainer) searchContainer.style.display = 'none';
+            if(categoryTitle) categoryTitle.style.display = 'none';
+        } else if (mode === 'reglement') {
+            if(filtersContainer) filtersContainer.style.display = 'none';
             if(searchContainer) searchContainer.style.display = 'none';
             if(categoryTitle) categoryTitle.style.display = 'none';
         }
@@ -311,6 +317,10 @@ function initTabs(currentSaison) {
             const activeSaison = activeSaisonBtn ? activeSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
             loadCalendar(activeSaison);
         });
+    }
+
+    if (btnReglement) {
+        btnReglement.addEventListener('click', () => switchTab(btnReglement, viewReglement, 'reglement'));
     }
 }
 
@@ -440,17 +450,25 @@ function renderCoureurDetails(details) {
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
 
     // --- CALCUL INTELLIGENT DU JOKER ---
+    
+    // 1. Récupérer les données de la saison pour savoir combien il y a eu de courses AU TOTAL
     const currentSaisonBtn = document.querySelector('.season-link.active');
     const currentSaison = currentSaisonBtn ? currentSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
     const allResults = globalRawData[currentSaison] || [];
     
     const allUniqueRaces = new Set(allResults.map(r => r.Course).filter(c => c && c.trim() !== ""));
     const totalRacesInSeason = allUniqueRaces.size || 1; 
+
+    // 2. Compter le nombre de courses du coureur
     const runnerRacesCount = details.length;
 
+    // 3. JOKER ACTIF ? Seulement si participation à TOUTES les courses ET au moins 4 courses dans la saison
     const jokerActive = (runnerRacesCount === totalRacesInSeason) && (totalRacesInSeason >= 4);
 
+    // 4. Calcul des points
+    let totalPoints = 0;
     let scores = [];
+
     details.forEach(course => {
         const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
@@ -459,13 +477,17 @@ function renderCoureurDetails(details) {
     });
 
     const minScore = (scores.length > 0) ? Math.min(...scores) : -1;
+
+    // Somme totale - Min (si joker actif)
     const sumAll = scores.reduce((a, b) => a + b, 0);
     const finalTotal = jokerActive ? (sumAll - minScore) : sumAll;
 
+    
+    // --- HTML ---
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
     html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${finalTotal}</p>`;
 
-    // --- GAP LOGIC ---
+    // --- GAP LOGIC (Ecarts) ---
     let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
         const val = row.PointsTotal || row["Points Total"] || "0";
@@ -515,11 +537,13 @@ function renderCoureurDetails(details) {
     html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
     
     let jokerMarked = false; 
+
     details.forEach(course => {
         const points = parseInt(String(course.Points).replace(/[^\d]/g, '')) || 0;
         let rowClass = "";
         let jokerBadge = "";
 
+        // Application visuelle du Joker
         if (jokerActive && points === minScore && !jokerMarked) {
             rowClass = "worst-performance";
             jokerBadge = `<span class="joker-badge">Joker</span>`;
