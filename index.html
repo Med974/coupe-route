@@ -14,7 +14,7 @@
         <h1>Coupe de la Réunion Route</h1> 
         <h2 id="category-title"></h2> 
         
-        <!-- NOUVEAU : Barre de Recherche Globale -->
+        <!-- Barre de Recherche Globale -->
         <div class="search-container">
             <input type="text" id="global-search-input" placeholder="Rechercher un coureur..." />
             <button id="global-search-btn">🔍</button>
@@ -24,6 +24,7 @@
         <div id="main-tabs">
             <button id="btn-tab-classement" class="main-tab active">📊 Classements</button>
             <button id="btn-tab-calendrier" class="main-tab">📅 Calendrier</button>
+            <button id="btn-tab-reglement" class="main-tab">📜 Règlement</button>
         </div>
 
         <!-- Les filtres de classement -->
@@ -44,6 +45,16 @@
             <!-- Conteneur Calendrier -->
             <div id="calendrier-container" style="display: none;">
                 <p>Chargement du calendrier...</p>
+            </div>
+
+            <!-- Conteneur Règlement -->
+            <div id="reglement-container" style="display: none; text-align: center;">
+                <h3>Règlement Officiel</h3>
+                <!-- Le PDF sera affiché ici -->
+                <iframe src="reglement.pdf" width="100%" height="800px" style="border:none; border-radius: 15px; margin-top: 20px; background-color: white;"></iframe>
+                <p style="margin-top: 15px;">
+                    <a href="reglement.pdf" target="_blank" style="color: var(--color-lagon); text-decoration: underline; font-weight: bold;">Ouvrir / Télécharger le PDF</a>
+                </p>
             </div>
         </div>
     </main>
