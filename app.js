@@ -588,14 +588,6 @@ function renderCoureurDetails(details) {
     const participationPercent = Math.round((runnerRacesCount / totalRacesInSeason) * 100);
     const chartDegree = Math.round((participationPercent * 360) / 100);
     
-    // Texte explicatif Joker
-    let jokerText = 'Tous les points comptent (course ratée = 0).';
-    if (totalRacesInSeason < 4) {
-        jokerText = 'En attente (s\'active après 3 courses).';
-    } else if (jokerActive) {
-        jokerText = 'Moins bon résultat retiré car 100% de participation.';
-    }
-
     const chartHtml = `
         <div class="stats-container">
             <div class="participation-chart" style="background: conic-gradient(var(--color-lagon) ${chartDegree}deg, #444 0deg);">
@@ -605,13 +597,6 @@ function renderCoureurDetails(details) {
                 <h4>PARTICIPATION</h4>
                 <div class="big-number">${runnerRacesCount} / ${totalRacesInSeason}</div>
                 <div style="font-size:0.8em; color:#888;">Courses courues</div>
-            </div>
-            
-             <div class="stats-info" style="margin-left:auto; border-left:1px solid #444; padding-left:20px;">
-                <h4>RÈGLE JOKER</h4>
-                <div style="font-size:0.9em; ${jokerActive ? 'color:#27ae60' : 'color:#888'}">
-                    ${jokerActive ? '✅ ACTIVÉ' : '❌ INACTIF'}
-                </div>
             </div>
         </div>
     `;
