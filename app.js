@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v75 - FINAL : Navigation avec onglet Règlement)
+// FICHIER : app.js (v75 - FINAL : Sans Texte Joker)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -289,19 +289,20 @@ function initTabs(currentSaison) {
         if(targetBtn) targetBtn.classList.add('active');
         if(targetView) targetView.style.display = 'block';
 
-        if(filtersContainer) filtersContainer.style.display = 'block';
-
         if (mode === 'classement') {
+            if(filtersContainer) filtersContainer.style.display = 'block';
             if(navCategories) navCategories.style.display = 'block';
             if(navMasters) navMasters.style.display = 'block';
             if(searchContainer) searchContainer.style.display = 'flex';
             if(categoryTitle) categoryTitle.style.display = 'block';
         } else if (mode === 'calendrier') {
+            if(filtersContainer) filtersContainer.style.display = 'block';
             if(navCategories) navCategories.style.display = 'none';
             if(navMasters) navMasters.style.display = 'none';
             if(searchContainer) searchContainer.style.display = 'none';
             if(categoryTitle) categoryTitle.style.display = 'none';
         } else if (mode === 'reglement') {
+            // Sur l'onglet règlement, on cache tous les filtres et la recherche
             if(filtersContainer) filtersContainer.style.display = 'none';
             if(searchContainer) searchContainer.style.display = 'none';
             if(categoryTitle) categoryTitle.style.display = 'none';
@@ -512,11 +513,59 @@ function renderCoureurDetails(details) {
         }
     }
     gapsHtml += '</div>';
+
+    // --- NOUVEAU : GAP LOGIC MASTER (Ecarts Spécifiques Master) ---
+    const runnerData = globalClassementData[rankIndex];
+    if (runnerData && runnerData.Master && runnerData.Master.trim() !== '' && runnerData.Master.trim().toUpperCase() !== 'NON') {
+        const runnerMaster = runnerData.Master.trim();
+        // On isole tous les coureurs de cette catégorie Master
+        const masterData = globalClassementData.filter(c => c.Master && c.Master.trim() === runnerMaster);
+        const masterRankIndex = masterData.findIndex(c => c.Nom === coureurNom);
+        
+        // S'il n'est pas tout seul dans sa catégorie Master
+        if (masterRankIndex !== -1 && masterData.length > 1) { 
+            gapsHtml += `<h4 style="text-align:center; color: var(--color-lagon); margin-top: 20px; font-size: 1.1em; text-transform: uppercase;">Bataille Master (${runnerMaster})</h4>`;
+            gapsHtml += '<div class="gap-container">';
+            
+            const currentPoints = getPointsSafe(masterData[masterRankIndex]);
+            
+            // Lièvre Master
+            if (masterRankIndex > 0) {
+                const runnerAhead = masterData[masterRankIndex - 1];
+                const pointsAhead = getPointsSafe(runnerAhead);
+                const diff = pointsAhead - currentPoints;
+                // Sa position Master correspond à son index (masterRankIndex) puisqu'on est en base 0
+                gapsHtml += `<div class="gap-card chase"><strong>🛑 Retard : -${diff} pts</strong><span class="gap-name">sur ${runnerAhead.Nom} (#${masterRankIndex})</span></div>`;
+            } else {
+                gapsHtml += `<div class="gap-card lead"><strong>👑 Leader Master ${runnerMaster}</strong></div>`;
+            }
+            
+            // Chasseur Master
+            if (masterRankIndex < masterData.length - 1) {
+                const runnerBehind = masterData[masterRankIndex + 1];
+                const pointsBehind = getPointsSafe(runnerBehind);
+                const diff = currentPoints - pointsBehind;
+                // Sa position Master est index + 2
+                gapsHtml += `<div class="gap-card lead"><strong>✅ Avance : +${diff} pts</strong><span class="gap-name">sur ${runnerBehind.Nom} (#${masterRankIndex + 2})</span></div>`;
+            }
+            
+            gapsHtml += '</div>';
+        }
+    }
+    // --------------------------------------------------------------
     
     // --- CAMEMBERT ---
     const participationPercent = Math.round((runnerRacesCount / totalRacesInSeason) * 100);
     const chartDegree = Math.round((participationPercent * 360) / 100);
     
+    // Texte explicatif Joker
+    let jokerText = 'Tous les points comptent (course ratée = 0).';
+    if (totalRacesInSeason < 4) {
+        jokerText = 'En attente (s\'active après 3 courses).';
+    } else if (jokerActive) {
+        jokerText = 'Moins bon résultat retiré car 100% de participation.';
+    }
+
     const chartHtml = `
         <div class="stats-container">
             <div class="participation-chart" style="background: conic-gradient(var(--color-lagon) ${chartDegree}deg, #444 0deg);">
@@ -526,6 +575,13 @@ function renderCoureurDetails(details) {
                 <h4>PARTICIPATION</h4>
                 <div class="big-number">${runnerRacesCount} / ${totalRacesInSeason}</div>
                 <div style="font-size:0.8em; color:#888;">Courses courues</div>
+            </div>
+            
+             <div class="stats-info" style="margin-left:auto; border-left:1px solid #444; padding-left:20px;">
+                <h4>RÈGLE JOKER</h4>
+                <div style="font-size:0.9em; ${jokerActive ? 'color:#27ae60' : 'color:#888'}">
+                    ${jokerActive ? '✅ ACTIVÉ' : '❌ INACTIF'}
+                </div>
             </div>
         </div>
     `;
