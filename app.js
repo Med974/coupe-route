@@ -486,7 +486,37 @@ function renderCoureurDetails(details) {
     
     // --- HTML ---
     let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
-    html += `<p style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">TOTAL DES POINTS: ${finalTotal}</p>`;
+    
+    // --- NOUVEAU : Récupération et affichage des positions ---
+    const rankIndex = globalClassementData.findIndex(c => c.Nom === coureurNom);
+    let generalRank = "?";
+    let masterRank = "?";
+    let runnerMaster = "";
+
+    if (rankIndex !== -1) {
+        const runnerData = globalClassementData[rankIndex];
+        generalRank = runnerData.Classement || (rankIndex + 1);
+
+        if (runnerData.Master && runnerData.Master.trim() !== '' && runnerData.Master.trim().toUpperCase() !== 'NON') {
+            runnerMaster = runnerData.Master.trim();
+            const pts = parseInt(String(runnerData.PointsTotal || runnerData["Points Total"] || "0").replace(/[^\d]/g, '')) || 0;
+            const masterData = globalClassementData.filter(c => c.Master && c.Master.trim() === runnerMaster);
+            // On trouve sa position Master (en gérant les égalités de points)
+            const firstTieIndex = masterData.findIndex(c => (parseInt(String(c.PointsTotal || c["Points Total"] || "0").replace(/[^\d]/g, '')) || 0) === pts);
+            masterRank = firstTieIndex !== -1 ? (firstTieIndex + 1) : "?";
+        }
+    }
+
+    // Encart stylisé pour le total et les positions (adapté au Dark Mode)
+    html += `<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid var(--color-border);">`;
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin: 0 0 10px 0; color: #fff;">TOTAL DES POINTS : <span style="color: var(--color-lagon); font-size: 1.3em;">${finalTotal}</span></p>`;
+    html += `<div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">`;
+    html += `<div style="font-size: 1.05em; background: #252525; padding: 8px 15px; border-radius: 8px; border: 1px solid #333;">🏆 Général : <strong style="color:var(--color-lagon);">#${generalRank}</strong></div>`;
+    if (runnerMaster) {
+        html += `<div style="font-size: 1.05em; background: #252525; padding: 8px 15px; border-radius: 8px; border: 1px solid #333;">🏅 Master ${runnerMaster} : <strong style="color:var(--color-lagon);">#${masterRank}</strong></div>`;
+    }
+    html += `</div></div>`;
+    // ---------------------------------------------------------
 
     // --- GAP LOGIC (Ecarts) ---
     let gapsHtml = '<div class="gap-container">';
@@ -494,7 +524,7 @@ function renderCoureurDetails(details) {
         const val = row.PointsTotal || row["Points Total"] || "0";
         return parseInt(String(val).replace(/[^\d]/g, '')) || 0;
     };
-    const rankIndex = globalClassementData.findIndex(c => c.Nom === coureurNom);
+    
     if (rankIndex !== -1) {
         const currentPoints = getPointsSafe(globalClassementData[rankIndex]);
         if (rankIndex > 0) {
