@@ -1,5 +1,5 @@
 // =======================================================================
-// FICHIER : app.js (v75 - FINAL : Sans Texte Joker)
+// FICHIER : app.js (v76 - Fiche Coureur Concisée)
 // =======================================================================
 
 // --- 1. Configuration Multi-Saisons ---
@@ -302,7 +302,6 @@ function initTabs(currentSaison) {
             if(searchContainer) searchContainer.style.display = 'none';
             if(categoryTitle) categoryTitle.style.display = 'none';
         } else if (mode === 'reglement') {
-            // Sur l'onglet règlement, on cache tous les filtres et la recherche
             if(filtersContainer) filtersContainer.style.display = 'none';
             if(searchContainer) searchContainer.style.display = 'none';
             if(categoryTitle) categoryTitle.style.display = 'none';
@@ -451,8 +450,6 @@ function renderCoureurDetails(details) {
     const coureurDossardAffichage = getDisplayDossard(coureurDossardRecherche); 
 
     // --- CALCUL INTELLIGENT DU JOKER ---
-    
-    // 1. Récupérer les données de la saison pour savoir combien il y a eu de courses AU TOTAL
     const currentSaisonBtn = document.querySelector('.season-link.active');
     const currentSaison = currentSaisonBtn ? currentSaisonBtn.getAttribute('data-saison') : getSaisonFromURL();
     const allResults = globalRawData[currentSaison] || [];
@@ -460,16 +457,10 @@ function renderCoureurDetails(details) {
     const allUniqueRaces = new Set(allResults.map(r => r.Course).filter(c => c && c.trim() !== ""));
     const totalRacesInSeason = allUniqueRaces.size || 1; 
 
-    // 2. Compter le nombre de courses du coureur
     const runnerRacesCount = details.length;
-
-    // 3. JOKER ACTIF ? Seulement si participation à TOUTES les courses ET au moins 4 courses dans la saison
     const jokerActive = (runnerRacesCount === totalRacesInSeason) && (totalRacesInSeason >= 4);
 
-    // 4. Calcul des points
-    let totalPoints = 0;
     let scores = [];
-
     details.forEach(course => {
         const points = parseInt(String(course.Points).replace(/[^\d.]/g, '')) || 0; 
         if (!isNaN(points)) {
@@ -478,16 +469,11 @@ function renderCoureurDetails(details) {
     });
 
     const minScore = (scores.length > 0) ? Math.min(...scores) : -1;
-
-    // Somme totale - Min (si joker actif)
     const sumAll = scores.reduce((a, b) => a + b, 0);
     const finalTotal = jokerActive ? (sumAll - minScore) : sumAll;
 
     
-    // --- HTML ---
-    let html = `<h3 style="color:var(--color-volcan);">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
-    
-    // --- NOUVEAU : Récupération et affichage des positions ---
+    // --- NOUVEAU : Récupération des positions et calcul Camembert ---
     const rankIndex = globalClassementData.findIndex(c => c.Nom === coureurNom);
     let generalRank = "?";
     let masterRank = "?";
@@ -501,25 +487,42 @@ function renderCoureurDetails(details) {
             runnerMaster = runnerData.Master.trim();
             const pts = parseInt(String(runnerData.PointsTotal || runnerData["Points Total"] || "0").replace(/[^\d]/g, '')) || 0;
             const masterData = globalClassementData.filter(c => c.Master && c.Master.trim() === runnerMaster);
-            // On trouve sa position Master (en gérant les égalités de points)
             const firstTieIndex = masterData.findIndex(c => (parseInt(String(c.PointsTotal || c["Points Total"] || "0").replace(/[^\d]/g, '')) || 0) === pts);
             masterRank = firstTieIndex !== -1 ? (firstTieIndex + 1) : "?";
         }
     }
 
-    // Encart stylisé pour le total et les positions (adapté au Dark Mode)
-    html += `<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid var(--color-border);">`;
-    html += `<p style="font-size: 1.2em; font-weight: bold; margin: 0 0 10px 0; color: #fff;">TOTAL DES POINTS : <span style="color: var(--color-lagon); font-size: 1.3em;">${finalTotal}</span></p>`;
-    html += `<div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">`;
+    const participationPercent = Math.round((runnerRacesCount / totalRacesInSeason) * 100);
+    const chartDegree = Math.round((participationPercent * 360) / 100);
+
+    // --- HTML : Encart Principal FUSIONNÉ (Total + Graphique) ---
+    let html = `<h3 style="color:var(--color-volcan); text-align: center; margin-bottom: 25px; font-size: 1.6em; text-transform: uppercase;">Résultats Détaillés : ${coureurNom} (Dossard ${coureurDossardAffichage})</h3>`;
+    
+    html += `<div style="background: var(--color-background-card); padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--color-border); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-around; gap: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">`;
+    
+    // Gauche : Total des points et Classements
+    html += `<div style="text-align: center; flex: 1; min-width: 250px;">`;
+    html += `<p style="font-size: 1.2em; font-weight: bold; margin: 0 0 15px 0; color: #fff; text-transform: uppercase;">Total des points : <span style="color: var(--color-lagon); font-size: 1.4em; display: inline-block; margin-left: 5px;">${finalTotal}</span></p>`;
+    html += `<div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">`;
     html += `<div style="font-size: 1.05em; background: #252525; padding: 8px 15px; border-radius: 8px; border: 1px solid #333;">🏆 Général : <strong style="color:var(--color-lagon);">#${generalRank}</strong></div>`;
     if (runnerMaster) {
         html += `<div style="font-size: 1.05em; background: #252525; padding: 8px 15px; border-radius: 8px; border: 1px solid #333;">🏅 Master ${runnerMaster} : <strong style="color:var(--color-lagon);">#${masterRank}</strong></div>`;
     }
     html += `</div></div>`;
-    // ---------------------------------------------------------
+
+    // Droite : Graphique de participation
+    html += `<div style="display: flex; align-items: center; gap: 20px; flex: 1; min-width: 250px; justify-content: center; border-left: 1px solid #333; padding-left: 10px;">`;
+    html += `<div class="participation-chart" style="background: conic-gradient(var(--color-lagon) ${chartDegree}deg, #444 0deg); margin: 0;">`;
+    html += `<span class="chart-text">${participationPercent}%</span></div>`;
+    html += `<div class="stats-info" style="text-align: left;">`;
+    html += `<h4 style="margin: 0 0 5px; color: var(--color-text-muted); font-size: 0.85em; text-transform: uppercase;">Participation</h4>`;
+    html += `<div class="big-number" style="font-size: 1.8em; font-weight: 800; color: var(--color-lagon); line-height: 1;">${runnerRacesCount} <span style="font-size: 0.6em; color: #888;">/ ${totalRacesInSeason}</span></div>`;
+    html += `<div style="font-size:0.8em; color:#888; margin-top: 2px;">Courses courues</div>`;
+    html += `</div></div>`;
+    
+    html += `</div>`; // Fin de l'encart fusionné
 
     // --- GAP LOGIC (Ecarts) ---
-    let gapsHtml = '<div class="gap-container">';
     const getPointsSafe = (row) => {
         const val = row.PointsTotal || row["Points Total"] || "0";
         return parseInt(String(val).replace(/[^\d]/g, '')) || 0;
@@ -527,82 +530,58 @@ function renderCoureurDetails(details) {
     
     if (rankIndex !== -1) {
         const currentPoints = getPointsSafe(globalClassementData[rankIndex]);
-        if (rankIndex > 0) {
-            const runnerAhead = globalClassementData[rankIndex - 1];
-            const pointsAhead = getPointsSafe(runnerAhead);
-            const diff = pointsAhead - currentPoints;
-            gapsHtml += `<div class="gap-card chase"><strong>🛑 Retard : -${diff} pts</strong><span class="gap-name">sur ${runnerAhead.Nom} (#${runnerAhead.Classement})</span></div>`;
-        } else {
-             gapsHtml += `<div class="gap-card lead"><strong>👑 Leader du classement</strong></div>`;
-        }
-        if (rankIndex < globalClassementData.length - 1) {
-            const runnerBehind = globalClassementData[rankIndex + 1];
-            const pointsBehind = getPointsSafe(runnerBehind);
-            const diff = currentPoints - pointsBehind;
-            gapsHtml += `<div class="gap-card lead"><strong>✅ Avance : +${diff} pts</strong><span class="gap-name">sur ${runnerBehind.Nom} (#${runnerBehind.Classement})</span></div>`;
-        }
-    }
-    gapsHtml += '</div>';
-
-    // --- NOUVEAU : GAP LOGIC MASTER (Ecarts Spécifiques Master) ---
-    const runnerData = globalClassementData[rankIndex];
-    if (runnerData && runnerData.Master && runnerData.Master.trim() !== '' && runnerData.Master.trim().toUpperCase() !== 'NON') {
-        const runnerMaster = runnerData.Master.trim();
-        // On isole tous les coureurs de cette catégorie Master
-        const masterData = globalClassementData.filter(c => c.Master && c.Master.trim() === runnerMaster);
-        const masterRankIndex = masterData.findIndex(c => c.Nom === coureurNom);
         
-        // S'il n'est pas tout seul dans sa catégorie Master
-        if (masterRankIndex !== -1 && masterData.length > 1) { 
-            gapsHtml += `<h4 style="text-align:center; color: var(--color-lagon); margin-top: 20px; font-size: 1.1em; text-transform: uppercase;">Bataille Master (${runnerMaster})</h4>`;
-            gapsHtml += '<div class="gap-container">';
-            
-            const currentPoints = getPointsSafe(masterData[masterRankIndex]);
-            
-            // Lièvre Master
-            if (masterRankIndex > 0) {
-                const runnerAhead = masterData[masterRankIndex - 1];
+        // Affichage des écarts pour le classement général (s'il y a plus d'un coureur)
+        if (globalClassementData.length > 1) {
+            html += `<h4 style="text-align:center; color: var(--color-lagon); margin-top: 10px; margin-bottom: 15px; font-size: 1.1em; text-transform: uppercase;">Classement Général</h4>`;
+            html += '<div class="gap-container" style="margin-bottom: 25px;">';
+            if (rankIndex > 0) {
+                const runnerAhead = globalClassementData[rankIndex - 1];
                 const pointsAhead = getPointsSafe(runnerAhead);
                 const diff = pointsAhead - currentPoints;
-                // Sa position Master correspond à son index (masterRankIndex) puisqu'on est en base 0
-                gapsHtml += `<div class="gap-card chase"><strong>🛑 Retard : -${diff} pts</strong><span class="gap-name">sur ${runnerAhead.Nom} (#${masterRankIndex})</span></div>`;
+                html += `<div class="gap-card chase"><strong>🛑 Retard : -${diff} pts</strong><span class="gap-name">sur ${runnerAhead.Nom} (#${runnerAhead.Classement || rankIndex})</span></div>`;
             } else {
-                gapsHtml += `<div class="gap-card lead"><strong>👑 Leader Master ${runnerMaster}</strong></div>`;
+                 html += `<div class="gap-card lead"><strong>👑 Leader du classement</strong></div>`;
             }
-            
-            // Chasseur Master
-            if (masterRankIndex < masterData.length - 1) {
-                const runnerBehind = masterData[masterRankIndex + 1];
+            if (rankIndex < globalClassementData.length - 1) {
+                const runnerBehind = globalClassementData[rankIndex + 1];
                 const pointsBehind = getPointsSafe(runnerBehind);
                 const diff = currentPoints - pointsBehind;
-                // Sa position Master est index + 2
-                gapsHtml += `<div class="gap-card lead"><strong>✅ Avance : +${diff} pts</strong><span class="gap-name">sur ${runnerBehind.Nom} (#${masterRankIndex + 2})</span></div>`;
+                html += `<div class="gap-card lead"><strong>✅ Avance : +${diff} pts</strong><span class="gap-name">sur ${runnerBehind.Nom} (#${runnerBehind.Classement || rankIndex + 2})</span></div>`;
             }
+            html += '</div>';
+        }
+
+        // Affichage des écarts pour le classement Master
+        if (runnerMaster) {
+            const masterData = globalClassementData.filter(c => c.Master && c.Master.trim() === runnerMaster);
+            const masterRankIndex = masterData.findIndex(c => c.Nom === coureurNom);
             
-            gapsHtml += '</div>';
+            if (masterRankIndex !== -1 && masterData.length > 1) { 
+                html += `<h4 style="text-align:center; color: var(--color-lagon); margin-top: 25px; margin-bottom: 15px; font-size: 1.1em; text-transform: uppercase;">Bataille Master (${runnerMaster})</h4>`;
+                html += '<div class="gap-container" style="margin-bottom: 35px;">';
+                
+                const currentMasterPoints = getPointsSafe(masterData[masterRankIndex]);
+                
+                if (masterRankIndex > 0) {
+                    const runnerAhead = masterData[masterRankIndex - 1];
+                    const pointsAhead = getPointsSafe(runnerAhead);
+                    const diff = pointsAhead - currentMasterPoints;
+                    html += `<div class="gap-card chase"><strong>🛑 Retard : -${diff} pts</strong><span class="gap-name">sur ${runnerAhead.Nom} (#${masterRankIndex})</span></div>`;
+                } else {
+                    html += `<div class="gap-card lead"><strong>👑 Leader Master ${runnerMaster}</strong></div>`;
+                }
+                
+                if (masterRankIndex < masterData.length - 1) {
+                    const runnerBehind = masterData[masterRankIndex + 1];
+                    const pointsBehind = getPointsSafe(runnerBehind);
+                    const diff = currentMasterPoints - pointsBehind;
+                    html += `<div class="gap-card lead"><strong>✅ Avance : +${diff} pts</strong><span class="gap-name">sur ${runnerBehind.Nom} (#${masterRankIndex + 2})</span></div>`;
+                }
+                html += '</div>';
+            }
         }
     }
-    // --------------------------------------------------------------
-    
-    // --- CAMEMBERT ---
-    const participationPercent = Math.round((runnerRacesCount / totalRacesInSeason) * 100);
-    const chartDegree = Math.round((participationPercent * 360) / 100);
-    
-    const chartHtml = `
-        <div class="stats-container">
-            <div class="participation-chart" style="background: conic-gradient(var(--color-lagon) ${chartDegree}deg, #444 0deg);">
-                <span class="chart-text">${participationPercent}%</span>
-            </div>
-            <div class="stats-info">
-                <h4>PARTICIPATION</h4>
-                <div class="big-number">${runnerRacesCount} / ${totalRacesInSeason}</div>
-                <div style="font-size:0.8em; color:#888;">Courses courues</div>
-            </div>
-        </div>
-    `;
-    
-    html += chartHtml;
-    html += gapsHtml;
 
     html += '<table class="details-table">';
     html += '<thead><tr><th>Date</th><th>Course</th><th>Pos.</th><th>Catégorie</th><th>Points</th></tr></thead><tbody>';
@@ -614,7 +593,6 @@ function renderCoureurDetails(details) {
         let rowClass = "";
         let jokerBadge = "";
 
-        // Application visuelle du Joker
         if (jokerActive && points === minScore && !jokerMarked) {
             rowClass = "worst-performance";
             jokerBadge = `<span class="joker-badge">Joker</span>`;
@@ -739,6 +717,30 @@ function handleMasterFilterChange(event) {
     if (selectedMaster !== 'all') {
         filteredData = globalClassementData.filter(coureur => {
             return coureur.Master === selectedMaster; 
+        });
+        
+        // Recalcul dynamique du classement Master
+        let currentRank = 1;
+        let previousPoints = -1;
+        let tieCount = 0;
+        
+        const getPointsSafe = (row) => {
+            const val = row.PointsTotal || row["Points Total"] || "0";
+            return parseInt(String(val).replace(/[^\d]/g, '')) || 0;
+        };
+
+        filteredData = filteredData.map((coureur, index) => {
+            const pts = getPointsSafe(coureur);
+            if (index === 0) {
+                previousPoints = pts;
+            } else if (pts < previousPoints) {
+                currentRank = currentRank + tieCount + 1;
+                tieCount = 0;
+                previousPoints = pts;
+            } else {
+                tieCount++;
+            }
+            return { ...coureur, Classement: currentRank }; 
         });
     }
     renderTable(filteredData);
