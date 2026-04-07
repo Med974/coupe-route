@@ -5,19 +5,6 @@
 // --- 1. Configuration Multi-Saisons ---
 
 const SAISONS_CONFIG = {
-    '2025': {
-        name: 'Saison 2025',
-        apiId: 'hiydnpj4xuxdz', 
-        categories: {
-            'open': { name: 'OPEN', sheetName: 'Open' },
-            'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
-            'access34': { name: 'Access 3/4', sheetName: 'Access34' },
-            'femmes': { name: 'Femmes', sheetName: 'Femmes' },
-            'u17': { name: 'U17', sheetName: 'U17' },
-            'u15': { name: 'U15', sheetName: 'U15' },
-            'u15u17f': { name: 'U15/U17 Filles', sheetName: 'U15U17Femmes' },
-        }
-    },
     '2026': {
         name: 'Saison 2026',
         apiId: 'guq5nvsip34b6', 
