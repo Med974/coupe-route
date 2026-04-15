@@ -5,19 +5,6 @@
 // --- 1. Configuration Multi-Saisons ---
 
 const SAISONS_CONFIG = {
-    '2025': {
-        name: 'Saison 2025',
-        apiId: 'hiydnpj4xuxdz', 
-        categories: {
-            'open': { name: 'OPEN', sheetName: 'Open' },
-            'access12': { name: 'Access 1/2', sheetName: 'Access12' }, 
-            'access34': { name: 'Access 3/4', sheetName: 'Access34' },
-            'femmes': { name: 'Femmes', sheetName: 'Femmes' },
-            'u17': { name: 'U17', sheetName: 'U17' },
-            'u15': { name: 'U15', sheetName: 'U15' },
-            'u15u17f': { name: 'U15/U17 Filles', sheetName: 'U15U17Femmes' },
-        }
-    },
     '2026': {
         name: 'Saison 2026',
         apiId: 'guq5nvsip34b6', 
@@ -37,7 +24,8 @@ const DEFAULT_SAISON = '2026';
 const DEFAULT_CATEGORY = 'open';
 
 let globalClassementData = []; 
-let globalRawData = {}; 
+let globalRawData = {};
+let globalCoureursData = {};
 
 const MASTERS_CONFIG = [
     { key: 'all', name: 'Général' },
@@ -107,6 +95,24 @@ async function loadAllRawResults(saisonKey) {
         return data;
     } catch (e) {
         console.error("Erreur chargement résultats bruts:", e);
+        return [];
+    }
+}
+
+async function loadAllCoureurs(saisonKey) {
+    if (globalCoureursData[saisonKey] && globalCoureursData[saisonKey].length > 0) {
+        return globalCoureursData[saisonKey];
+    }
+    const url = `${WORKER_BASE_URL}?saison=${saisonKey}&sheet=Coureurs`; 
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Erreur");
+        const data = await response.json();
+        globalCoureursData[saisonKey] = data; 
+        return data;
+    } catch (e) {
+        console.error("Erreur chargement liste globale coureurs:", e);
         return [];
     }
 }
@@ -681,21 +687,14 @@ function renderClubDetails(members, clubNom) {
 }
 
 async function showClubClassement(clubNom, saisonKey) {
-    const saisonConfig = SAISONS_CONFIG[saisonKey];
-    const encodedClub = encodeURIComponent(clubNom);
-    const searchUrl = `${WORKER_BASE_URL}search?Club=${encodedClub}&sheet=Coureurs&saison=${saisonKey}`;
-
     const container = document.getElementById('classement-container');
     if (container) {
         container.innerHTML = `<p style="color:#fff;">Chargement du classement pour le club ${clubNom}...</p>`;
     }
     
     try {
-        const response = await fetch(searchUrl);
-        if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}.`);
-        const data = await response.json();
-        
-        const filteredMembers = data.filter(member => member.Club && member.Club.trim() === clubNom.trim());
+        const allCoureurs = await loadAllCoureurs(saisonKey);
+        const filteredMembers = allCoureurs.filter(member => member.Club && member.Club.trim() === clubNom.trim());
         renderClubDetails(filteredMembers, clubNom); 
     } catch (error) {
         if (container) {
@@ -781,6 +780,7 @@ async function init() {
                 
                 globalRawData = {}; 
                 loadAllRawResults(currentSaison);
+                loadAllCoureurs(currentSaison);
             }
         }
     };
@@ -830,6 +830,7 @@ async function init() {
         globalClassementData = rawData;
         
         const rawResultsPromise = loadAllRawResults(currentSaison);
+        loadAllCoureurs(currentSaison);
         
         const mastersContainer = document.getElementById('nav-masters');
         if (mastersContainer) {
