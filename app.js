@@ -153,7 +153,8 @@ async function performGlobalSearch() {
     if (matches.length === 0) {
         container.innerHTML = `<p style="text-align:center; color:#fff;">Aucun coureur trouvé pour "${input.value}" en ${currentSaison}.</p><button onclick="window.location.reload()">Retour</button>`;
     } else if (matches.length === 1) {
-        const exactMatch = rawResults.filter(r => r.Nom === matches[0].Nom);
+        const targetCat = matches[0].Catégorie;
+        const exactMatch = rawResults.filter(r => r.Nom === matches[0].Nom && r.Catégorie === targetCat);
         renderCoureurDetails(exactMatch);
     } else {
         renderSearchResults(matches);
@@ -169,7 +170,7 @@ function renderSearchResults(matches) {
     
     matches.forEach(m => {
         html += `<tr>
-                    <td><a href="#" class="coureur-link" data-nom="${m.Nom}">${m.Nom}</a></td>
+                    <td><a href="#" class="coureur-link" data-nom="${m.Nom}" data-cat="${m.Catégorie}">${m.Nom}</a></td>
                     <td>${m.Catégorie || '-'}</td>
                     <td>${m.Club || '-'}</td>
                  </tr>`;
@@ -618,15 +619,20 @@ function renderCoureurDetails(details) {
     container.innerHTML = html;
 }
 
-async function showCoureurDetails(nom, saisonKey, allRawResults) {
+async function showCoureurDetails(nom, saisonKey, allRawResults, categoryName) {
     const container = document.getElementById('classement-container');
     if (container) {
         container.innerHTML = `<p style="color:#fff;">Chargement des résultats pour ${nom}...</p>`;
     }
     const rawResults = await allRawResults;
-    const filteredDetails = rawResults.filter(course => 
-        course.Nom && course.Nom.toString().trim() === nom.toString().trim()
-    );
+    
+    const filteredDetails = rawResults.filter(course => {
+        const matchNom = course.Nom && course.Nom.toString().trim() === nom.toString().trim();
+        // NOUVEAU : On filtre pour ne garder que les courses de la bonne catégorie
+        const matchCat = categoryName ? (course.Catégorie && course.Catégorie.toString().trim() === categoryName.toString().trim()) : true;
+        return matchNom && matchCat;
+    });
+    
     renderCoureurDetails(filteredDetails); 
 }
 
@@ -845,10 +851,16 @@ async function init() {
                     e.preventDefault();
                     const nom = link.getAttribute('data-nom'); 
                     
+                    // On récupère la catégorie ciblée (soit via la recherche, soit via l'onglet actif)
+                    let catName = link.getAttribute('data-cat');
+                    if (!catName) {
+                        catName = SAISONS_CONFIG[currentSaison]?.categories[currentCategoryKey]?.name;
+                    }
+
                     classementContainer.innerHTML = `<p style="text-align:center; padding:20px; color:#fff;">Chargement du détail pour ${nom}...</p>`;
                     
                     const results = await loadAllRawResults(currentSaison);
-                    showCoureurDetails(nom, currentSaison, results); 
+                    showCoureurDetails(nom, currentSaison, results, catName); 
                 }
             });
             
